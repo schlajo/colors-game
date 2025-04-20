@@ -5,9 +5,10 @@ import { generateSolution, createPuzzle, createBoard } from './utils/gameLogic';
 import { v4 as uuidv4 } from 'uuid';
 
 const App = () => {
-  const initialBoard = Array(9).fill().map(() =>
-    Array(9).fill().map(() => ({
+  const initialBoard = Array(7).fill().map(() =>
+    Array(7).fill().map(() => ({
       color: null,
+      isActive: false,
       isHole: false,
       id: uuidv4(),
     }))
@@ -16,6 +17,8 @@ const App = () => {
   const [board, setBoard] = useState(initialBoard);
   const [solutionBoard, setSolutionBoard] = useState([]);
   const [selectedColor, setSelectedColor] = useState(null);
+  const [lastClicked, setLastClicked] = useState(null);
+  const [selectedCell, setSelectedCell] = useState(null);
 
   const initializeBoard = () => {
     console.log('initializeBoard called');
@@ -34,14 +37,16 @@ const App = () => {
       setSolutionBoard([]);
       console.log('Board state updated with emptyBoard:', emptyBoard);
     }
+    setLastClicked(null);
+    setSelectedCell(null);
   };
 
   const checkSolution = () => {
     let isCorrect = true;
-    for (let row = 0; row < 9; row++) {
-      for (let col = 0; col < 9; col++) {
+    for (let row = 0; row < 7; row++) {
+      for (let col = 0; col < 7; col++) {
         if (!board[row][col].isHole) {
-          if (board[row][col].color !== solutionBoard[row][col].color) {
+          if (board[row][col].color !== (solutionBoard[row]?.[col]?.color || null)) {
             isCorrect = false;
             break;
           }
@@ -58,8 +63,8 @@ const App = () => {
 
   const getHint = () => {
     const emptyCells = [];
-    for (let row = 0; row < 9; row++) {
-      for (let col = 0; col < 9; col++) {
+    for (let row = 0; row < 7; row++) {
+      for (let col = 0; col < 7; col++) {
         if (!board[row][col].isHole && !board[row][col].color) {
           emptyCells.push([row, col]);
         }
@@ -72,45 +77,88 @@ const App = () => {
     }
 
     const [row, col] = emptyCells[Math.floor(Math.random() * emptyCells.length)];
-    const newBoard = [...board];
-    newBoard[row][col].color = solutionBoard[row][col].color;
+    const newBoard = JSON.parse(JSON.stringify(board));
+    newBoard[row][col].color = solutionBoard[row]?.[col]?.color || COLORS[Math.floor(Math.random() * COLORS.length)];
     setBoard(newBoard);
-    console.log(`Hint provided: Cell [${row},${col}] set to ${solutionBoard[row][col].color}`);
+    console.log(`Hint provided: Cell [${row},${col}] set to ${newBoard[row][col].color}`);
+  };
+
+  const deleteLast = () => {
+    if (!selectedCell) {
+      alert('No cell selected to delete!');
+      return;
+    }
+    const [row, col] = selectedCell;
+    if (!board[row][col].isHole && board[row][col].color) {
+      const newBoard = JSON.parse(JSON.stringify(board));
+      newBoard[row][col].color = null;
+      setBoard(newBoard);
+      setSelectedCell(null);
+      setLastClicked(null);
+      console.log(`Deleted color from cell [${row},${col}]`);
+    } else {
+      alert('Selected cell is empty or a hole!');
+    }
+  };
+
+  const clearBoard = () => {
+    const newBoard = JSON.parse(JSON.stringify(board));
+    for (let row = 0; row < 7; row++) {
+      for (let col = 0; col < 7; col++) {
+        if (!newBoard[row][col].isHole) {
+          newBoard[row][col].color = null;
+        }
+      }
+    }
+    setBoard(newBoard);
+    setLastClicked(null);
+    setSelectedCell(null);
+    console.log('Board cleared of player-placed colors');
   };
 
   useEffect(() => {
     console.log('useEffect running');
     initializeBoard();
-    console.log('Solution Board after init:', solutionBoard);
   }, []);
 
   const handleColorSelect = (color) => {
     setSelectedColor(color);
-    console.log('Selected color:', color);
+    console.log('Color selected:', color);
   };
 
   const handleCellClick = (row, col) => {
-    if (!board[row][col].isHole && !board[row][col].color) {
-      const newBoard = [...board];
+    console.log(`Cell clicked: [${row},${col}], isHole=${board[row][col].isHole}, selectedColor=${selectedColor}, hasColor=${board[row][col].color}`);
+    if (board[row][col].isHole) {
+      console.log(`Cell [${row},${col}] is a hole, cannot interact`);
+      return;
+    }
+    if (board[row][col].color) {
+      setSelectedCell([row, col]);
+      setLastClicked([row, col]);
+      console.log(`Cell [${row},${col}] selected for deletion`);
+    } else if (selectedColor) {
+      const newBoard = JSON.parse(JSON.stringify(board));
       newBoard[row][col].color = selectedColor;
       setBoard(newBoard);
-      console.log(`Cell [${row},${col}] updated to color:`, selectedColor);
+      setLastClicked([row, col]);
+      setSelectedCell(null);
+      console.log(`Cell [${row},${col}] updated to color: ${selectedColor}`);
+    } else {
+      alert('Please select a color first!');
+      console.log(`Cell [${row},${col}] not updated: no color selected`);
     }
   };
 
   return (
     <div className="flex flex-col items-center p-4">
       <h1 className="text-2xl font-bold mb-4">Color Mixing Puzzle</h1>
-      <div className="flex gap-2 mb-4">
-        <button
-          onClick={() => {
-            console.log('Start Game button clicked');
-            initializeBoard();
-          }}
-          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-        >
-          Start Game
-        </button>
+      <ColorBoard
+        board={board}
+        onCellClick={handleCellClick}
+        selectedCell={selectedCell}
+      />
+      <ColorPalette onColorSelect={handleColorSelect} selectedColor={selectedColor} />
+      <div className="flex justify-center gap-2 mt-4">
         <button
           onClick={() => {
             console.log('Check button clicked');
@@ -129,9 +177,34 @@ const App = () => {
         >
           Hint
         </button>
+        <button
+          onClick={() => {
+            console.log('Start Game button clicked');
+            initializeBoard();
+          }}
+          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+        >
+          Start Game
+        </button>
+        <button
+          onClick={() => {
+            console.log('Delete button clicked');
+            deleteLast();
+          }}
+          className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+        >
+          Delete
+        </button>
+        <button
+          onClick={() => {
+            console.log('Clear button clicked');
+            clearBoard();
+          }}
+          className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+        >
+          Clear
+        </button>
       </div>
-      <ColorBoard board={board} onCellClick={handleCellClick} />
-      <ColorPalette onColorSelect={handleColorSelect} selectedColor={selectedColor} />
     </div>
   );
 };
