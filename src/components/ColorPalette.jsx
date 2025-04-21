@@ -1,6 +1,6 @@
 import React from 'react';
 
-const ColorPalette = ({ onColorSelect, selectedColor, colors }) => {
+const ColorPalette = ({ onColorClick, colors }) => {
   return (
     <div className="mt-4">
       <div className="grid grid-cols-3 gap-2">
@@ -8,8 +8,8 @@ const ColorPalette = ({ onColorSelect, selectedColor, colors }) => {
           <button
             key={color}
             onClick={() => {
-              console.log('Palette button clicked, selecting color:', color);
-              onColorSelect(color);
+              console.log('Palette button clicked, applying color:', color);
+              onColorClick(color);
             }}
             className={`w-8 h-8 rounded-full
               ${color === 'blue' ? 'bg-blue-500' :
@@ -21,7 +21,7 @@ const ColorPalette = ({ onColorSelect, selectedColor, colors }) => {
                 color === 'cyan' ? 'bg-cyan-400' :
                 color === 'magenta' ? 'bg-pink-500' :
                 color === 'white' ? 'bg-white border border-gray-300' : 'bg-gray-200'
-              } ${selectedColor === color ? 'ring-2 ring-offset-2 ring-blue-500' : ''}`}
+              }`}
           />
         ))}
       </div>

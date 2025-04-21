@@ -1,13 +1,9 @@
 import { v4 as uuidv4 } from 'uuid';
 
-const GRID_SIZE = 7;
+const GRID_SIZE = 8;
 
-// Holes on white-ish (affected) cells
-const FIXED_HOLES = [
-  [1, 2], [1, 4],
-  [3, 0], [3,2], [3,4], [3, 6],
-  [5, 2], [5, 4],
-];
+// Holes (none for now, kept for future use)
+const FIXED_HOLES = [];
 
 const COLOR_MIXING_RULES = {
   blue: ['cyan', 'purple'],
@@ -43,7 +39,7 @@ const createBoard = () => {
     }
   }
 
-  // Apply holes
+  // Apply holes (none currently)
   FIXED_HOLES.forEach(([row, col]) => {
     board[row][col].isHole = true;
     // Ensure holes override isActive to prevent validation
@@ -149,8 +145,8 @@ const generateSolution = () => {
 
   // Pre-tile corner inactive (gray) cells with yellow
   const preTiledInactive = [
-    [0, 0], [0, 6],
-    [6, 0], [6, 6],
+    [0, 0], [0, 7],
+    [7, 0], [7, 7],
   ];
   preTiledInactive.forEach(([row, col]) => {
     board[row][col].color = 'yellow';

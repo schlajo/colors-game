@@ -5,8 +5,8 @@ import { generateSolution, createPuzzle, createBoard, COLORS } from './utils/gam
 import { v4 as uuidv4 } from 'uuid';
 
 const App = () => {
-  const initialBoard = Array(7).fill().map(() =>
-    Array(7).fill().map(() => ({
+  const initialBoard = Array(8).fill().map(() =>
+    Array(8).fill().map(() => ({
       color: null,
       isActive: false,
       isHole: false,
@@ -17,7 +17,6 @@ const App = () => {
 
   const [board, setBoard] = useState(initialBoard);
   const [solutionBoard, setSolutionBoard] = useState([]);
-  const [selectedColor, setSelectedColor] = useState(null);
   const [selectedCell, setSelectedCell] = useState(null);
 
   const initializeBoard = () => {
@@ -29,8 +28,8 @@ const App = () => {
       console.log('Puzzle board:', puzzleBoard);
       // Mark clues
       const newBoard = JSON.parse(JSON.stringify(puzzleBoard));
-      for (let row = 0; row < 7; row++) {
-        for (let col = 0; col < 7; col++) {
+      for (let row = 0; row < 8; row++) {
+        for (let col = 0; col < 8; col++) {
           if (newBoard[row][col].color) {
             newBoard[row][col].isClue = true;
           }
@@ -51,8 +50,8 @@ const App = () => {
 
   const checkSolution = () => {
     let isCorrect = true;
-    for (let row = 0; row < 7; row++) {
-      for (let col = 0; col < 7; col++) {
+    for (let row = 0; row < 8; row++) {
+      for (let col = 0; col < 8; col++) {
         if (!board[row][col].isHole) {
           if (board[row][col].color !== (solutionBoard[row]?.[col]?.color || null)) {
             isCorrect = false;
@@ -71,8 +70,8 @@ const App = () => {
 
   const getHint = () => {
     const emptyCells = [];
-    for (let row = 0; row < 7; row++) {
-      for (let col = 0; col < 7; col++) {
+    for (let row = 0; row < 8; row++) {
+      for (let col = 0; col < 8; col++) {
         if (!board[row][col].isHole && !board[row][col].isClue && !board[row][col].color) {
           emptyCells.push([row, col]);
         }
@@ -107,30 +106,27 @@ const App = () => {
     }
   };
 
+  const clearBoard = () => {
+    const newBoard = JSON.parse(JSON.stringify(board));
+    for (let row = 0; row < 8; row++) {
+      for (let col = 0; col < 8; col++) {
+        if (!newBoard[row][col].isHole && !newBoard[row][col].isClue) {
+          newBoard[row][col].color = null;
+        }
+      }
+    }
+    setBoard(newBoard);
+    setSelectedCell(null);
+    console.log('Board cleared of player-placed colors');
+  };
+
   useEffect(() => {
     console.log('useEffect running');
     initializeBoard();
   }, []);
 
-  const handleColorSelect = (color) => {
-    setSelectedColor(color);
-    console.log('Color selected:', color);
-    // If a cell is selected, apply the color
-    if (selectedCell) {
-      const [row, col] = selectedCell;
-      if (!board[row][col].isHole && !board[row][col].isClue) {
-        const newBoard = JSON.parse(JSON.stringify(board));
-        if (board[row][col].color !== color) {
-          newBoard[row][col].color = color;
-          setBoard(newBoard);
-          console.log(`Cell [${row},${col}] updated to color: ${color}`);
-        }
-      }
-    }
-  };
-
   const handleCellClick = (row, col) => {
-    console.log(`Cell clicked: [${row},${col}], isHole=${board[row][col].isHole}, isClue=${board[row][col].isClue}, selectedColor=${selectedColor}, hasColor=${board[row][col].color}`);
+    console.log(`Cell clicked: [${row},${col}], isHole=${board[row][col].isHole}, isClue=${board[row][col].isClue}, hasColor=${board[row][col].color}`);
     if (board[row][col].isHole || board[row][col].isClue) {
       console.log(`Cell [${row},${col}] is a hole or clue, cannot interact`);
       return;
@@ -138,12 +134,24 @@ const App = () => {
     // Set persistent highlight
     setSelectedCell([row, col]);
     console.log(`Cell [${row},${col}] highlighted`);
-    // If a color is selected, apply it
-    if (selectedColor && board[row][col].color !== selectedColor) {
+  };
+
+  const handleColorButton = (color) => {
+    if (!selectedCell) {
+      alert('Please select a cell first!');
+      console.log('Color button clicked, but no cell selected');
+      return;
+    }
+    const [row, col] = selectedCell;
+    if (!board[row][col].isHole && !board[row][col].isClue) {
       const newBoard = JSON.parse(JSON.stringify(board));
-      newBoard[row][col].color = selectedColor;
-      setBoard(newBoard);
-      console.log(`Cell [${row},${col}] updated to color: ${selectedColor}`);
+      if (board[row][col].color !== color) {
+        newBoard[row][col].color = color;
+        setBoard(newBoard);
+        console.log(`Cell [${row},${col}] updated to color: ${color}`);
+      } else {
+        console.log(`Cell [${row},${col}] already has color: ${color}, no change`);
+      }
     }
   };
 
@@ -156,8 +164,7 @@ const App = () => {
         selectedCell={selectedCell}
       />
       <ColorPalette
-        onColorSelect={handleColorSelect}
-        selectedColor={selectedColor}
+        onColorClick={handleColorButton}
         colors={['cyan', 'magenta', 'yellow', 'red', 'green', 'blue', 'purple', 'orange', 'white']}
       />
       <div className="flex justify-center gap-2 mt-4">
@@ -196,6 +203,15 @@ const App = () => {
           className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
         >
           Delete
+        </button>
+        <button
+          onClick={() => {
+            console.log('Clear button clicked');
+            clearBoard();
+          }}
+          className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+        >
+          Clear
         </button>
       </div>
     </div>
