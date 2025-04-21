@@ -15,13 +15,10 @@ const COLOR_MIXING_RULES = {
   orange: ['red', 'yellow'],
   green: ['cyan', 'yellow'],
   red: ['magenta', 'yellow'],
-  black: ['cyan', 'magenta', 'yellow'],
   yellow: ['red', 'green'],
   cyan: ['blue', 'green'],
   magenta: ['red', 'blue'],
   white: ['red', 'blue', 'green'],
-  brown: ['red', 'blue', 'yellow'],
-  gray: ['black', 'white'],
 };
 
 const COLORS = Object.keys(COLOR_MIXING_RULES);
@@ -32,6 +29,7 @@ const createBoard = () => {
       color: null,
       isActive: false,
       isHole: false,
+      isClue: false,
       id: uuidv4(),
     }))
   );
@@ -236,6 +234,8 @@ const createPuzzle = (solutionBoard, clueCount = 10) => {
     for (let col = 0; col < GRID_SIZE; col++) {
       if (!puzzleBoard[row][col].isHole && !clues.some(([r, c]) => r === row && c === col)) {
         puzzleBoard[row][col].color = null;
+      } else if (puzzleBoard[row][col].color) {
+        puzzleBoard[row][col].isClue = true;
       }
     }
   }
