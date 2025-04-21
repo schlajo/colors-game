@@ -2,11 +2,11 @@ import { v4 as uuidv4 } from 'uuid';
 
 const GRID_SIZE = 7;
 
-// Holes on black (inactive) squares
+// Holes on white-ish (affected) cells
 const FIXED_HOLES = [
-  [1, 1], [1, 2], [1, 4], [1, 5],
-  [3, 1], [3, 2], [3, 4], [3, 5],
-  [5, 1], [5, 2], [5, 4], [5, 5],
+  [1, 2], [1, 4],
+  [3, 0], [3,2], [3,4], [3, 6],
+  [5, 2], [5, 4],
 ];
 
 const COLOR_MIXING_RULES = {
@@ -36,7 +36,7 @@ const createBoard = () => {
     }))
   );
 
-  // Set active (white) squares where (row + col) % 2 === 1
+  // Set active (white-ish, affected) squares where (row + col) % 2 === 1
   for (let row = 0; row < GRID_SIZE; row++) {
     for (let col = 0; col < GRID_SIZE; col++) {
       if ((row + col) % 2 === 1) {
@@ -45,16 +45,33 @@ const createBoard = () => {
     }
   }
 
-  // Apply holes on black squares
+  // Apply holes
   FIXED_HOLES.forEach(([row, col]) => {
     board[row][col].isHole = true;
+    // Ensure holes override isActive to prevent validation
+    board[row][col].isActive = false;
   });
 
-  console.log('Board created with 24 active (white) squares, 13 inactive (black, non-hole) squares, and', FIXED_HOLES.length, 'holes');
+  // Count active and inactive non-hole cells for logging
+  let activeCount = 0;
+  let inactiveCount = 0;
+  for (let row = 0; row < GRID_SIZE; row++) {
+    for (let col = 0; col < GRID_SIZE; col++) {
+      if (!board[row][col].isHole) {
+        if (board[row][col].isActive) {
+          activeCount++;
+        } else {
+          inactiveCount++;
+        }
+      }
+    }
+  }
+
+  console.log('Board created with', activeCount, 'active (white-ish, affected) squares,', inactiveCount, 'inactive (gray, affector) squares, and', FIXED_HOLES.length, 'holes');
   return board;
 };
 
-// Get inactive (black, non-hole) neighbors of an active cell
+// Get inactive (gray, affector, non-hole) neighbors of an active cell
 const getNeighbors = (board, row, col) => {
   const neighbors = [];
   const directions = [[-1, 0], [1, 0], [0, -1], [0, 1]];
@@ -132,7 +149,7 @@ const generateSolution = () => {
     }
   }
 
-  // Pre-tile corner inactive (black) cells with yellow
+  // Pre-tile corner inactive (gray) cells with yellow
   const preTiledInactive = [
     [0, 0], [0, 6],
     [6, 0], [6, 6],

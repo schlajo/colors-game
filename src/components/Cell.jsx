@@ -6,7 +6,7 @@ const Cell = ({ cell, onClick, isSelected }) => {
       onClick={onClick}
       className={`w-10 h-10 border border-gray-300 flex items-center justify-center
         ${cell.isHole ? 'bg-gray-800 cursor-default' :
-          cell.isActive ? 'bg-gray-400 cursor-pointer' : 'bg-gray-100 cursor-pointer'}
+          cell.isActive ? 'bg-gray-400 cursor-pointer' : 'bg-gray-200 cursor-pointer'}
         ${isSelected ? 'ring-2 ring-blue-500 ring-offset-2' : ''}
       `}
     >
