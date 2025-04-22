@@ -5,8 +5,8 @@ import { generateSolution, createPuzzle, createBoard, COLORS } from './utils/gam
 import { v4 as uuidv4 } from 'uuid';
 
 const App = () => {
-  const initialBoard = Array(8).fill().map(() =>
-    Array(8).fill().map(() => ({
+  const initialBoard = Array(7).fill().map(() =>
+    Array(7).fill().map(() => ({
       color: null,
       isActive: false,
       isHole: false,
@@ -28,8 +28,8 @@ const App = () => {
       console.log('Puzzle board:', puzzleBoard);
       // Mark clues
       const newBoard = JSON.parse(JSON.stringify(puzzleBoard));
-      for (let row = 0; row < 8; row++) {
-        for (let col = 0; col < 8; col++) {
+      for (let row = 0; row < 7; row++) {
+        for (let col = 0; col < 7; col++) {
           if (newBoard[row][col].color) {
             newBoard[row][col].isClue = true;
           }
@@ -50,8 +50,8 @@ const App = () => {
 
   const checkSolution = () => {
     let isCorrect = true;
-    for (let row = 0; row < 8; row++) {
-      for (let col = 0; col < 8; col++) {
+    for (let row = 0; row < 7; row++) {
+      for (let col = 0; col < 7; col++) {
         if (!board[row][col].isHole) {
           if (board[row][col].color !== (solutionBoard[row]?.[col]?.color || null)) {
             isCorrect = false;
@@ -70,8 +70,8 @@ const App = () => {
 
   const getHint = () => {
     const emptyCells = [];
-    for (let row = 0; row < 8; row++) {
-      for (let col = 0; col < 8; col++) {
+    for (let row = 0; row < 7; row++) {
+      for (let col = 0; col < 7; col++) {
         if (!board[row][col].isHole && !board[row][col].isClue && !board[row][col].color) {
           emptyCells.push([row, col]);
         }
@@ -108,8 +108,8 @@ const App = () => {
 
   const clearBoard = () => {
     const newBoard = JSON.parse(JSON.stringify(board));
-    for (let row = 0; row < 8; row++) {
-      for (let col = 0; col < 8; col++) {
+    for (let row = 0; row < 7; row++) {
+      for (let col = 0; col < 7; col++) {
         if (!newBoard[row][col].isHole && !newBoard[row][col].isClue) {
           newBoard[row][col].color = null;
         }

@@ -1,9 +1,13 @@
 import { v4 as uuidv4 } from 'uuid';
 
-const GRID_SIZE = 8;
+const GRID_SIZE = 7;
 
-// Holes (none for now, kept for future use)
-const FIXED_HOLES = [];
+// Define some permanent holes (arbitrary positions)
+const FIXED_HOLES = [
+  [1, 1], [1, 3], [1, 5],
+  [3, 1], [3, 3], [3, 5],
+  [5, 1], [5, 3], [5, 5],
+];
 
 const COLOR_MIXING_RULES = {
   blue: ['cyan', 'purple'],
@@ -39,7 +43,7 @@ const createBoard = () => {
     }
   }
 
-  // Apply holes (none currently)
+  // Apply holes
   FIXED_HOLES.forEach(([row, col]) => {
     board[row][col].isHole = true;
     // Ensure holes override isActive to prevent validation
@@ -145,8 +149,8 @@ const generateSolution = () => {
 
   // Pre-tile corner inactive (gray) cells with yellow
   const preTiledInactive = [
-    [0, 0], [0, 7],
-    [7, 0], [7, 7],
+    [0, 0], [0, 6],
+    [6, 0], [6, 6],
   ];
   preTiledInactive.forEach(([row, col]) => {
     board[row][col].color = 'yellow';
@@ -207,7 +211,7 @@ const generateSolution = () => {
 };
 
 // Create a puzzle with clues
-const createPuzzle = (solutionBoard, clueCount = 10) => {
+const createPuzzle = (solutionBoard, clueCount = 8) => {
   const puzzleBoard = JSON.parse(JSON.stringify(solutionBoard));
   const nonHoleCells = [];
   for (let row = 0; row < GRID_SIZE; row++) {

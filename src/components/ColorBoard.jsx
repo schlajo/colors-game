@@ -8,7 +8,7 @@ const ColorBoard = ({ board, onCellClick, selectedCell }) => {
   }
 
   return (
-    <div className="grid grid-cols-8 gap-1">
+    <div className="grid grid-cols-7 gap-1">
       {board.map((row, rowIndex) =>
         row.map((cell, colIndex) => (
           <Cell
