@@ -145,7 +145,7 @@ const generateSolution = () => {
   }
 
   const startTime = Date.now();
-  const TIMEOUT_MS = 15000; // Increased to 15 seconds
+  const TIMEOUT_MS = 15000;
   let sameColorCount = 0;
 
   // Get valid color pairs for influencers
@@ -175,9 +175,9 @@ const generateSolution = () => {
   const assignColors = () => {
     const influencerColors = new Map();
     sameColorCount = 0;
-    const MAX_SAME_COLOR = 10; // Increased for flexibility
+    const MAX_SAME_COLOR = 10;
     const assignmentStack = [];
-    const triedPairs = new Map(); // Track tried pairs per cell
+    const triedPairs = new Map();
 
     // Sort influenced cells to prioritize edges and near holes
     influencedCells.sort((a, b) => {
@@ -213,7 +213,6 @@ const generateSolution = () => {
       if (validPairs.length === 0) {
         console.log(`No valid colors for cell [${row},${col}] with neighbors [${n1.row},${n1.col}]=${influencerColors.get(n1Key) || 'none'}, [${n2.row},${n2.col}]=${influencerColors.get(n2Key) || 'none'}`);
         triedPairs.get(cellKey).clear();
-        // Backtrack
         if (assignmentStack.length === 0) return false;
         const lastAssignment = assignmentStack.pop();
         index = lastAssignment.index;
@@ -226,7 +225,6 @@ const generateSolution = () => {
         continue;
       }
 
-      // Prefer different-color pairs
       let chosenPair;
       const diffColorPairs = validPairs.filter(([c1, c2]) => c1 !== c2);
       if (diffColorPairs.length > 0 && sameColorCount < MAX_SAME_COLOR) {
@@ -236,7 +234,6 @@ const generateSolution = () => {
         if (sameColorPairs.length === 0) {
           console.log(`No same-color pairs for cell [${row},${col}] with neighbors [${n1.row},${n1.col}]=${influencerColors.get(n1Key) || 'none'}, [${n2.row},${n2.col}]=${influencerColors.get(n2Key) || 'none'}`);
           triedPairs.get(cellKey).clear();
-          // Backtrack
           if (assignmentStack.length === 0) return false;
           const lastAssignment = assignmentStack.pop();
           index = lastAssignment.index;
@@ -257,7 +254,6 @@ const generateSolution = () => {
       if (influencerColors.has(n1Key) && influencerColors.get(n1Key) !== c1) {
         console.log(`Conflict at [${n1.row},${n1.col}]: wants ${c1}, has ${influencerColors.get(n1Key)}`);
         triedPairs.get(cellKey).clear();
-        // Backtrack
         if (assignmentStack.length === 0) return false;
         const lastAssignment = assignmentStack.pop();
         index = lastAssignment.index;
@@ -272,7 +268,6 @@ const generateSolution = () => {
       if (influencerColors.has(n2Key) && influencerColors.get(n2Key) !== c2) {
         console.log(`Conflict at [${n2.row},${n2.col}]: wants ${c2}, has ${influencerColors.get(n2Key)}`);
         triedPairs.get(cellKey).clear();
-        // Backtrack
         if (assignmentStack.length === 0) return false;
         const lastAssignment = assignmentStack.pop();
         index = lastAssignment.index;
@@ -399,30 +394,159 @@ const generateSolution = () => {
   return null;
 };
 
-// Create a puzzle with clues
-const createPuzzle = (solutionBoard, clueCount = 8) => {
-  const puzzleBoard = JSON.parse(JSON.stringify(solutionBoard));
-  const nonHoleCells = [];
+// Check if a puzzle is solvable logically
+const canSolvePuzzle = (puzzleBoard, solutionBoard) => {
+  const board = JSON.parse(JSON.stringify(puzzleBoard));
+  let deductionsMade;
+  let unsolvedCount = 0;
+
+  // Count unsolved cells
   for (let row = 0; row < GRID_SIZE; row++) {
     for (let col = 0; col < GRID_SIZE; col++) {
-      if (!puzzleBoard[row][col].isHole) {
-        nonHoleCells.push([row, col]);
+      if (board[row][col].isActive && !board[row][col].isClue && !board[row][col].isHole) {
+        unsolvedCount++;
       }
     }
   }
 
-  // Shuffle non-hole cells
-  for (let i = nonHoleCells.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [nonHoleCells[i], nonHoleCells[j]] = [nonHoleCells[j], nonHoleCells[i]];
+  do {
+    deductionsMade = false;
+
+    // Try to deduce influenced cells
+    for (let row = 0; row < GRID_SIZE; row++) {
+      for (let col = 0; col < GRID_SIZE; col++) {
+        if (!board[row][col].isActive || board[row][col].isInfluencer || board[row][col].isClue || board[row][col].color || board[row][col].isHole) {
+          continue;
+        }
+        const neighbors = getNeighbors(board, row, col);
+        const neighborColors = neighbors.filter(n => n.color).map(n => n.color);
+        if (neighborColors.length === 2) {
+          const deducedColor = getInfluencedColor(neighborColors);
+          if (deducedColor && deducedColor === solutionBoard[row][col].color) {
+            board[row][col].color = deducedColor;
+            deductionsMade = true;
+            unsolvedCount--;
+          }
+        }
+      }
+    }
+
+    // Try to deduce influencer cells
+    for (let row = 0; row < GRID_SIZE; row++) {
+      for (let col = 0; col < GRID_SIZE; col++) {
+        if (!board[row][col].isInfluencer || board[row][col].color || board[row][col].isHole) {
+          continue;
+        }
+        // Check influenced neighbors
+        const influencedNeighbors = [
+          [-1, 0], [1, 0], [0, -1], [0, 1]
+        ].map(([dr, dc]) => [row + dr, col + dc]).filter(([r, c]) =>
+          r >= 0 && r < GRID_SIZE && c >= 0 && c < GRID_SIZE && board[r][c].isActive && !board[r][c].isInfluencer && !board[r][c].isHole
+        );
+        for (const [r, c] of influencedNeighbors) {
+          if (!board[r][c].color) continue;
+          const neighbors = getNeighbors(board, r, c);
+          const otherNeighbor = neighbors.find(n => n.row !== row || n.col !== col);
+          if (!otherNeighbor.color) continue;
+          // Deduce [row, col] color
+          const expectedColor = board[r][c].color;
+          const otherColor = otherNeighbor.color;
+          let deducedColor = null;
+          // Try same-color
+          if (otherColor === expectedColor) {
+            deducedColor = expectedColor;
+          } else {
+            // Try COLOR_MIXING_RULES
+            for (const [resultColor, [c1, c2]] of Object.entries(COLOR_MIXING_RULES)) {
+              if (resultColor === expectedColor) {
+                if ((c1 === otherColor && INFLUENCER_COLORS.includes(c2)) || (c2 === otherColor && INFLUENCER_COLORS.includes(c1))) {
+                  deducedColor = c1 === otherColor ? c2 : c1;
+                }
+              }
+            }
+          }
+          if (deducedColor && deducedColor === solutionBoard[row][col].color) {
+            board[row][col].color = deducedColor;
+            deductionsMade = true;
+            unsolvedCount--;
+          }
+        }
+      }
+    }
+  } while (deductionsMade && unsolvedCount > 0);
+
+  return unsolvedCount === 0;
+};
+
+// Create a puzzle with clues
+const createPuzzle = (solutionBoard, clueCount = 14) => {
+  const nonHoleCells = [];
+  const influencedCells = [];
+  const influencerCells = [];
+
+  // Categorize cells
+  for (let row = 0; row < GRID_SIZE; row++) {
+    for (let col = 0; col < GRID_SIZE; col++) {
+      if (!solutionBoard[row][col].isHole) {
+        nonHoleCells.push([row, col]);
+        if (solutionBoard[row][col].isInfluencer) {
+          influencerCells.push([row, col]);
+        } else {
+          influencedCells.push([row, col]);
+        }
+      }
+    }
   }
 
-  // Keep clueCount cells as clues
-  const clues = nonHoleCells.slice(0, clueCount);
+  const shuffleArray = (array) => {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+  };
+
+  // Try generating a solvable puzzle
+  const MAX_CLUE_ATTEMPTS = 50;
+  for (let attempt = 0; attempt < MAX_CLUE_ATTEMPTS; attempt++) {
+    const puzzleBoard = JSON.parse(JSON.stringify(solutionBoard));
+
+    // Prioritize influenced cells for clues
+    const clueCandidates = [
+      ...shuffleArray([...influencedCells]).slice(0, Math.ceil(clueCount * 0.7)), // ~70% influenced
+      ...shuffleArray([...influencerCells]).slice(0, Math.floor(clueCount * 0.3)), // ~30% influencers
+    ];
+    const clues = clueCandidates.slice(0, clueCount);
+
+    // Clear non-clue cells
+    for (let row = 0; row < GRID_SIZE; row++) {
+      for (let col = 0; col < GRID_SIZE; col++) {
+        if (!puzzleBoard[row][col].isHole && !clues.some(([r, c]) => r === row && c === col)) {
+          puzzleBoard[row][col].color = null;
+          puzzleBoard[row][col].isClue = false;
+        } else if (puzzleBoard[row][col].color) {
+          puzzleBoard[row][col].isClue = true;
+        }
+      }
+    }
+
+    // Check solvability
+    if (canSolvePuzzle(puzzleBoard, solutionBoard)) {
+      console.log(`Solvable puzzle generated with ${clueCount} clues`);
+      return { puzzleBoard, solutionBoard };
+    }
+  }
+
+  console.log(`Failed to generate a solvable puzzle with ${clueCount} clues, falling back to minimal clues`);
+  // Fallback: Use minimal clues to ensure solvability
+  const puzzleBoard = JSON.parse(JSON.stringify(solutionBoard));
+  const clues = shuffleArray([...nonHoleCells]).slice(0, clueCount);
+
   for (let row = 0; row < GRID_SIZE; row++) {
     for (let col = 0; col < GRID_SIZE; col++) {
       if (!puzzleBoard[row][col].isHole && !clues.some(([r, c]) => r === row && c === col)) {
         puzzleBoard[row][col].color = null;
+        puzzleBoard[row][col].isClue = false;
       } else if (puzzleBoard[row][col].color) {
         puzzleBoard[row][col].isClue = true;
       }
@@ -432,4 +556,4 @@ const createPuzzle = (solutionBoard, clueCount = 8) => {
   return { puzzleBoard, solutionBoard };
 };
 
-export { createBoard, getNeighbors, checkCell, generateSolution, createPuzzle, COLORS, INFLUENCER_COLORS };
+export { createBoard, getNeighbors, checkCell, generateSolution, createPuzzle, canSolvePuzzle, COLORS, INFLUENCER_COLORS };
