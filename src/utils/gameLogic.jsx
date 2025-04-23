@@ -11,19 +11,19 @@ const FIXED_HOLES = [
 
 // Color mixing rules
 const COLOR_MIXING_RULES = {
-  yellow: ['red', 'green'],
   magenta: ['red', 'blue'],
   cyan: ['green', 'blue'],
+  yellow: ['red', 'green'],
   blue: ['cyan', 'magenta'],
   green: ['cyan', 'yellow'],
   red: ['magenta', 'yellow'],
-  orange: ['yellow', 'red'],
-  purple: ['magenta', 'blue'],
-  white: ['cyan', 'green'],
+  white: ['green', 'cyan'],
+  purple: ['blue', 'magenta'],
+  orange: ['red', 'yellow'],
 };
 
 const COLORS = Object.keys(COLOR_MIXING_RULES);
-const INFLUENCER_COLORS = ['red', 'green', 'blue', 'cyan', 'magenta', 'yellow']; // Exclude purple, orange, white
+const INFLUENCER_COLORS = ['red', 'green', 'blue', 'cyan', 'magenta', 'yellow'];
 
 // Create an empty board
 const createBoard = () => {
@@ -38,8 +38,7 @@ const createBoard = () => {
     }))
   );
 
-  // Set influencer (dark gray) cells where (row + col) % 2 === 0
-  // Set influenced (light gray) cells where (row + col) % 2 === 1
+  // Set influencer cells where (row + col) % 2 === 0
   for (let row = 0; row < GRID_SIZE; row++) {
     for (let col = 0; col < GRID_SIZE; col++) {
       if ((row + col) % 2 === 0) {
@@ -48,7 +47,7 @@ const createBoard = () => {
     }
   }
 
-  // Apply holes (inactive, no tiles)
+  // Apply holes
   FIXED_HOLES.forEach(([row, col]) => {
     board[row][col].isHole = true;
     board[row][col].isActive = false;
@@ -58,7 +57,7 @@ const createBoard = () => {
   return board;
 };
 
-// Get influencer (dark gray) neighbors of an influenced (light gray) cell
+// Get influencer neighbors of an influenced cell
 const getNeighbors = (board, row, col) => {
   const neighbors = [];
   const directions = [[-1, 0], [1, 0], [0, -1], [0, 1]];
@@ -72,17 +71,17 @@ const getNeighbors = (board, row, col) => {
   return neighbors;
 };
 
-// Determine the color of an influenced cell based on its influencer neighbors
+// Determine the color of an influenced cell
 const getInfluencedColor = (neighborColors) => {
   if (neighborColors.length !== 2) {
     console.log('Invalid neighbor count:', neighborColors.length);
-    return null; // Enforce exactly 2 neighbors
+    return null;
   }
-  // Check for same-color rule
+  // Same-color rule
   if (neighborColors[0] === neighborColors[1]) {
-    return neighborColors[0]; // e.g., Cyan + Cyan = Cyan
+    return neighborColors[0]; // e.g., Red + Red = Red
   }
-  // Check color mixing rules
+  // Different-color mixing rules
   const sortedNeighbors = [...neighborColors].sort();
   for (const [resultColor, rule] of Object.entries(COLOR_MIXING_RULES)) {
     const sortedRule = [...rule].sort();
@@ -90,10 +89,10 @@ const getInfluencedColor = (neighborColors) => {
       return resultColor;
     }
   }
-  return null; // No valid color found
+  return null;
 };
 
-// Check if an influenced cell's color matches its influencer neighbors
+// Check if an influenced cell's color is valid
 const checkCell = (board, row, col) => {
   const cell = board[row][col];
   if (!cell.isActive || cell.isInfluencer || !cell.color) return true;
@@ -140,94 +139,263 @@ const generateSolution = () => {
   for (const [row, col] of influencedCells) {
     const neighbors = getNeighbors(board, row, col);
     if (neighbors.length !== 2) {
-      console.log(`Error: Influenced cell [${row},${col}] has ${neighbors.length} influencer neighbors at`, neighbors.map(n => `[${n.row},${n.col}]`));
+      console.log(`Error: Influenced cell [${row},${col}] has ${neighbors.length} neighbors at`, neighbors.map(n => `[${n.row},${n.col}]`));
       return null;
     }
-    console.log(`Influenced cell [${row},${col}] has 2 influencer neighbors at`, neighbors.map(n => `[${n.row},${n.col}]`));
   }
 
-  // Pre-tile corner influencer cells with yellow
-  const preTiledInfluencers = [
-    [0, 0], [0, 6],
-    [6, 0], [6, 6],
-  ];
-  preTiledInfluencers.forEach(([row, col]) => {
-    board[row][col].color = 'yellow';
-  });
-
   const startTime = Date.now();
-  const TIMEOUT_MS = 10000;
-  let attempts = 0;
+  const TIMEOUT_MS = 15000; // Increased to 15 seconds
+  let sameColorCount = 0;
 
-  // Randomly assign colors to influencers and try to find a valid board
-  const tryRandomSolution = () => {
-    attempts++;
-    if (Date.now() - startTime > TIMEOUT_MS) {
-      console.log('Generation timed out after', (Date.now() - startTime) / 1000, 'seconds');
-      return false;
-    }
-
-    // Assign random colors to non-pre-tiled influencers
-    influencerCells.forEach(([row, col]) => {
-      if (!preTiledInfluencers.some(([r, c]) => r === row && c === col)) {
-        board[row][col].color = INFLUENCER_COLORS[Math.floor(Math.random() * INFLUENCER_COLORS.length)];
+  // Get valid color pairs for influencers
+  const getValidColorPairs = (n1Color, n2Color) => {
+    const pairs = [];
+    // Different-color pairs from COLOR_MIXING_RULES
+    for (const [resultColor, [c1, c2]] of Object.entries(COLOR_MIXING_RULES)) {
+      if ((!n1Color || n1Color === c1) && (!n2Color || n2Color === c2)) {
+        pairs.push([c1, c2, resultColor]);
       }
+      if ((!n1Color || n1Color === c2) && (!n2Color || n2Color === c1)) {
+        pairs.push([c2, c1, resultColor]);
+      }
+    }
+    // Same-color pairs (last resort)
+    if (!n1Color && !n2Color || n1Color === n2Color) {
+      for (const c of INFLUENCER_COLORS) {
+        if ((!n1Color || n1Color === c) && (!n2Color || n2Color === c)) {
+          pairs.push([c, c, c]);
+        }
+      }
+    }
+    return pairs;
+  };
+
+  // Greedy assignment with deeper backtracking
+  const assignColors = () => {
+    const influencerColors = new Map();
+    sameColorCount = 0;
+    const MAX_SAME_COLOR = 10; // Increased for flexibility
+    const assignmentStack = [];
+    const triedPairs = new Map(); // Track tried pairs per cell
+
+    // Sort influenced cells to prioritize edges and near holes
+    influencedCells.sort((a, b) => {
+      const [rowA, colA] = a;
+      const [rowB, colB] = b;
+      const isEdgeA = rowA === 0 || rowA === 6 || colA === 0 || colA === 6 ? 1 : 0;
+      const isEdgeB = rowB === 0 || rowB === 6 || colB === 0 || colB === 6 ? 1 : 0;
+      const isNearHoleA = FIXED_HOLES.some(([hr, hc]) => Math.abs(rowA - hr) <= 1 && Math.abs(colA - hc) <= 1) ? 1 : 0;
+      const isNearHoleB = FIXED_HOLES.some(([hr, hc]) => Math.abs(rowB - hr) <= 1 && Math.abs(colB - hc) <= 1) ? 1 : 0;
+      return (isEdgeB + isNearHoleB) - (isEdgeA + isNearHoleA);
     });
 
-    // Assign colors to influenced cells
-    let invalidCells = [];
-    influencedCells.forEach(([row, col]) => {
+    let index = 0;
+    while (index < influencedCells.length) {
+      if (Date.now() - startTime > TIMEOUT_MS) {
+        console.log('Generation timed out');
+        return false;
+      }
+
+      const [row, col] = influencedCells[index];
       const neighbors = getNeighbors(board, row, col);
-      const neighborColors = neighbors.filter(n => n.color).map(n => n.color);
-      const assignedColor = getInfluencedColor(neighborColors);
-      board[row][col].color = assignedColor;
-      if (!assignedColor) {
-        invalidCells.push([row, col, neighborColors, neighbors.map(n => `[${n.row},${n.col}]`)]);
-      }
-    });
+      const [n1, n2] = neighbors;
+      const n1Key = `${n1.row},${n1.col}`;
+      const n2Key = `${n2.row},${n2.col}`;
+      const cellKey = `${row},${col}`;
+      if (!triedPairs.has(cellKey)) triedPairs.set(cellKey, new Set());
 
-    if (invalidCells.length > 0) {
-      console.log('Invalid influenced cells:', invalidCells.map(([row, col, colors, neighbors]) => ({
-        cell: `[${row},${col}]`,
-        neighborColors: colors,
-        neighborPositions: neighbors,
-      })));
-      return false;
+      const validPairs = getValidColorPairs(
+        influencerColors.get(n1Key),
+        influencerColors.get(n2Key)
+      ).filter(([c1, c2]) => !triedPairs.get(cellKey).has(`${c1},${c2}`));
+
+      if (validPairs.length === 0) {
+        console.log(`No valid colors for cell [${row},${col}] with neighbors [${n1.row},${n1.col}]=${influencerColors.get(n1Key) || 'none'}, [${n2.row},${n2.col}]=${influencerColors.get(n2Key) || 'none'}`);
+        triedPairs.get(cellKey).clear();
+        // Backtrack
+        if (assignmentStack.length === 0) return false;
+        const lastAssignment = assignmentStack.pop();
+        index = lastAssignment.index;
+        influencerColors.delete(lastAssignment.n1Key);
+        influencerColors.delete(lastAssignment.n2Key);
+        board[lastAssignment.n1.row][lastAssignment.n1.col].color = null;
+        board[lastAssignment.n2.row][lastAssignment.n2.col].color = null;
+        board[lastAssignment.row][lastAssignment.col].color = null;
+        if (lastAssignment.wasSameColor) sameColorCount--;
+        continue;
+      }
+
+      // Prefer different-color pairs
+      let chosenPair;
+      const diffColorPairs = validPairs.filter(([c1, c2]) => c1 !== c2);
+      if (diffColorPairs.length > 0 && sameColorCount < MAX_SAME_COLOR) {
+        chosenPair = diffColorPairs[Math.floor(Math.random() * diffColorPairs.length)];
+      } else {
+        const sameColorPairs = validPairs.filter(([c1, c2]) => c1 === c2);
+        if (sameColorPairs.length === 0) {
+          console.log(`No same-color pairs for cell [${row},${col}] with neighbors [${n1.row},${n1.col}]=${influencerColors.get(n1Key) || 'none'}, [${n2.row},${n2.col}]=${influencerColors.get(n2Key) || 'none'}`);
+          triedPairs.get(cellKey).clear();
+          // Backtrack
+          if (assignmentStack.length === 0) return false;
+          const lastAssignment = assignmentStack.pop();
+          index = lastAssignment.index;
+          influencerColors.delete(lastAssignment.n1Key);
+          influencerColors.delete(lastAssignment.n2Key);
+          board[lastAssignment.n1.row][lastAssignment.n1.col].color = null;
+          board[lastAssignment.n2.row][lastAssignment.n2.col].color = null;
+          board[lastAssignment.row][lastAssignment.col].color = null;
+          if (lastAssignment.wasSameColor) sameColorCount--;
+          continue;
+        }
+        chosenPair = sameColorPairs[Math.floor(Math.random() * sameColorPairs.length)];
+      }
+
+      const [c1, c2, resultColor] = chosenPair;
+      triedPairs.get(cellKey).add(`${c1},${c2}`);
+
+      if (influencerColors.has(n1Key) && influencerColors.get(n1Key) !== c1) {
+        console.log(`Conflict at [${n1.row},${n1.col}]: wants ${c1}, has ${influencerColors.get(n1Key)}`);
+        triedPairs.get(cellKey).clear();
+        // Backtrack
+        if (assignmentStack.length === 0) return false;
+        const lastAssignment = assignmentStack.pop();
+        index = lastAssignment.index;
+        influencerColors.delete(lastAssignment.n1Key);
+        influencerColors.delete(lastAssignment.n2Key);
+        board[lastAssignment.n1.row][lastAssignment.n1.col].color = null;
+        board[lastAssignment.n2.row][lastAssignment.n2.col].color = null;
+        board[lastAssignment.row][lastAssignment.col].color = null;
+        if (lastAssignment.wasSameColor) sameColorCount--;
+        continue;
+      }
+      if (influencerColors.has(n2Key) && influencerColors.get(n2Key) !== c2) {
+        console.log(`Conflict at [${n2.row},${n2.col}]: wants ${c2}, has ${influencerColors.get(n2Key)}`);
+        triedPairs.get(cellKey).clear();
+        // Backtrack
+        if (assignmentStack.length === 0) return false;
+        const lastAssignment = assignmentStack.pop();
+        index = lastAssignment.index;
+        influencerColors.delete(lastAssignment.n1Key);
+        influencerColors.delete(lastAssignment.n2Key);
+        board[lastAssignment.n1.row][lastAssignment.n1.col].color = null;
+        board[lastAssignment.n2.row][lastAssignment.n2.col].color = null;
+        board[lastAssignment.row][lastAssignment.col].color = null;
+        if (lastAssignment.wasSameColor) sameColorCount--;
+        continue;
+      }
+
+      influencerColors.set(n1Key, c1);
+      influencerColors.set(n2Key, c2);
+      board[n1.row][n1.col].color = c1;
+      board[n2.row][n2.col].color = c2;
+      board[row][col].color = resultColor;
+      const isSameColor = c1 === c2;
+      if (isSameColor) sameColorCount++;
+
+      assignmentStack.push({
+        index,
+        row,
+        col,
+        n1,
+        n2,
+        n1Key,
+        n2Key,
+        wasSameColor: isSameColor,
+      });
+
+      if (!checkCell(board, row, col)) {
+        console.log(`Invalid assignment at [${row},${col}]: color=${resultColor}, neighbors=[${c1},${c2}]`);
+        return false;
+      }
+
+      index++;
     }
 
-    if (validateBoard(board)) {
-      console.log('Solution found after', attempts, 'random attempts');
-      // Log the board for debugging
+    return validateBoard(board);
+  };
+
+  // Try multiple assignments
+  const MAX_ATTEMPTS = 2000;
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    if (assignColors()) {
+      console.log(`Solution found after ${attempt} attempts`);
+      console.log('Same-color pairs used:', sameColorCount);
       const boardSummary = board.map(row => row.map(cell => ({
         color: cell.color,
         isInfluencer: cell.isInfluencer,
         isHole: cell.isHole,
       })));
       console.log('Generated board:', JSON.stringify(boardSummary, null, 2));
-      return true;
-    }
-    return false;
-  };
-
-  // Try multiple random configurations
-  const MAX_ATTEMPTS = 10000;
-  while (attempts < MAX_ATTEMPTS) {
-    if (tryRandomSolution()) {
       return board;
     }
-    // Clear non-pre-tiled influencer colors for next attempt
+
+    // Reset board
     influencerCells.forEach(([row, col]) => {
-      if (!preTiledInfluencers.some(([r, c]) => r === row && c === col)) {
-        board[row][col].color = null;
-      }
+      board[row][col].color = null;
     });
-    // Clear influenced cell colors
     influencedCells.forEach(([row, col]) => {
       board[row][col].color = null;
     });
   }
 
-  console.log('Failed to generate a solution after', attempts, 'random attempts');
+  console.log('Greedy assignment failed, trying fallback');
+
+  // Fallback: Assign valid pairs iteratively
+  const assignValidPair = (n1, n2, influencedCell) => {
+    const validPairs = getValidColorPairs(null, null);
+    const diffColorPairs = validPairs.filter(([c1, c2]) => c1 !== c2);
+    const sameColorPairs = validPairs.filter(([c1, c2]) => c1 === c2);
+    let chosenPair;
+    if (diffColorPairs.length > 0 && sameColorCount < 10) {
+      chosenPair = diffColorPairs[Math.floor(Math.random() * diffColorPairs.length)];
+    } else if (sameColorPairs.length > 0) {
+      chosenPair = sameColorPairs[Math.floor(Math.random() * sameColorPairs.length)];
+    } else {
+      console.log(`No valid pairs for cell [${influencedCell[0]},${influencedCell[1]}]`);
+      return null;
+    }
+    const [c1, c2, resultColor] = chosenPair;
+    board[n1.row][n1.col].color = c1;
+    board[n2.row][n2.col].color = c2;
+    if (c1 === c2) sameColorCount++;
+    return resultColor;
+  };
+
+  sameColorCount = 0;
+  for (let attempt = 0; attempt < 100; attempt++) {
+    influencerCells.forEach(([row, col]) => {
+      board[row][col].color = null;
+    });
+    influencedCells.forEach(([row, col]) => {
+      board[row][col].color = null;
+    });
+
+    let valid = true;
+    for (const [row, col] of influencedCells) {
+      const neighbors = getNeighbors(board, row, col);
+      const [n1, n2] = neighbors;
+      const resultColor = assignValidPair(n1, n2, [row, col]);
+      if (!resultColor) {
+        valid = false;
+        break;
+      }
+      board[row][col].color = resultColor;
+    }
+
+    if (valid && validateBoard(board)) {
+      console.log('Fallback solution found');
+      const boardSummary = board.map(row => row.map(cell => ({
+        color: cell.color,
+        isInfluencer: cell.isInfluencer,
+        isHole: cell.isHole,
+      })));
+      console.log('Generated board:', JSON.stringify(boardSummary, null, 2));
+      return board;
+    }
+  }
+
+  console.log('Failed to generate a solution');
   return null;
 };
 
