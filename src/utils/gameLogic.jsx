@@ -2,129 +2,113 @@ import { v4 as uuidv4 } from 'uuid';
 
 const GRID_SIZE = 7;
 
-// Define some permanent holes (arbitrary positions)
+// Define permanent holes (black cells)
 const FIXED_HOLES = [
   [1, 1], [1, 3], [1, 5],
   [3, 1], [3, 3], [3, 5],
   [5, 1], [5, 3], [5, 5],
 ];
 
+// Color mixing rules
 const COLOR_MIXING_RULES = {
-  blue: ['cyan', 'purple'],
-  purple: ['blue', 'magenta'],
-  orange: ['red', 'yellow'],
+  yellow: ['red', 'green'],
+  magenta: ['red', 'blue'],
+  cyan: ['green', 'blue'],
+  blue: ['cyan', 'magenta'],
   green: ['cyan', 'yellow'],
   red: ['magenta', 'yellow'],
-  yellow: ['red', 'green'],
-  cyan: ['blue', 'green'],
-  magenta: ['red', 'blue'],
-  white: ['red', 'blue', 'green'],
+  orange: ['yellow', 'red'],
+  purple: ['magenta', 'blue'],
+  white: ['cyan', 'green'],
 };
 
 const COLORS = Object.keys(COLOR_MIXING_RULES);
+const INFLUENCER_COLORS = ['red', 'green', 'blue', 'cyan', 'magenta', 'yellow']; // Exclude purple, orange, white
 
+// Create an empty board
 const createBoard = () => {
   const board = Array(GRID_SIZE).fill().map(() =>
     Array(GRID_SIZE).fill().map(() => ({
       color: null,
-      isActive: false,
+      isActive: true,
+      isInfluencer: false,
       isHole: false,
       isClue: false,
       id: uuidv4(),
     }))
   );
 
-  // Set active (white-ish, affected) squares where (row + col) % 2 === 1
+  // Set influencer (dark gray) cells where (row + col) % 2 === 0
+  // Set influenced (light gray) cells where (row + col) % 2 === 1
   for (let row = 0; row < GRID_SIZE; row++) {
     for (let col = 0; col < GRID_SIZE; col++) {
-      if ((row + col) % 2 === 1) {
-        board[row][col].isActive = true;
+      if ((row + col) % 2 === 0) {
+        board[row][col].isInfluencer = true;
       }
     }
   }
 
-  // Apply holes
+  // Apply holes (inactive, no tiles)
   FIXED_HOLES.forEach(([row, col]) => {
     board[row][col].isHole = true;
-    // Ensure holes override isActive to prevent validation
     board[row][col].isActive = false;
+    board[row][col].isInfluencer = false;
   });
 
-  // Count active and inactive non-hole cells for logging
-  let activeCount = 0;
-  let inactiveCount = 0;
-  for (let row = 0; row < GRID_SIZE; row++) {
-    for (let col = 0; col < GRID_SIZE; col++) {
-      if (!board[row][col].isHole) {
-        if (board[row][col].isActive) {
-          activeCount++;
-        } else {
-          inactiveCount++;
-        }
-      }
-    }
-  }
-
-  console.log('Board created with', activeCount, 'active (white-ish, affected) squares,', inactiveCount, 'inactive (gray, affector) squares, and', FIXED_HOLES.length, 'holes');
   return board;
 };
 
-// Get inactive (gray, affector, non-hole) neighbors of an active cell
+// Get influencer (dark gray) neighbors of an influenced (light gray) cell
 const getNeighbors = (board, row, col) => {
   const neighbors = [];
   const directions = [[-1, 0], [1, 0], [0, -1], [0, 1]];
   for (const [dr, dc] of directions) {
     const r = row + dr;
     const c = col + dc;
-    if (r >= 0 && r < GRID_SIZE && c >= 0 && c < GRID_SIZE && !board[r][c].isActive && !board[r][c].isHole) {
+    if (r >= 0 && r < GRID_SIZE && c >= 0 && c < GRID_SIZE && board[r][c].isInfluencer && !board[r][c].isHole) {
       neighbors.push({ row: r, col: c, color: board[r][c].color });
     }
   }
   return neighbors;
 };
 
-// Check cell during generation (subset match)
-const checkCellDuringGeneration = (board, row, col) => {
-  const cell = board[row][col];
-  if (!cell.isActive || !cell.color) return true;
-
-  const neighbors = getNeighbors(board, row, col);
-  const neighborColors = neighbors.filter(n => n.color).map(n => n.color);
-  const rule = COLOR_MIXING_RULES[cell.color];
-  if (!rule) return false;
-
-  const sortedRule = [...rule].sort();
+// Determine the color of an influenced cell based on its influencer neighbors
+const getInfluencedColor = (neighborColors) => {
+  if (neighborColors.length !== 2) {
+    console.log('Invalid neighbor count:', neighborColors.length);
+    return null; // Enforce exactly 2 neighbors
+  }
+  // Check for same-color rule
+  if (neighborColors[0] === neighborColors[1]) {
+    return neighborColors[0]; // e.g., Cyan + Cyan = Cyan
+  }
+  // Check color mixing rules
   const sortedNeighbors = [...neighborColors].sort();
-  for (let i = 0; i < neighborColors.length; i++) {
-    if (!sortedRule.includes(sortedNeighbors[i])) {
-      return false;
+  for (const [resultColor, rule] of Object.entries(COLOR_MIXING_RULES)) {
+    const sortedRule = [...rule].sort();
+    if (sortedNeighbors.length === sortedRule.length && sortedNeighbors.every((c, i) => c === sortedRule[i])) {
+      return resultColor;
     }
   }
-  return true;
+  return null; // No valid color found
 };
 
-// Check cell for final validation (exact match)
-const checkCellFinal = (board, row, col) => {
+// Check if an influenced cell's color matches its influencer neighbors
+const checkCell = (board, row, col) => {
   const cell = board[row][col];
-  if (!cell.isActive || !cell.color) return true;
+  if (!cell.isActive || cell.isInfluencer || !cell.color) return true;
 
   const neighbors = getNeighbors(board, row, col);
   const neighborColors = neighbors.filter(n => n.color).map(n => n.color);
-  const rule = COLOR_MIXING_RULES[cell.color];
-  if (!rule) return false;
-
-  if (rule.length !== neighborColors.length) return false;
-
-  const sortedRule = [...rule].sort();
-  const sortedNeighbors = [...neighborColors].sort();
-  return sortedRule.every((color, i) => color === sortedNeighbors[i]);
+  const expectedColor = getInfluencedColor(neighborColors);
+  return expectedColor === cell.color;
 };
 
 // Validate the entire board
 const validateBoard = (board) => {
   for (let row = 0; row < GRID_SIZE; row++) {
     for (let col = 0; col < GRID_SIZE; col++) {
-      if (board[row][col].isActive && !checkCellFinal(board, row, col)) {
+      if (board[row][col].isActive && !board[row][col].isInfluencer && !checkCell(board, row, col)) {
         return false;
       }
     }
@@ -135,79 +119,116 @@ const validateBoard = (board) => {
 // Generate a solution board
 const generateSolution = () => {
   const board = createBoard();
-  const activeCells = [];
-  const inactiveCells = [];
+  const influencerCells = [];
+  const influencedCells = [];
+
+  // Identify influencer and influenced cells
   for (let row = 0; row < GRID_SIZE; row++) {
     for (let col = 0; col < GRID_SIZE; col++) {
-      if (board[row][col].isActive) {
-        activeCells.push([row, col]);
-      } else if (!board[row][col].isHole) {
-        inactiveCells.push([row, col]);
+      if (board[row][col].isInfluencer) {
+        influencerCells.push([row, col]);
+      } else if (board[row][col].isActive) {
+        influencedCells.push([row, col]);
       }
     }
   }
 
-  // Pre-tile corner inactive (gray) cells with yellow
-  const preTiledInactive = [
+  console.log('Influencer cells:', influencerCells.length, 'at', influencerCells);
+  console.log('Influenced cells:', influencedCells.length, 'at', influencedCells);
+
+  // Verify each influenced cell has exactly 2 influencer neighbors
+  for (const [row, col] of influencedCells) {
+    const neighbors = getNeighbors(board, row, col);
+    if (neighbors.length !== 2) {
+      console.log(`Error: Influenced cell [${row},${col}] has ${neighbors.length} influencer neighbors at`, neighbors.map(n => `[${n.row},${n.col}]`));
+      return null;
+    }
+    console.log(`Influenced cell [${row},${col}] has 2 influencer neighbors at`, neighbors.map(n => `[${n.row},${n.col}]`));
+  }
+
+  // Pre-tile corner influencer cells with yellow
+  const preTiledInfluencers = [
     [0, 0], [0, 6],
     [6, 0], [6, 6],
   ];
-  preTiledInactive.forEach(([row, col]) => {
+  preTiledInfluencers.forEach(([row, col]) => {
     board[row][col].color = 'yellow';
   });
 
-  console.log('Starting backtracking with', activeCells.length, 'active cells');
-
   const startTime = Date.now();
   const TIMEOUT_MS = 10000;
-
   let attempts = 0;
 
-  const solve = (index) => {
+  // Randomly assign colors to influencers and try to find a valid board
+  const tryRandomSolution = () => {
+    attempts++;
     if (Date.now() - startTime > TIMEOUT_MS) {
       console.log('Generation timed out after', (Date.now() - startTime) / 1000, 'seconds');
       return false;
     }
 
-    if (index === activeCells.length) {
-      if (validateBoard(board)) {
-        console.log('Solution found after', attempts, 'attempts');
-        return true;
+    // Assign random colors to non-pre-tiled influencers
+    influencerCells.forEach(([row, col]) => {
+      if (!preTiledInfluencers.some(([r, c]) => r === row && c === col)) {
+        board[row][col].color = INFLUENCER_COLORS[Math.floor(Math.random() * INFLUENCER_COLORS.length)];
       }
+    });
+
+    // Assign colors to influenced cells
+    let invalidCells = [];
+    influencedCells.forEach(([row, col]) => {
+      const neighbors = getNeighbors(board, row, col);
+      const neighborColors = neighbors.filter(n => n.color).map(n => n.color);
+      const assignedColor = getInfluencedColor(neighborColors);
+      board[row][col].color = assignedColor;
+      if (!assignedColor) {
+        invalidCells.push([row, col, neighborColors, neighbors.map(n => `[${n.row},${n.col}]`)]);
+      }
+    });
+
+    if (invalidCells.length > 0) {
+      console.log('Invalid influenced cells:', invalidCells.map(([row, col, colors, neighbors]) => ({
+        cell: `[${row},${col}]`,
+        neighborColors: colors,
+        neighborPositions: neighbors,
+      })));
       return false;
     }
 
-    const [row, col] = activeCells[index];
-    for (const color of COLORS) {
-      attempts++;
-      if (attempts % 5000 === 0) {
-        console.log(`Attempt ${attempts}: Filling cell ${index + 1}/${activeCells.length} at [${row},${col}] with ${color}`);
-      }
-
-      board[row][col].color = color;
-      if (checkCellDuringGeneration(board, row, col)) {
-        const neighbors = getNeighbors(board, row, col);
-        let neighborsValid = true;
-        for (const { row: r, col: c } of neighbors) {
-          if (board[r][c].color && !checkCellDuringGeneration(board, r, c)) {
-            neighborsValid = false;
-            break;
-          }
-        }
-        if (neighborsValid && solve(index + 1)) return true;
-      }
-      board[row][col].color = null;
+    if (validateBoard(board)) {
+      console.log('Solution found after', attempts, 'random attempts');
+      // Log the board for debugging
+      const boardSummary = board.map(row => row.map(cell => ({
+        color: cell.color,
+        isInfluencer: cell.isInfluencer,
+        isHole: cell.isHole,
+      })));
+      console.log('Generated board:', JSON.stringify(boardSummary, null, 2));
+      return true;
     }
-    console.log(`Backtracking at cell ${index + 1}/${activeCells.length} [${row},${col}]`);
     return false;
   };
 
-  const success = solve(0);
-  if (!success) {
-    console.log('Failed to generate a solution after', attempts, 'attempts');
-    return null;
+  // Try multiple random configurations
+  const MAX_ATTEMPTS = 10000;
+  while (attempts < MAX_ATTEMPTS) {
+    if (tryRandomSolution()) {
+      return board;
+    }
+    // Clear non-pre-tiled influencer colors for next attempt
+    influencerCells.forEach(([row, col]) => {
+      if (!preTiledInfluencers.some(([r, c]) => r === row && c === col)) {
+        board[row][col].color = null;
+      }
+    });
+    // Clear influenced cell colors
+    influencedCells.forEach(([row, col]) => {
+      board[row][col].color = null;
+    });
   }
-  return board;
+
+  console.log('Failed to generate a solution after', attempts, 'random attempts');
+  return null;
 };
 
 // Create a puzzle with clues
@@ -243,4 +264,4 @@ const createPuzzle = (solutionBoard, clueCount = 8) => {
   return { puzzleBoard, solutionBoard };
 };
 
-export { createBoard, getNeighbors, checkCellFinal as checkCell, generateSolution, createPuzzle, COLORS };
+export { createBoard, getNeighbors, checkCell, generateSolution, createPuzzle, COLORS, INFLUENCER_COLORS };
