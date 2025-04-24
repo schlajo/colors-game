@@ -173,7 +173,7 @@ const App = () => {
             console.log('Check button clicked');
             checkSolution();
           }}
-          className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
         >
           Check
         </button>
@@ -182,7 +182,7 @@ const App = () => {
             console.log('Hint button clicked');
             getHint();
           }}
-          className="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600"
+          className="px-4 py-2 bg-yellow-300 text-white rounded hover:bg-yellow-600"
         >
           Hint
         </button>
@@ -191,7 +191,7 @@ const App = () => {
             console.log('Start Game button clicked');
             initializeBoard();
           }}
-          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+          className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
         >
           Start Game
         </button>
@@ -209,7 +209,7 @@ const App = () => {
             console.log('Clear button clicked');
             clearBoard();
           }}
-          className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-gray-600"
         >
           Clear
         </button>

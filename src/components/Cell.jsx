@@ -5,9 +5,9 @@ const Cell = ({ cell, onClick, isSelected }) => {
     <div
       onClick={cell.isHole || cell.isClue ? null : onClick}
       className={`w-10 h-10 border border-gray-300 flex items-center justify-center
-        ${cell.isHole ? 'bg-gray-800 cursor-default' :
-          cell.isClue ? 'opacity-70 cursor-default' : 'cursor-pointer'}
-        ${cell.isInfluencer ? 'bg-gray-400' : 'bg-gray-200'}
+        ${cell.isHole ? 'bg-black cursor-default' :
+          cell.isClue ? 'cursor-default' : 'cursor-pointer'}
+        ${!cell.isHole ? (cell.isInfluencer ? 'bg-gray-500' : 'bg-gray-200') : ''}
         ${isSelected ? 'ring-2 ring-blue-500 ring-offset-2' : ''}
       `}
     >
