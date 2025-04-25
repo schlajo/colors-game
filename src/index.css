@@ -2,8 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-
-
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
@@ -35,7 +33,7 @@ body {
 }
 
 h1 {
-  color:white;
+  color: white;
   font-size: 3.2em;
   line-height: 1.1;
 }
@@ -72,7 +70,43 @@ button:focus-visible {
   }
 }
 
-/* index.css */
 html, body, #root {
   height: 100%;
+}
+
+@keyframes light-pass {
+  0% {
+    box-shadow: inset -150px 150px 60px rgba(255, 255, 255, 0.7);
+  }
+  100% {
+    box-shadow: inset 150px -150px 60px rgba(255, 255, 255, 0.7);
+  }
+}
+
+.light-pass::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  animation: light-pass 1s ease-in-out forwards;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.congratulations-message {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 3rem;
+  font-weight: bold;
+  color: #ffffff;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.7);
+  padding: 1rem 2rem;
+  border-radius: 10px;
+  z-index: 10;
+  text-align: center;
 }

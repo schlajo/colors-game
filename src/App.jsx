@@ -11,7 +11,7 @@ const App = () => {
       isActive: false,
       isHole: false,
       isClue: false,
-      isIncorrect: false, // New property to track incorrect tiles
+      isIncorrect: false,
       id: uuidv4(),
     }))
   );
@@ -19,8 +19,9 @@ const App = () => {
   const [board, setBoard] = useState(initialBoard);
   const [solutionBoard, setSolutionBoard] = useState([]);
   const [selectedCell, setSelectedCell] = useState(null);
-  const [isGameWon, setIsGameWon] = useState(false); // Track if the puzzle is solved
-  const [flashAnimation, setFlashAnimation] = useState(false); // Control flash animation
+  const [isGameWon, setIsGameWon] = useState(false);
+  const [lightAnimation, setLightAnimation] = useState(false);
+  const [showCongrats, setShowCongrats] = useState(false);
 
   const initializeBoard = () => {
     console.log('initializeBoard called');
@@ -35,7 +36,7 @@ const App = () => {
           if (newBoard[row][col].color) {
             newBoard[row][col].isClue = true;
           }
-          newBoard[row][col].isIncorrect = false; // Initialize isIncorrect
+          newBoard[row][col].isIncorrect = false;
         }
       }
       setBoard(newBoard);
@@ -50,11 +51,12 @@ const App = () => {
     }
     setSelectedCell(null);
     setIsGameWon(false);
-    setFlashAnimation(false);
+    setLightAnimation(false);
+    setShowCongrats(false);
   };
 
   const checkSolution = () => {
-    if (isGameWon) return; // Prevent checking if game is won
+    if (isGameWon) return;
     const newBoard = JSON.parse(JSON.stringify(board));
     let isCorrect = true;
     for (let row = 0; row < 7; row++) {
@@ -74,15 +76,15 @@ const App = () => {
     if (isCorrect) {
       setIsGameWon(true);
       triggerCelebration();
-      alert('Congratulations! You solved the puzzle!');
-    } else {
-      alert('Not quite! Incorrect tiles are marked with a red X.');
     }
   };
 
   const triggerCelebration = () => {
-    setFlashAnimation(true);
-    setTimeout(() => setFlashAnimation(false), 2000); // Flash for 2 seconds
+    setLightAnimation(true);
+    setTimeout(() => {
+      setLightAnimation(false);
+      setShowCongrats(true);
+    }, 1000); // Animation duration: 1 second
   };
 
   const checkWinCondition = (updatedBoard) => {
@@ -123,7 +125,6 @@ const App = () => {
     if (checkWinCondition(newBoard)) {
       setIsGameWon(true);
       triggerCelebration();
-      setTimeout(() => alert('Congratulations! You solved the puzzle!'), 100); // Delay alert to show tile
     }
   };
 
@@ -189,13 +190,12 @@ const App = () => {
       const newBoard = JSON.parse(JSON.stringify(board));
       if (board[row][col].color !== color) {
         newBoard[row][col].color = color;
-        newBoard[row][col].isIncorrect = false; // Clear incorrect mark when new color is placed
+        newBoard[row][col].isIncorrect = false;
         setBoard(newBoard);
         console.log(`Cell [${row},${col}] updated to color: ${color}`);
         if (checkWinCondition(newBoard)) {
           setIsGameWon(true);
           triggerCelebration();
-          setTimeout(() => alert('Congratulations! You solved the puzzle!'), 100); // Delay alert to show tile
         }
       } else {
         console.log(`Cell [${row},${col}] already has color: ${color}, no change`);
@@ -204,13 +204,13 @@ const App = () => {
   };
 
   return (
-    <div className="flex flex-col items-center p-4">
+    <div className="flex flex-col items-center p-4 relative">
       <h1 className="text-2xl font-bold mb-4">Color Mixing Puzzle</h1>
       <ColorBoard
         board={board}
         onCellClick={handleCellClick}
         selectedCell={selectedCell}
-        flashAnimation={flashAnimation}
+        lightAnimation={lightAnimation}
       />
       <ColorPalette
         onColorClick={handleColorButton}
@@ -267,6 +267,11 @@ const App = () => {
           Clear
         </button>
       </div>
+      {showCongrats && (
+        <div className="congratulations-message">
+          Congratulations! You solved the puzzle!
+        </div>
+      )}
     </div>
   );
 };

@@ -1,6 +1,7 @@
 import React from 'react';
 
-const Cell = ({ cell, onClick, isSelected, flashAnimation }) => {
+const Cell = ({ cell, onClick, isSelected, glossAnimation }) => {
+  console.log(`Cell rendering: id=${cell.id}, glossAnimation=${glossAnimation}`);
   return (
     <div
       onClick={cell.isHole || cell.isClue ? null : onClick}
@@ -9,11 +10,8 @@ const Cell = ({ cell, onClick, isSelected, flashAnimation }) => {
           cell.isClue ? 'cursor-default' : 'cursor-pointer'}
         ${!cell.isHole ? (cell.isInfluencer ? 'bg-gray-500' : 'bg-gray-200') : ''}
         ${isSelected ? 'ring-2 ring-blue-500 ring-offset-2' : ''}
-        ${flashAnimation ? 'animate-flash' : ''}
+        ${glossAnimation ? 'animate-gloss' : ''}
       `}
-      style={{
-        animation: flashAnimation ? 'flash 0.5s ease-in-out infinite alternate' : 'none',
-      }}
     >
       {cell.color && (
         <div

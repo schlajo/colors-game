@@ -1,14 +1,16 @@
 import React from 'react';
 import Cell from './Cell';
 
-const ColorBoard = ({ board, onCellClick, selectedCell }) => {
+const ColorBoard = ({ board, onCellClick, selectedCell, lightAnimation }) => {
   console.log('ColorBoard rendering with board:', board);
   if (!board || board.length === 0) {
     return <div>Loading board...</div>;
   }
 
   return (
-    <div className="grid grid-cols-7 gap-1">
+    <div
+      className={`grid grid-cols-7 gap-1 relative ${lightAnimation ? 'light-pass' : ''}`}
+    >
       {board.map((row, rowIndex) =>
         row.map((cell, colIndex) => (
           <Cell
