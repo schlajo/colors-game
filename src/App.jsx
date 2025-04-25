@@ -204,74 +204,111 @@ const App = () => {
   };
 
   return (
-    <div className="flex flex-col items-center p-4 relative">
-      <h1 className="text-2xl font-bold mb-4">Color Mixing Puzzle</h1>
-      <ColorBoard
-        board={board}
-        onCellClick={handleCellClick}
-        selectedCell={selectedCell}
-        lightAnimation={lightAnimation}
-      />
-      <ColorPalette
-        onColorClick={handleColorButton}
-        colors={['cyan', 'magenta', 'yellow', 'red', 'green', 'blue', 'purple', 'orange', 'white']}
-      />
-      <div className="flex justify-center gap-2 mt-4">
-        <button
-          onClick={() => {
-            console.log('Check button clicked');
-            checkSolution();
-          }}
-          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-          disabled={isGameWon}
-        >
-          Check
-        </button>
-        <button
-          onClick={() => {
-            console.log('Hint button clicked');
-            getHint();
-          }}
-          className="px-4 py-2 bg-yellow-300 text-white rounded hover:bg-yellow-600"
-          disabled={isGameWon}
-        >
-          Hint
-        </button>
-        <button
-          onClick={() => {
-            console.log('Start Game button clicked');
-            initializeBoard();
-          }}
-          className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
-        >
-          Start Game
-        </button>
-        <button
-          onClick={() => {
-            console.log('Delete button clicked');
-            deleteLast();
-          }}
-          className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
-          disabled={isGameWon}
-        >
-          Delete
-        </button>
-        <button
-          onClick={() => {
-            console.log('Clear button clicked');
-            clearBoard();
-          }}
-          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-gray-600"
-          disabled={isGameWon}
-        >
-          Clear
-        </button>
+    <div className="flex flex-col lg:flex-row items-center justify-between p-4 w-full max-w-7xl mx-auto relative">
+      {/* Left Panel: Basic Instructions */}
+      <div className="instruction-panel lg:w-1/4 w-full mb-4 lg:mb-0 lg:mr-4 bg-gray-800 p-4 rounded-lg">
+        <h2 className="text-xl font-bold text-white mb-2">How to Play</h2>
+        <ul className="list-disc list-inside text-gray-300">
+          <li>Black cells are inactive.</li>
+          <li>Gray cells are influencers.</li>
+          <li>White cells are influenced by tiles in surrounding gray cells.</li>
+          <li>Use color-mixing rules on right to place correct color tiles in cells.</li>
+          <li>Click cell to select it.</li>
+          <li>Choose color from palette below to fill cell.</li>
+          <li>Match hidden solution using pre-filled clue cells to win.</li>
+        </ul>
       </div>
-      {showCongrats && (
-        <div className="congratulations-message">
-          Congratulations! You solved the puzzle!
+
+      {/* Center: Game Board and Controls */}
+      <div className="flex flex-col items-center w-full lg:w-2/4">
+        <h1 className="text-2xl font-bold mb-4">Color Mixing Puzzle</h1>
+        <ColorBoard
+          board={board}
+          onCellClick={handleCellClick}
+          selectedCell={selectedCell}
+          lightAnimation={lightAnimation}
+        />
+        <ColorPalette
+          onColorClick={handleColorButton}
+          colors={['cyan', 'magenta', 'yellow', 'red', 'green', 'blue', 'purple', 'orange', 'white']}
+        />
+        <div className="flex justify-center gap-2 mt-4">
+          <button
+            onClick={() => {
+              console.log('Check button clicked');
+              checkSolution();
+            }}
+            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+            disabled={isGameWon}
+          >
+            Check
+          </button>
+          <button
+            onClick={() => {
+              console.log('Hint button clicked');
+              getHint();
+            }}
+            className="px-4 py-2 bg-yellow-300 text-white rounded hover:bg-yellow-600"
+            disabled={isGameWon}
+          >
+            Hint
+          </button>
+          <button
+            onClick={() => {
+              console.log('Start Game button clicked');
+              initializeBoard();
+            }}
+            className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+          >
+            Start Game
+          </button>
+          <button
+            onClick={() => {
+              console.log('Delete button clicked');
+              deleteLast();
+            }}
+            className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+            disabled={isGameWon}
+          >
+            Delete
+          </button>
+          <button
+            onClick={() => {
+              console.log('Clear button clicked');
+              clearBoard();
+            }}
+            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-gray-600"
+            disabled={isGameWon}
+          >
+            Clear
+          </button>
         </div>
-      )}
+        {showCongrats && (
+          <div className="congratulations-message">
+            You Win!
+          </div>
+        )}
+      </div>
+
+      {/* Right Panel: Color-Mixing Rules */}
+      <div className="instruction-panel lg:w-1/4 w-full mt-4 lg:mt-0 lg:ml-4 bg-gray-800 p-4 rounded-lg">
+        <h2 className="text-xl font-bold text-white mb-2">Color-Mixing Rules</h2>
+        <ul className="list-disc list-inside text-gray-300">Additive Mixing (RGB) for Light
+          <li>Red + Blue = Magenta</li>
+          <li>Red + Green = Yellow</li>
+          <li>Blue + Green = Cyan</li>
+        </ul> 
+        <ul className="list-disc list-inside text-gray-300">Subtractive Mixing (CMY) Ink
+          <li>Cyan + Magenta = Blue</li>
+          <li>Cyan + Yellow = Green</li>
+          <li>Magenta + Yellow = Red</li>
+        </ul>
+          <ul className="list-disc list-inside text-gray-300">Arbitrary Mixing
+          <li>Magenta + Blue = Purple</li>
+          <li>Yellow + Red = Orange</li>
+          <li>Cyan + Green = Gray</li>
+        </ul>
+      </div>
     </div>
   );
 };

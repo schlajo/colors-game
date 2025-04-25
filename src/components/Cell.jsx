@@ -8,7 +8,7 @@ const Cell = ({ cell, onClick, isSelected, glossAnimation }) => {
       className={`w-10 h-10 border border-gray-300 flex items-center justify-center relative
         ${cell.isHole ? 'bg-black cursor-default' :
           cell.isClue ? 'cursor-default' : 'cursor-pointer'}
-        ${!cell.isHole ? (cell.isInfluencer ? 'bg-gray-500' : 'bg-gray-200') : ''}
+        ${!cell.isHole ? (cell.isInfluencer ? 'bg-gray-500' : 'bg-white') : ''}
         ${isSelected ? 'ring-2 ring-blue-500 ring-offset-2' : ''}
         ${glossAnimation ? 'animate-gloss' : ''}
       `}
@@ -24,7 +24,7 @@ const Cell = ({ cell, onClick, isSelected, glossAnimation }) => {
               cell.color === 'yellow' ? 'bg-yellow-300' :
               cell.color === 'cyan' ? 'bg-cyan-400' :
               cell.color === 'magenta' ? 'bg-pink-500' :
-              cell.color === 'white' ? 'bg-white border border-gray-300' : 'bg-gray-200'
+              cell.color === 'white' ? 'bg-gray-400 border border-gray-300' : 'bg-gray-200'
             }`}
         />
       )}
