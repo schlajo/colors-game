@@ -214,14 +214,14 @@ const App = () => {
           <li>White cells are influenced by tiles in surrounding gray cells.</li>
           <li>Use color-mixing rules on right to place correct color tiles in cells.</li>
           <li>Click cell to select it.</li>
-          <li>Choose color from palette below to fill cell.</li>
+          <li>Choose color from palette below board to fill cell.</li>
           <li>Match hidden solution using pre-filled clue cells to win.</li>
         </ul>
       </div>
 
       {/* Center: Game Board and Controls */}
       <div className="flex flex-col items-center w-full lg:w-2/4">
-        <h1 className="text-2xl font-bold mb-4">Color Mixing Puzzle</h1>
+        <h1 className="text-2xl font-bold mb-4">Colors</h1>
         <ColorBoard
           board={board}
           onCellClick={handleCellClick}
@@ -307,6 +307,7 @@ const App = () => {
           <li>Magenta + Blue = Purple</li>
           <li>Yellow + Red = Orange</li>
           <li>Cyan + Green = Gray</li>
+          <li>2 Same Colors = That Color</li>
         </ul>
       </div>
     </div>

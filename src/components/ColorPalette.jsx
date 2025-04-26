@@ -20,7 +20,7 @@ const ColorPalette = ({ onColorClick, colors }) => {
                 color === 'yellow' ? 'bg-yellow-300' :
                 color === 'cyan' ? 'bg-cyan-400' :
                 color === 'magenta' ? 'bg-pink-500' :
-                color === 'white' ? 'bg-white border border-gray-300' : 'bg-gray-200'
+                color === 'white' ? 'bg-gray-300 border border-gray-300' : 'bg-gray-200'
               }`}
           />
         ))}
