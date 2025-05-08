@@ -22,6 +22,25 @@ const App = () => {
   const [isGameWon, setIsGameWon] = useState(false);
   const [lightAnimation, setLightAnimation] = useState(false);
   const [showCongrats, setShowCongrats] = useState(false);
+  const [startTime, setStartTime] = useState(null);
+  const [elapsedTime, setElapsedTime] = useState(0);
+  const [gameStarted, setGameStarted] = useState(false);
+
+  useEffect(() => {
+    let timer;
+    if (startTime && !isGameWon) {
+      timer = setInterval(() => {
+        setElapsedTime(Date.now() - startTime);
+      }, 1000);
+    }
+    return () => clearInterval(timer);
+  }, [startTime, isGameWon]);
+
+  const formatTime = (ms) => {
+    const seconds = Math.floor((ms / 1000) % 60);
+    const minutes = Math.floor((ms / (1000 * 60)) % 60);
+    return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  };
 
   const initializeBoard = () => {
     console.log('initializeBoard called');
@@ -53,6 +72,22 @@ const App = () => {
     setIsGameWon(false);
     setLightAnimation(false);
     setShowCongrats(false);
+    setStartTime(Date.now());
+    setElapsedTime(0);
+    setGameStarted(true);
+  };
+
+  const endGame = () => {
+    console.log('End Game called');
+    setBoard(initialBoard);
+    setSolutionBoard([]);
+    setStartTime(null);
+    setElapsedTime(0);
+    setSelectedCell(null);
+    setIsGameWon(false);
+    setLightAnimation(false);
+    setShowCongrats(false);
+    setGameStarted(false);
   };
 
   const checkSolution = () => {
@@ -164,7 +199,7 @@ const App = () => {
 
   useEffect(() => {
     console.log('useEffect running');
-    initializeBoard();
+    // Do not call initializeBoard to prevent timer start on load
   }, []);
 
   const handleCellClick = (row, col) => {
@@ -185,7 +220,7 @@ const App = () => {
       console.log('Color button clicked, but no cell selected');
       return;
     }
-    const [row, col] = selectedCell;
+    const [row, col] = selected0; selectedCell;
     if (!board[row][col].isHole && !board[row][col].isClue) {
       const newBoard = JSON.parse(JSON.stringify(board));
       if (board[row][col].color !== color) {
@@ -222,24 +257,31 @@ const App = () => {
       {/* Center: Game Board and Controls */}
       <div className="flex flex-col items-center w-full lg:w-2/4">
         <h1 className="text-2xl font-bold mb-4">Colors</h1>
-        <ColorBoard
-          board={board}
-          onCellClick={handleCellClick}
-          selectedCell={selectedCell}
-          lightAnimation={lightAnimation}
-        />
+        {gameStarted ? (
+          <ColorBoard
+            board={board}
+            onCellClick={handleCellClick}
+            selectedCell={selectedCell}
+            lightAnimation={lightAnimation}
+          />
+        ) : (
+          <div className="text-white text-lg mb-4">Click "Start Game" to begin!</div>
+        )}
+        <div className="mt-4 text-white text-lg">
+          Time: {formatTime(elapsedTime)}
+        </div>
         <ColorPalette
           onColorClick={handleColorButton}
           colors={['cyan', 'magenta', 'yellow', 'red', 'green', 'blue', 'purple', 'orange', 'white']}
         />
-        <div className="flex justify-center gap-2 mt-4">
+        <div className="flex justify-center gap-2 mt-4 flex-wrap">
           <button
             onClick={() => {
               console.log('Check button clicked');
               checkSolution();
             }}
             className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-            disabled={isGameWon}
+            disabled={isGameWon || !gameStarted}
           >
             Check
           </button>
@@ -249,18 +291,27 @@ const App = () => {
               getHint();
             }}
             className="px-4 py-2 bg-yellow-300 text-white rounded hover:bg-yellow-600"
-            disabled={isGameWon}
+            disabled={isGameWon || !gameStarted}
           >
             Hint
           </button>
           <button
             onClick={() => {
-              console.log('Start Game button clicked');
-              initializeBoard();
+              if (gameStarted) {
+                console.log('End Game button clicked');
+                endGame();
+              } else {
+                console.log('Start Game button clicked');
+                initializeBoard();
+              }
             }}
-            className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+            className={`px-4 py-2 text-white rounded ${
+              gameStarted
+                ? 'bg-blue-500 hover:bg-blue-600'
+                : 'bg-green-500 hover:bg-green-600'
+            }`}
           >
-            Start Game
+            {gameStarted ? 'End Game' : 'Start Game'}
           </button>
           <button
             onClick={() => {
@@ -268,7 +319,7 @@ const App = () => {
               deleteLast();
             }}
             className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
-            disabled={isGameWon}
+            disabled={isGameWon || !gameStarted}
           >
             Delete
           </button>
@@ -278,14 +329,14 @@ const App = () => {
               clearBoard();
             }}
             className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-gray-600"
-            disabled={isGameWon}
+            disabled={isGameWon || !gameStarted}
           >
             Clear
           </button>
         </div>
         {showCongrats && (
-          <div className="congratulations-message">
-            You Win!
+          <div className="congratulations-message mt-4 text-white text-xl">
+            You Win! Time: {formatTime(elapsedTime)}
           </div>
         )}
       </div>
