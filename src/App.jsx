@@ -79,7 +79,15 @@ const App = () => {
 
   const endGame = () => {
     console.log('End Game called');
-    setBoard(initialBoard);
+    const emptyBoard = createBoard(); // Use createBoard to get holes and influencers
+    for (let row = 0; row < 7; row++) {
+      for (let col = 0; col < 7; col++) {
+        emptyBoard[row][col].color = null;
+        emptyBoard[row][col].isClue = false;
+        emptyBoard[row][col].isIncorrect = false;
+      }
+    }
+    setBoard(emptyBoard);
     setSolutionBoard([]);
     setStartTime(null);
     setElapsedTime(0);
@@ -119,6 +127,7 @@ const App = () => {
     setTimeout(() => {
       setLightAnimation(false);
       setShowCongrats(true);
+      setGameStarted(false); // Reset to show "Start Game" button after win
     }, 1000); // Animation duration: 1 second
   };
 
@@ -220,7 +229,7 @@ const App = () => {
       console.log('Color button clicked, but no cell selected');
       return;
     }
-    const [row, col] = selected0; selectedCell;
+    const [row, col] = selectedCell;
     if (!board[row][col].isHole && !board[row][col].isClue) {
       const newBoard = JSON.parse(JSON.stringify(board));
       if (board[row][col].color !== color) {
@@ -244,29 +253,25 @@ const App = () => {
       <div className="instruction-panel lg:w-1/4 w-full mb-4 lg:mb-0 lg:mr-4 bg-gray-800 p-4 rounded-lg">
         <h2 className="text-xl font-bold text-white mb-2">How to Play</h2>
         <ul className="list-disc list-inside text-gray-300">
+          <li>The object of the game is to fill all the white and gray cells with the correct colors.</li>
           <li>Black cells are inactive.</li>
           <li>Gray cells are influencers.</li>
-          <li>White cells are influenced by tiles in surrounding gray cells.</li>
-          <li>Use color-mixing rules on right to place correct color tiles in cells.</li>
-          <li>Click cell to select it.</li>
-          <li>Choose color from palette below board to fill cell.</li>
-          <li>Match hidden solution using pre-filled clue cells to win.</li>
+          <li>White cells are influenced by surrounding gray cells.</li>
+          <li>Use the color-mixing rules on the right to place the correct color tiles in the cells.</li>
+          <li>Click a cell to select it.</li>
+          <li>Choose a color from the palette below to fill a cell.</li>
         </ul>
       </div>
 
       {/* Center: Game Board and Controls */}
       <div className="flex flex-col items-center w-full lg:w-2/4">
         <h1 className="text-2xl font-bold mb-4">Colors</h1>
-        {gameStarted ? (
-          <ColorBoard
-            board={board}
-            onCellClick={handleCellClick}
-            selectedCell={selectedCell}
-            lightAnimation={lightAnimation}
-          />
-        ) : (
-          <div className="text-white text-lg mb-4">Click "Start Game" to begin!</div>
-        )}
+        <ColorBoard
+          board={board}
+          onCellClick={handleCellClick}
+          selectedCell={selectedCell}
+          lightAnimation={lightAnimation}
+        />
         <div className="mt-4 text-white text-lg">
           Time: {formatTime(elapsedTime)}
         </div>
@@ -297,7 +302,7 @@ const App = () => {
           </button>
           <button
             onClick={() => {
-              if (gameStarted) {
+              if (gameStarted && !showCongrats) {
                 console.log('End Game button clicked');
                 endGame();
               } else {
@@ -306,12 +311,12 @@ const App = () => {
               }
             }}
             className={`px-4 py-2 text-white rounded ${
-              gameStarted
+              gameStarted && !showCongrats
                 ? 'bg-blue-500 hover:bg-blue-600'
                 : 'bg-green-500 hover:bg-green-600'
             }`}
           >
-            {gameStarted ? 'End Game' : 'Start Game'}
+            {gameStarted && !showCongrats ? 'End Game' : 'Start Game'}
           </button>
           <button
             onClick={() => {
@@ -335,8 +340,9 @@ const App = () => {
           </button>
         </div>
         {showCongrats && (
-          <div className="congratulations-message mt-4 text-white text-xl">
-            You Win! Time: {formatTime(elapsedTime)}
+          <div className="congratulations-message text-white flex flex-col items-center">
+            <div className="text-5xl font-bold">You Win!</div>
+            <div className="text-2xl">Time: {formatTime(elapsedTime)}</div>
           </div>
         )}
       </div>
@@ -344,7 +350,7 @@ const App = () => {
       {/* Right Panel: Color-Mixing Rules */}
       <div className="instruction-panel lg:w-1/4 w-full mt-4 lg:mt-0 lg:ml-4 bg-gray-800 p-4 rounded-lg">
         <h2 className="text-xl font-bold text-white mb-2">Color-Mixing Rules</h2>
-        <ul className="list-disc list-inside text-gray-300">Additive Mixing (RGB) for Light
+        <ul className="list-disc list-inside text-gray-300">Additive Mixing (RGB) Light
           <li>Red + Blue = Magenta</li>
           <li>Red + Green = Yellow</li>
           <li>Blue + Green = Cyan</li>
