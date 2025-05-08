@@ -2,7 +2,7 @@ import React from 'react';
 
 const ColorPalette = ({ onColorClick, colors }) => {
   return (
-    <div className="mt-4">
+    <div className="mt-2">
       <div className="flex flex-row gap-2">
         {colors.map((color) => (
           <button

@@ -250,7 +250,7 @@ const App = () => {
   return (
     <div className="flex flex-col lg:flex-row items-center justify-between p-4 w-full max-w-7xl mx-auto relative">
       {/* Left Panel: Basic Instructions */}
-      <div className="instruction-panel lg:w-1/4 w-full mb-4 lg:mb-0 lg:mr-4 bg-gray-800 p-4 rounded-lg">
+      <div className="instruction-panel lg:w-1/4 w-full mt-2 lg:mb-0 lg:mr-4 bg-gray-800 p-4 rounded-lg">
         <h2 className="text-xl font-bold text-white mb-2">How to Play</h2>
         <ul className="list-disc list-inside text-gray-300">
           <li>The object of the game is to fill all the white and gray cells with the correct colors.</li>
@@ -265,14 +265,14 @@ const App = () => {
 
       {/* Center: Game Board and Controls */}
       <div className="flex flex-col items-center w-full lg:w-2/4">
-        <h1 className="text-2xl font-bold mb-4">Colors</h1>
+        <h1 className="text-2xl font-bold mb-2">Colors</h1>
         <ColorBoard
           board={board}
           onCellClick={handleCellClick}
           selectedCell={selectedCell}
           lightAnimation={lightAnimation}
         />
-        <div className="mt-4 text-white text-lg">
+        <div className="mt-2 text-white text-lg">
           Time: {formatTime(elapsedTime)}
         </div>
         <ColorPalette
@@ -348,7 +348,7 @@ const App = () => {
       </div>
 
       {/* Right Panel: Color-Mixing Rules */}
-      <div className="instruction-panel lg:w-1/4 w-full mt-4 lg:mt-0 lg:ml-4 bg-gray-800 p-4 rounded-lg">
+      <div className="instruction-panel lg:w-1/4 w-full mt-2 lg:mt-0 lg:ml-4 bg-gray-800 p-4 rounded-lg">
         <h2 className="text-xl font-bold text-white mb-2">Color-Mixing Rules</h2>
         <ul className="list-disc list-inside text-gray-300">Additive Mixing (RGB) Light
           <li>Red + Blue = Magenta</li>
