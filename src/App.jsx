@@ -249,9 +249,9 @@ const App = () => {
 
   return (
   <>
-    <div className="flex flex-col lg:flex-row items-center justify-between p-4 w-full max-w-7xl mx-auto relative">
+    <div className="flex flex-col lg:flex-row items-center justify-center gap-3 p-4 w-full max-w-5xl mx-auto relative">
       {/* Left Panel: Basic Instructions */}
-      <div className="instruction-panel lg:w-1/4 w-full mt-2 lg:mb-0 lg:mr-4 bg-gray-800 p-4 rounded-lg">
+      <div className="instruction-panel lg:w-1/4 w-full mt-2 lg:mb-0 bg-gray-800 p-4 rounded-lg">
         <h2 className="text-xl font-bold text-white mb-2">How to Play</h2>
         <ul className="list-disc list-inside text-gray-300">
           <li>The object of the game is to fill all the white and gray cells with the correct colors.</li>
@@ -351,7 +351,7 @@ const App = () => {
       </div>
 
       {/* Right Panel: Color-Mixing Rules */}
-      <div className="instruction-panel lg:w-1/4 w-full mt-2 lg:mt-0 lg:ml-4 bg-gray-800 p-4 rounded-lg">
+      <div className="instruction-panel lg:w-1/4 w-full mt-2 lg:mt-0 bg-gray-800 p-4 rounded-lg">
         <h2 className="text-xl font-bold text-white mb-2">Color-Mixing Rules</h2>
         <ul className="list-disc list-inside text-gray-300">Additive Mixing (RGB) Light
           <li>Red + Blue = Magenta</li>
@@ -367,7 +367,7 @@ const App = () => {
           <li>Magenta + Blue = Purple</li>
           <li>Yellow + Red = Orange</li>
           <li>Cyan + Green = Gray</li>
-          <li>2 Same Colors = That Color</li>
+          <li>2 of Same = That Color</li>
         </ul>
       </div>  
     </div>
