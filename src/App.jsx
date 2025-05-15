@@ -248,6 +248,7 @@ const App = () => {
   };
 
   return (
+  <>
     <div className="flex flex-col lg:flex-row items-center justify-between p-4 w-full max-w-7xl mx-auto relative">
       {/* Left Panel: Basic Instructions */}
       <div className="instruction-panel lg:w-1/4 w-full mt-2 lg:mb-0 lg:mr-4 bg-gray-800 p-4 rounded-lg">
@@ -266,7 +267,7 @@ const App = () => {
       {/* Center: Game Board and Controls */}
       <div className="flex flex-col items-center w-full lg:w-2/4">
         <h1 className="text-2xl font-bold mb-2">Colors</h1>
-        <ColorBoard
+      <ColorBoard
           board={board}
           onCellClick={handleCellClick}
           selectedCell={selectedCell}
@@ -275,17 +276,19 @@ const App = () => {
         <div className="mt-2 text-white text-lg">
           Time: {formatTime(elapsedTime)}
         </div>
-        <ColorPalette
-          onColorClick={handleColorButton}
-          colors={['cyan', 'magenta', 'yellow', 'red', 'green', 'blue', 'purple', 'orange', 'white']}
-        />
-        <div className="flex justify-center gap-2 mt-4 flex-wrap">
+<div className="w-full lg:w-2/4 max-w-md flex flex-nowrap justify-center gap-1 mt-2">
+  <ColorPalette
+    onColorClick={handleColorButton}
+    colors={['cyan', 'magenta', 'yellow', 'red', 'green', 'blue', 'purple', 'orange', 'white']}
+  />
+</div>
+        <div className="w-full lg:w-2/4 flex flex-nowrap justify-center gap-1 mt-4">
           <button
             onClick={() => {
               console.log('Check button clicked');
               checkSolution();
             }}
-            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+            className="px-2 h-8 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm flex-shrink"
             disabled={isGameWon || !gameStarted}
           >
             Check
@@ -295,7 +298,7 @@ const App = () => {
               console.log('Hint button clicked');
               getHint();
             }}
-            className="px-4 py-2 bg-yellow-300 text-white rounded hover:bg-yellow-600"
+            className="px-2 h-8 bg-yellow-300 text-white rounded hover:bg-yellow-600 text-sm flex-shrink"
             disabled={isGameWon || !gameStarted}
           >
             Hint
@@ -310,7 +313,7 @@ const App = () => {
                 initializeBoard();
               }
             }}
-            className={`px-4 py-2 text-white rounded ${
+            className={`px-2 h-8 text-white rounded min-w-[100px] text-sm flex-shrink ${
               gameStarted && !showCongrats
                 ? 'bg-blue-500 hover:bg-blue-600'
                 : 'bg-green-500 hover:bg-green-600'
@@ -323,7 +326,7 @@ const App = () => {
               console.log('Delete button clicked');
               deleteLast();
             }}
-            className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+            className="px-2 h-8 bg-red-500 text-white rounded hover:bg-red-600 text-sm flex-shrink"
             disabled={isGameWon || !gameStarted}
           >
             Delete
@@ -333,7 +336,7 @@ const App = () => {
               console.log('Clear button clicked');
               clearBoard();
             }}
-            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-gray-600"
+            className="px-2 h-8 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm flex-shrink"
             disabled={isGameWon || !gameStarted}
           >
             Clear
@@ -360,15 +363,20 @@ const App = () => {
           <li>Cyan + Yellow = Green</li>
           <li>Magenta + Yellow = Red</li>
         </ul>
-          <ul className="list-disc list-inside text-gray-300">Arbitrary Mixing
+        <ul className="list-disc list-inside text-gray-300">Arbitrary Mixing
           <li>Magenta + Blue = Purple</li>
           <li>Yellow + Red = Orange</li>
           <li>Cyan + Green = Gray</li>
           <li>2 Same Colors = That Color</li>
         </ul>
-      </div>
+      </div>  
     </div>
-  );
+    {/* Copyright Notice */}
+    <div className="w-full text-center text-white mt-8 py-4 bg-gray-900">
+      schlajo © 2025
+    </div>
+  </>
+);
 };
 
 export default App;
