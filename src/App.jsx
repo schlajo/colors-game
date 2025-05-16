@@ -5,16 +5,7 @@ import { generateSolution, createPuzzle, createBoard, COLORS } from './utils/gam
 import { v4 as uuidv4 } from 'uuid';
 
 const App = () => {
-  const initialBoard = Array(7).fill().map(() =>
-    Array(7).fill().map(() => ({
-      color: null,
-      isActive: false,
-      isHole: false,
-      isClue: false,
-      isIncorrect: false,
-      id: uuidv4(),
-    }))
-  );
+  const initialBoard = createBoard();
 
   const [board, setBoard] = useState(initialBoard);
   const [solutionBoard, setSolutionBoard] = useState([]);
@@ -373,7 +364,7 @@ const App = () => {
     </div>
     {/* Copyright Notice */}
     <div className="w-full text-center text-white mt-8 py-4 bg-gray-900">
-      schlajo © 2025
+      © 2025 Schlajo. All Rights Reserved.
     </div>
   </>
 );
