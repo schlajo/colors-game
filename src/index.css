@@ -41,7 +41,7 @@ h1 {
 button {
   border-radius: 8px;
   border: 1px solid transparent;
-  padding: 0.125rem 0.5rem; /* Reduced vertical padding to 0.125rem (matches py-0.5), kept horizontal at 0.5rem (matches px-2) */
+  padding: 0.125rem 0.5rem;
   font-size: 1em;
   font-weight: 500;
   font-family: inherit;
@@ -67,7 +67,7 @@ button:focus-visible {
     color: #747bff;
   }
   button {
-    background-color: #f9f9f9;
+    background-color: #Ko f9f9f9;
   }
 }
 
@@ -115,4 +115,22 @@ html, body, #root {
 .instruction-panel {
   border: 1px solid #4b5563;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+@media (max-width: 640px) {
+  .instruction-panel {
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+  }
+}
+
+/* Timer shake animation for hint penalty */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+.timer-shake {
+  animation: shake 0.5s ease-in-out;
 }

@@ -3,8 +3,10 @@ import ColorBoard from './components/ColorBoard';
 import ColorPalette from './components/ColorPalette';
 import { generateSolution, createPuzzle, createBoard, COLORS } from './utils/gameLogic';
 import { v4 as uuidv4 } from 'uuid';
+import Venns from './assets/color-venn-diagrams.png';
 
 const App = () => {
+  // Initialize board with holes and influencers using createBoard
   const initialBoard = createBoard();
 
   const [board, setBoard] = useState(initialBoard);
@@ -16,6 +18,7 @@ const App = () => {
   const [startTime, setStartTime] = useState(null);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [gameStarted, setGameStarted] = useState(false);
+  const [timerShake, setTimerShake] = useState(false); // For shake animation
 
   useEffect(() => {
     let timer;
@@ -70,7 +73,7 @@ const App = () => {
 
   const endGame = () => {
     console.log('End Game called');
-    const emptyBoard = createBoard(); // Use createBoard to get holes and influencers
+    const emptyBoard = createBoard();
     for (let row = 0; row < 7; row++) {
       for (let col = 0; col < 7; col++) {
         emptyBoard[row][col].color = null;
@@ -118,8 +121,8 @@ const App = () => {
     setTimeout(() => {
       setLightAnimation(false);
       setShowCongrats(true);
-      setGameStarted(false); // Reset to show "Start Game" button after win
-    }, 1000); // Animation duration: 1 second
+      setGameStarted(false);
+    }, 1000);
   };
 
   const checkWinCondition = (updatedBoard) => {
@@ -156,6 +159,18 @@ const App = () => {
     newBoard[row][col].color = solutionBoard[row]?.[col]?.color || COLORS[Math.floor(Math.random() * COLORS.length)];
     newBoard[row][col].isIncorrect = false;
     setBoard(newBoard);
+
+    // Apply 10-second penalty and trigger shake
+    if (startTime) {
+      setStartTime(prevStartTime => {
+        const newStartTime = prevStartTime - 10000; // Subtract 10 seconds
+        setElapsedTime(Date.now() - newStartTime); // Immediate update
+        return newStartTime;
+      });
+      setTimerShake(true);
+      setTimeout(() => setTimerShake(false), 500); // Reset after animation
+    }
+
     console.log(`Hint provided: Cell [${row},${col}] set to ${newBoard[row][col].color}`);
     if (checkWinCondition(newBoard)) {
       setIsGameWon(true);
@@ -199,7 +214,6 @@ const App = () => {
 
   useEffect(() => {
     console.log('useEffect running');
-    // Do not call initializeBoard to prevent timer start on load
   }, []);
 
   const handleCellClick = (row, col) => {
@@ -239,135 +253,148 @@ const App = () => {
   };
 
   return (
-  <>
-    <div className="flex flex-col lg:flex-row items-center justify-center gap-3 p-4 w-full max-w-5xl mx-auto relative">
-      {/* Left Panel: Basic Instructions */}
-      <div className="instruction-panel lg:w-1/4 w-full mt-2 lg:mb-0 bg-gray-800 p-4 rounded-lg">
-        <h2 className="text-xl font-bold text-white mb-2">How to Play</h2>
-        <ul className="list-disc list-inside text-gray-300">
-          <li>The object of the game is to fill all the white and gray cells with the correct colors.</li>
-          <li>Black cells are inactive.</li>
-          <li>Gray cells are influencers.</li>
-          <li>White cells are influenced by surrounding gray cells.</li>
-          <li>Use the color-mixing rules on the right to place the correct color tiles in the cells.</li>
-          <li>Click a cell to select it.</li>
-          <li>Choose a color from the palette below to fill a cell.</li>
-        </ul>
-      </div>
+    <>
+      <div className="flex flex-col lg:flex-row justify-center gap-4 p-4 w-full max-w-5xl mx-auto relative">
+        {/* Left Panel: Instructions */}
+        <div className="instruction-panel lg:w-1/2 w-full mt-2 lg:mb-0 bg-gray-800 p-4 rounded-lg">
+          <h2 className="text-xl font-bold text-white mb-4">How to Play</h2>
+          <ul className="list-disc list-inside text-gray-300">
+            <li>The object of the game is to fill all the white and gray cells with the correct colors.</li>
+            <li>Black cells are inactive.</li>
+            <li>Gray cells are influencers.</li>
+            <li>White cells are influenced by surrounding gray cells.</li>
+            <li>Use the color-mixing rules on the right to place the correct color tiles in the cells.</li>
+            <li>Click a cell to select it.</li>
+            <li>Choose a color from the palette below to fill a cell.</li>
+            <li>The Hint button fills a random cell with the correct color, but you are penalized 10 seconds every usage.</li>
+            <li>The Check button places red X's on all the incorrect tiles.</li>
+            <li>The Delete button deletes whatever is in the cell you've selected.  You cannot delete the tiles you were given to start.</li>
+            <li>The Clear button clears all the tiles you've placed, but none of the pre-placed tiles.</li>
 
-      {/* Center: Game Board and Controls */}
-      <div className="flex flex-col items-center w-full lg:w-2/4">
-        <h1 className="text-2xl font-bold mb-2">Colors</h1>
-      <ColorBoard
-          board={board}
-          onCellClick={handleCellClick}
-          selectedCell={selectedCell}
-          lightAnimation={lightAnimation}
-        />
-        <div className="mt-2 text-white text-lg">
-          Time: {formatTime(elapsedTime)}
+          </ul>
         </div>
-<div className="w-full lg:w-2/4 max-w-md flex flex-nowrap justify-center gap-1 mt-2">
-  <ColorPalette
-    onColorClick={handleColorButton}
-    colors={['cyan', 'magenta', 'yellow', 'red', 'green', 'blue', 'purple', 'orange', 'white']}
-  />
-</div>
-        <div className="w-full lg:w-2/4 flex flex-nowrap justify-center gap-1 mt-4">
-          <button
-            onClick={() => {
-              console.log('Check button clicked');
-              checkSolution();
-            }}
-            className="px-2 h-8 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm flex-shrink"
-            disabled={isGameWon || !gameStarted}
-          >
-            Check
-          </button>
-          <button
-            onClick={() => {
-              console.log('Hint button clicked');
-              getHint();
-            }}
-            className="px-2 h-8 bg-yellow-300 text-white rounded hover:bg-yellow-600 text-sm flex-shrink"
-            disabled={isGameWon || !gameStarted}
-          >
-            Hint
-          </button>
-          <button
-            onClick={() => {
-              if (gameStarted && !showCongrats) {
-                console.log('End Game button clicked');
-                endGame();
-              } else {
-                console.log('Start Game button clicked');
-                initializeBoard();
-              }
-            }}
-            className={`px-2 h-8 text-white rounded min-w-[100px] text-sm flex-shrink ${
-              gameStarted && !showCongrats
-                ? 'bg-blue-500 hover:bg-blue-600'
-                : 'bg-green-500 hover:bg-green-600'
-            }`}
-          >
-            {gameStarted && !showCongrats ? 'End Game' : 'Start Game'}
-          </button>
-          <button
-            onClick={() => {
-              console.log('Delete button clicked');
-              deleteLast();
-            }}
-            className="px-2 h-8 bg-red-500 text-white rounded hover:bg-red-600 text-sm flex-shrink"
-            disabled={isGameWon || !gameStarted}
-          >
-            Delete
-          </button>
-          <button
-            onClick={() => {
-              console.log('Clear button clicked');
-              clearBoard();
-            }}
-            className="px-2 h-8 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm flex-shrink"
-            disabled={isGameWon || !gameStarted}
-          >
-            Clear
-          </button>
+
+        {/* Center: Game Board and Controls */}
+        <div className="flex flex-col items-center w-full lg:w-2/4">
+        <div className="flex justify-center mb-4 mt-4">
+          <img
+            src={Venns}
+            alt="Color Venn Diagrams"
+            className="max-w-[76] h-auto mx-auto"
+          />
         </div>
-        {showCongrats && (
-          <div className="congratulations-message text-white flex flex-col items-center">
-            <div className="text-5xl font-bold">You Win!</div>
-            <div className="text-2xl">Time: {formatTime(elapsedTime)}</div>
+          <h1 className="text-2xl font-bold mb-2">Colors</h1>
+          <ColorBoard
+            board={board}
+            onCellClick={handleCellClick}
+            selectedCell={selectedCell}
+            lightAnimation={lightAnimation}
+          />
+          <div className={`mt-2 text-white text-lg ${timerShake ? 'timer-shake' : ''}`}>
+            Time: {formatTime(elapsedTime)}
           </div>
-        )}
-      </div>
+          <div className="w-full lg:w-2/4 max-w-md flex flex-nowrap justify-center gap-1 mt-2">
+            <ColorPalette
+              onColorClick={handleColorButton}
+              colors={['cyan', 'magenta', 'yellow', 'red', 'green', 'blue', 'purple', 'orange', 'white']}
+            />
+          </div>
+          <div className="w-full lg:w-2/4 flex flex-nowrap justify-center gap-1 mt-4">
+            <button
+              onClick={() => {
+                console.log('Check button clicked');
+                checkSolution();
+              }}
+              className="px-2 h-8 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm flex-shrink"
+              disabled={isGameWon || !gameStarted}
+            >
+              Check
+            </button>
+            <button
+              onClick={() => {
+                console.log('Hint button clicked');
+                getHint();
+              }}
+              className="px-2 h-8 bg-yellow-300 text-white rounded hover:bg-yellow-600 text-sm flex-shrink"
+              disabled={isGameWon || !gameStarted}
+            >
+              Hint
+            </button>
+            <button
+              onClick={() => {
+                if (gameStarted && !showCongrats) {
+                  console.log('End Game button clicked');
+                  endGame();
+                } else {
+                  console.log('Start Game button clicked');
+                  initializeBoard();
+                }
+              }}
+              className={`px-2 h-8 text-white rounded min-w-[100px] text-sm flex-shrink ${
+                gameStarted && !showCongrats
+                  ? 'bg-blue-500 hover:bg-blue-600'
+                  : 'bg-green-500 hover:bg-green-600'
+              }`}
+            >
+              {gameStarted && !showCongrats ? 'End Game' : 'Start Game'}
+            </button>
+            <button
+              onClick={() => {
+                console.log('Delete button clicked');
+                deleteLast();
+              }}
+              className="px-2 h-8 bg-red-500 text-white rounded hover:bg-red-600 text-sm flex-shrink"
+              disabled={isGameWon || !gameStarted}
+            >
+              Delete
+            </button>
+            <button
+              onClick={() => {
+                console.log('Clear button clicked');
+                clearBoard();
+              }}
+              className="px-2 h-8 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm flex-shrink"
+              disabled={isGameWon || !gameStarted}
+            >
+              Clear
+            </button>
+          </div>
+          {showCongrats && (
+            <div className="congratulations-message text-white flex flex-col items-center">
+              <div className="text-5xl font-bold">You Win!</div>
+              <div className="text-2xl">Time: {formatTime(elapsedTime)}</div>
+            </div>
+          )}
+        </div>
 
-      {/* Right Panel: Color-Mixing Rules */}
-      <div className="instruction-panel lg:w-1/4 w-full mt-2 lg:mt-0 bg-gray-800 p-4 rounded-lg">
-        <h2 className="text-xl font-bold text-white mb-2">Color-Mixing Rules</h2>
-        <ul className="list-disc list-inside text-gray-300">Additive Mixing (RGB) Light
-          <li>Red + Blue = Magenta</li>
-          <li>Red + Green = Yellow</li>
-          <li>Blue + Green = Cyan</li>
-        </ul> 
-        <ul className="list-disc list-inside text-gray-300">Subtractive Mixing (CMY) Ink
-          <li>Cyan + Magenta = Blue</li>
-          <li>Cyan + Yellow = Green</li>
-          <li>Magenta + Yellow = Red</li>
-        </ul>
-        <ul className="list-disc list-inside text-gray-300">Arbitrary Mixing
-          <li>Magenta + Blue = Purple</li>
-          <li>Yellow + Red = Orange</li>
-          <li>Cyan + Green = Gray</li>
-          <li>2 of Same = That Color</li>
-        </ul>
-      </div>  
-    </div>
-    {/* Copyright Notice */}
-    <div className="w-full text-center text-white mt-8 py-4 bg-gray-900">
-      © 2025 Schlajo. All Rights Reserved.
-    </div>
-  </>
-);
+        {/* Right Panel: Color-Mixing Rules */}
+        <div className="instruction-panel lg:w-1/2 w-full mt-2 lg:mt-4 bg-gray-800 p-4 rounded-lg">
+          <h2 className="text-xl font-bold text-white mb-4">Color-Mixing Rules</h2>
+          <ul className="list-disc list-inside mb-4 text-gray-300">Additive Mixing (RGB) Light
+            <li>Red + Green = Yellow</li>
+            <li>Red + Blue = Magenta</li>
+            <li>Blue + Green = Cyan</li>
+            <li>Red + Green + Blue = White</li>
+          </ul>
+          <ul className="list-disc list-inside mb-4 text-gray-300">Subtractive Mixing (CMY) Ink
+            <li>Cyan + Magenta = Blue</li>
+            <li>Cyan + Yellow = Green</li>
+            <li>Magenta + Yellow = Red</li>
+            <li>Cyan + Magenta + Yellow = Black</li>
+          </ul>
+          <ul className="list-disc list-inside mb-4 text-gray-300">Arbitrary Mixing
+            <li>Magenta + Blue = Purple</li>
+            <li>Yellow + Red = Orange</li>
+            <li>Cyan + Green = Gray</li>
+            <li>2 of Same = That Color</li>
+          </ul>
+        </div>
+      </div>
+      <div className="w-full text-center text-white mt-8 py-4 bg-gray-900">
+        © 2025 Schlajo. All Rights Reserved.
+      </div>
+    </>
+  );
 };
 
 export default App;
