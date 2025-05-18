@@ -10,7 +10,7 @@ const ColorPalette = ({ onColorClick, colors }) => {
             console.log('Palette button clicked, applying color:', color);
             onColorClick(color);
           }}
-          className={`w-6 h-6 rounded-full flex-shrink sm:w-7 sm:h-7 lg:w-8 lg:h-8 p-0
+          className={`w-8 h-8 rounded-full flex-shrink sm:min-w-[32px] sm:min-h-[32px] lg:w-8 lg:h-8 p-0
             ${color === 'blue' ? 'bg-blue-500' :
               color === 'purple' ? 'bg-purple-500' :
               color === 'orange' ? 'bg-orange-500' :

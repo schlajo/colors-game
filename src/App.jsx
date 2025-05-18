@@ -387,7 +387,7 @@ const App = () => {
             <li>Magenta + Blue = Purple</li>
             <li>Yellow + Red = Orange</li>
             <li>Cyan + Green = Gray</li>
-            <li>2 of Same = That Color</li>
+            <li>Two of Same Color = That Color</li>
           </ul>
         </div>
       </div>
