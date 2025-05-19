@@ -257,15 +257,15 @@ const App = () => {
       <div className="flex flex-col lg:flex-row justify-center gap-4 p-4 w-full max-w-6xl mx-auto relative">
         {/* Left Panel: Instructions */}
         <div className="instruction-panel lg:w-1/2 w-full mt-4 lg:mb-0 bg-gray-800 p-4 rounded-lg">
-          <h2 className="text-xl font-bold text-white mb-2">How to Play</h2>
+          <h2 className="text-xl font-bold text-white mb-2 text-center">How to Play</h2>
           <ul className="list-disc list-inside text-gray-300">
             <li>The object of the game is to fill all the white and gray cells with the correct colors.</li>
             <li>Black cells are inactive.</li>
             <li>Gray cells are influencers.</li>
             <li>White cells are influenced by surrounding gray cells.</li>
-            <li>Use the color-mixing rules on the right to place the correct color tiles in the cells.</li>
+            <li>Use the color-mixing rules to place the correct color tiles in the cells.</li>
             <li>Click the Start Game button for your setup tiles.  The timer will begin.</li>
-            <li>Click an empty cell, or one that you've tiled, to select it.</li>
+            <li>Click a cell to select it.  A blue outline will appear around the cell.</li>
             <li>Choose a color from the palette below to fill a cell.</li>
             <li>The Hint button fills a random cell with the correct color, but you are penalized 10 seconds every usage.</li>
             <li>The Check button places red X's on all the incorrect tiles.</li>
@@ -276,21 +276,33 @@ const App = () => {
 
         {/* Center: Game Board and Controls */}
         <div className="flex flex-col items-center w-full lg:w-2/4">
-        <div className="flex justify-center mb-2 mt-5">
-          <img
-            src={Venns}
-            alt="Color Venn Diagrams"
-            className="max-w-[76] h-auto mx-auto"
-          />
-        </div>
+          <div className="flex justify-center mb-2 mt-5">
+            <img
+              src={Venns}
+              alt="Color Venn Diagrams"
+              className="max-w-[76] h-auto mx-auto"
+            />
+          </div>
           <h1 className="text-2xl font-bold mb-3">Colors</h1>
-          <div classname="relative"></div>
-          <ColorBoard
-            board={board}
-            onCellClick={handleCellClick}
-            selectedCell={selectedCell}
-            lightAnimation={lightAnimation}
-          />
+          <div className="relative">
+            <ColorBoard
+              board={board}
+              onCellClick={handleCellClick}
+              selectedCell={selectedCell}
+              lightAnimation={lightAnimation}
+            />
+            {!gameStarted && !showCongrats && (
+              <div className="welcome-message">
+                Welcome to Colors! Click Start Game to begin.
+              </div>
+            )}
+            {showCongrats && (
+              <div className="congratulations-message flex flex-col items-center">
+                <div className="whitespace-nowrap">You Win!</div>
+                <div className="text-xl">Time: {formatTime(elapsedTime)}</div>
+              </div>
+            )}
+          </div>
           <div className={`mt-2 text-white text-lg ${timerShake ? 'timer-shake' : ''}`}>
             Time: {formatTime(elapsedTime)}
           </div>
@@ -360,28 +372,20 @@ const App = () => {
               Clear
             </button>
           </div>
-          {showCongrats && (
-            <div className="congratulations-message text-white flex flex-col items-center mt-20">
-              <div className="text-5xl font-bold">You Win!</div>
-              <div className="text-2xl">Time: {formatTime(elapsedTime)}</div>
-            </div>
-          )}
         </div>
 
         {/* Right Panel: Color-Mixing Rules */}
-        <div className="instruction-panel lg:w-1/2 w-full mt-2 lg:mt-4 bg-gray-800 p-4 rounded-lg">
-          <h2 className="text-xl font-bold text-white mb-2">Color-Mixing Rules</h2>
-          <ul className="list-disc list-inside mb-4 text-gray-300">Additive Mixing (RGB) Light
+        <div className="text-center instruction-panel lg:w-1/2 w-full mt-2 lg:mt-4 bg-gray-800 p-4 rounded-lg">
+          <h2 className="text-xl font-bold text-white mb-2 text-center">Color-Mixing Rules</h2>
+          <ul className="list-disc list-inside mb-4 text-gray-300">Additive Mixing (RGB) for Light
             <li>Red + Green = Yellow</li>
             <li>Red + Blue = Magenta</li>
             <li>Blue + Green = Cyan</li>
-            <li>Red + Green + Blue = White</li>
           </ul>
-          <ul className="list-disc list-inside mb-4 text-gray-300">Subtractive Mixing (CMY) Ink
+          <ul className="list-disc list-inside mb-4 text-gray-300">Subtractive Mixing (CMY) for Ink
             <li>Cyan + Magenta = Blue</li>
             <li>Cyan + Yellow = Green</li>
             <li>Magenta + Yellow = Red</li>
-            <li>Cyan + Magenta + Yellow = Black</li>
           </ul>
           <ul className="list-disc list-inside mb-4 text-gray-300">Arbitrary Mixing
             <li>Magenta + Blue = Purple</li>
