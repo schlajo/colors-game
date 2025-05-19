@@ -5,7 +5,7 @@ const Cell = ({ cell, onClick, isSelected, glossAnimation }) => {
   return (
     <div
       onClick={cell.isHole || cell.isClue ? null : onClick}
-      className={`w-10 h-10 border border-gray-300 flex items-center justify-center relative
+      className={`cell border border-gray-300 flex items-center justify-center relative
         ${cell.isHole ? 'bg-black cursor-default' :
           cell.isClue ? 'cursor-default' : 'cursor-pointer'}
         ${!cell.isHole ? (cell.isInfluencer ? 'bg-gray-500' : 'bg-white') : ''}
@@ -15,7 +15,7 @@ const Cell = ({ cell, onClick, isSelected, glossAnimation }) => {
     >
       {cell.color && (
         <div
-          className={`w-8 h-8 rounded-full
+          className={`w-[min(8vw,36px)] h-[min(8vw,36px)] rounded-full
             ${cell.color === 'blue' ? 'bg-blue-500' :
               cell.color === 'purple' ? 'bg-purple-500' :
               cell.color === 'orange' ? 'bg-orange-500' :
@@ -29,9 +29,9 @@ const Cell = ({ cell, onClick, isSelected, glossAnimation }) => {
         />
       )}
       {cell.isIncorrect && (
-        <div className="absolute text-red-600 font-bold text-2xl pointer-events-none">
-          X
-        </div>
+       <div className="absolute inset-0 grid place-items-center text-red-600 font-bold text-2xl font-mono pointer-events-none z-10 translate-x-0.5">
+  X
+</div>
       )}
     </div>
   );

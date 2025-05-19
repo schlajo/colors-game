@@ -6,7 +6,6 @@ import { v4 as uuidv4 } from 'uuid';
 import Venns from './assets/color-venn-diagrams.png';
 
 const App = () => {
-  // Initialize board with holes and influencers using createBoard
   const initialBoard = createBoard();
 
   const [board, setBoard] = useState(initialBoard);
@@ -18,7 +17,7 @@ const App = () => {
   const [startTime, setStartTime] = useState(null);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [gameStarted, setGameStarted] = useState(false);
-  const [timerShake, setTimerShake] = useState(false); // For shake animation
+  const [timerShake, setTimerShake] = useState(false);
 
   useEffect(() => {
     let timer;
@@ -160,15 +159,14 @@ const App = () => {
     newBoard[row][col].isIncorrect = false;
     setBoard(newBoard);
 
-    // Apply 10-second penalty and trigger shake
     if (startTime) {
       setStartTime(prevStartTime => {
-        const newStartTime = prevStartTime - 10000; // Subtract 10 seconds
-        setElapsedTime(Date.now() - newStartTime); // Immediate update
+        const newStartTime = prevStartTime - 10000;
+        setElapsedTime(Date.now() - newStartTime);
         return newStartTime;
       });
       setTimerShake(true);
-      setTimeout(() => setTimerShake(false), 500); // Reset after animation
+      setTimeout(() => setTimerShake(false), 500);
     }
 
     console.log(`Hint provided: Cell [${row},${col}] set to ${newBoard[row][col].color}`);
@@ -254,7 +252,7 @@ const App = () => {
 
   return (
     <>
-      <div className="flex flex-col lg:flex-row justify-center gap-4 p-4 w-full max-w-6xl mx-auto relative">
+      <div className="app-container flex flex-col lg:flex-row justify-center gap-4 p-4 w-full max-w-6xl mx-auto relative">
         {/* Left Panel: Instructions */}
         <div className="instruction-panel lg:w-1/2 w-full mt-4 lg:mb-0 bg-gray-800 p-4 rounded-lg">
           <h2 className="text-xl font-bold text-white mb-2 text-center">How to Play</h2>
@@ -265,7 +263,7 @@ const App = () => {
             <li>White cells are influenced by surrounding gray cells.</li>
             <li>Use the color-mixing rules to place the correct color tiles in the cells.</li>
             <li>Click the Start Game button for your setup tiles.  The timer will begin.</li>
-            <li>Click a cell to select it.  A blue outline will appear around the cell.</li>
+            <li>Click a cell to select it, rendering a blue outline around it.  You can't select pre-tiled cells.</li>
             <li>Choose a color from the palette below to fill a cell.</li>
             <li>The Hint button fills a random cell with the correct color, but you are penalized 10 seconds every usage.</li>
             <li>The Check button places red X's on all the incorrect tiles.</li>
@@ -299,7 +297,7 @@ const App = () => {
             {showCongrats && (
               <div className="congratulations-message flex flex-col items-center">
                 <div className="whitespace-nowrap">You Win!</div>
-                <div className="text-xl">Time: {formatTime(elapsedTime)}</div>
+                <div className="text-xl mt-2">Time: {formatTime(elapsedTime)}</div>
               </div>
             )}
           </div>
@@ -375,8 +373,8 @@ const App = () => {
         </div>
 
         {/* Right Panel: Color-Mixing Rules */}
-        <div className="text-center instruction-panel lg:w-1/2 w-full mt-2 lg:mt-4 bg-gray-800 p-4 rounded-lg">
-          <h2 className="text-xl font-bold text-white mb-2 text-center">Color-Mixing Rules</h2>
+        <div className="instruction-panel lg:w-1/2 w-full text-center mt-2 lg:mt-4 bg-gray-800 p-4 rounded-lg">
+          <h2 className="text-xl font-bold text-white mb-2">Color-Mixing Rules</h2>
           <ul className="list-disc list-inside mb-4 text-gray-300">Additive Mixing (RGB) for Light
             <li>Red + Green = Yellow</li>
             <li>Red + Blue = Magenta</li>

@@ -2,7 +2,7 @@ import React from 'react';
 
 const ColorPalette = ({ onColorClick, colors }) => {
   return (
-    <div className="flex flex-nowrap justify-center gap-1">
+    <div className="flex flex-nowrap justify-center gap-1 max-w-full">
       {colors.map((color) => (
         <button
           key={color}
@@ -10,7 +10,7 @@ const ColorPalette = ({ onColorClick, colors }) => {
             console.log('Palette button clicked, applying color:', color);
             onColorClick(color);
           }}
-          className={`w-8 h-8 rounded-full flex-shrink sm:min-w-[32px] sm:min-h-[32px] lg:w-8 lg:h-8 p-0
+          className={`w-[min(6vw,30px)] h-[min(6vw,30px)] sm:w-8 sm:h-8 rounded-full flex-shrink-0 p-0
             ${color === 'blue' ? 'bg-blue-500' :
               color === 'purple' ? 'bg-purple-500' :
               color === 'orange' ? 'bg-orange-500' :
