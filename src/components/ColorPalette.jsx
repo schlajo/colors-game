@@ -5,23 +5,23 @@ const ColorPalette = ({ onColorClick, colors }) => {
   const getColorLabel = (color) => {
     switch (color) {
       case "green":
-        return "Gre";
+        return "G";
       case "blue":
-        return "Blu";
+        return "B";
       case "purple":
-        return "Pur";
+        return "P";
       case "orange":
-        return "Ora";
+        return "O";
       case "red":
-        return "Red";
+        return "R";
       case "yellow":
-        return "Yel";
+        return "Y";
       case "cyan":
-        return "Cya";
+        return "C";
       case "magenta":
-        return "Mag";
+        return "M";
       case "white":
-        return "Gra";
+        return "S";
       default:
         return "";
     }

@@ -346,7 +346,7 @@ const App = () => {
             )}
             {showCongrats && (
               <div className="congratulations-message flex flex-col items-center">
-                <div className="whitespace-nowrap">You Win!</div>
+                <div className="whitespace-nowrap font-bold">You Win!</div>
                 <div className="text-xl mt-2">
                   Time: {formatTime(elapsedTime)}
                 </div>
@@ -459,7 +459,7 @@ const App = () => {
             Arbitrary Mixing
             <li>Magenta + Blue = Purple</li>
             <li>Yellow + Red = Orange</li>
-            <li>Cyan + Green = Gray</li>
+            <li>Cyan + Green = Silver</li>
             <li>Two of Same Color = That Color</li>
           </ul>
         </div>

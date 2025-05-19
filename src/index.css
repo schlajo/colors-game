@@ -40,7 +40,7 @@ h1 {
 
 button {
   border-radius: 8px;
-  border: 1px solid #b1b1bb;
+  border: 1px solid #a0a0a3;
   padding: 0.125rem 0.5rem;
   font-size: 1em;
   font-weight: 500;
@@ -131,25 +131,9 @@ body,
   z-index: 10;
   text-align: center;
   width: 80%;
-  .welcome-message {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    color: #ffffff;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-    background: rgba(0, 0, 0, 0.7);
-    padding: 1rem 2rem;
-    border-radius: 10px;
-    z-index: 10;
-    text-align: center;
-    width: 80%;
-    max-width: 300px;
-    margin-top: env(safe-area-inset-top);
-    margin-bottom: env(safe-area-inset-bottom);
-    font-size: 2rem;
-    font-weight: 700rem;
-  }
+  font-size: 2rem;
+  font-weight: 700rem;
+
 }
 
 @media (min-width: 640px) {

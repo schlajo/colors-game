@@ -8,23 +8,23 @@ const Cell = ({ cell, onClick, isSelected, glossAnimation }) => {
   const getColorLabel = (color) => {
     switch (color) {
       case "green":
-        return "Gre";
+        return "G";
       case "white":
-        return "Gra";
+        return "S";
       case "blue":
-        return "Blu";
+        return "B";
       case "purple":
-        return "Pur";
+        return "P";
       case "orange":
-        return "Ora";
+        return "O";
       case "red":
-        return "Red";
+        return "R";
       case "yellow":
-        return "Yel";
+        return "Y";
       case "cyan":
-        return "Cya";
+        return "C";
       case "magenta":
-        return "Mag";
+        return "M";
       default:
         return "";
     }
