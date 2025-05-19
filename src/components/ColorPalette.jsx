@@ -1,19 +1,29 @@
-import React from 'react';
+import React from "react";
 
 const ColorPalette = ({ onColorClick, colors }) => {
   // Map colors to their display labels
   const getColorLabel = (color) => {
     switch (color) {
-      case 'green': return 'Gre';
-      case 'blue': return 'B';
-      case 'purple': return 'P';
-      case 'orange': return 'O';
-      case 'red': return 'R';
-      case 'yellow': return 'Y';
-      case 'cyan': return 'C';
-      case 'magenta': return 'M';
-      case 'white': return 'Gray';
-      default: return '';
+      case "green":
+        return "Gre";
+      case "blue":
+        return "Blu";
+      case "purple":
+        return "Pur";
+      case "orange":
+        return "Ora";
+      case "red":
+        return "Red";
+      case "yellow":
+        return "Yel";
+      case "cyan":
+        return "Cya";
+      case "magenta":
+        return "Mag";
+      case "white":
+        return "Gra";
+      default:
+        return "";
     }
   };
 
@@ -23,20 +33,32 @@ const ColorPalette = ({ onColorClick, colors }) => {
         <button
           key={color}
           onClick={() => {
-            console.log('Palette button clicked, applying color:', color);
+            console.log("Palette button clicked, applying color:", color);
             onColorClick(color);
           }}
           className={`w-[min(6vw,30px)] h-[min(6vw,30px)] sm:w-8 sm:h-8 rounded-full flex-shrink-0 p-0 flex items-center justify-center
-            ${color === 'blue' ? 'bg-blue-500 border border-gray-300' :
-              color === 'purple' ? 'bg-purple-500 border border-gray-300' :
-              color === 'orange' ? 'bg-orange-500 border border-gray-300' :
-              color === 'green' ? 'bg-green-500 border border-gray-300':
-              color === 'red' ? 'bg-red-500 border border-gray-300' :
-              color === 'yellow' ? 'bg-yellow-300 border border-gray-300' :
-              color === 'cyan' ? 'bg-cyan-400 border border-gray-300':
-              color === 'magenta' ? 'bg-pink-500 border border-gray-300':
-              color === 'white' ? 'bg-gray-400 border border-gray-300' :
-              color === 'gray' ? 'bg-gray-500' : 'bg-gray-200'
+            ${
+              color === "blue"
+                ? "bg-blue-500 border border-gray-300"
+                : color === "purple"
+                ? "bg-purple-500 border border-gray-300"
+                : color === "orange"
+                ? "bg-orange-500 border border-gray-300"
+                : color === "green"
+                ? "bg-green-500 border border-gray-300"
+                : color === "red"
+                ? "bg-red-500 border border-gray-300"
+                : color === "yellow"
+                ? "bg-yellow-300 border border-gray-300"
+                : color === "cyan"
+                ? "bg-cyan-400 border border-gray-300"
+                : color === "magenta"
+                ? "bg-pink-500 border border-gray-300"
+                : color === "white"
+                ? "bg-gray-400 border border-gray-300"
+                : color === "gray"
+                ? "bg-gray-500"
+                : "bg-gray-200"
             }`}
         >
           <span

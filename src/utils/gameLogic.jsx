@@ -1,25 +1,31 @@
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4 } from "uuid";
 
 const GRID_SIZE = 7;
 
 // Define permanent holes (black cells)
 const FIXED_HOLES = [
-  [1, 1], [1, 3], [1, 5],
-  [3, 1], [3, 3], [3, 5],
-  [5, 1], [5, 3], [5, 5],
+  [1, 1],
+  [1, 3],
+  [1, 5],
+  [3, 1],
+  [3, 3],
+  [3, 5],
+  [5, 1],
+  [5, 3],
+  [5, 5],
 ];
 
 // Color mixing rules
 const COLOR_MIXING_RULES = {
-  magenta: ['red', 'blue'],
-  cyan: ['green', 'blue'],
-  yellow: ['red', 'green'],
-  blue: ['cyan', 'magenta'],
-  green: ['cyan', 'yellow'],
-  red: ['magenta', 'yellow'],
-  white: ['green', 'cyan'],
-  purple: ['blue', 'magenta'],
-  orange: ['red', 'yellow'],
+  magenta: ["red", "blue"],
+  cyan: ["green", "blue"],
+  yellow: ["red", "green"],
+  blue: ["cyan", "magenta"],
+  green: ["cyan", "yellow"],
+  red: ["magenta", "yellow"],
+  white: ["green", "cyan"],
+  purple: ["blue", "magenta"],
+  orange: ["red", "yellow"],
 };
 
 const COLORS = Object.keys(COLOR_MIXING_RULES); // All colors: magenta, cyan, yellow, blue, green, red, white, purple, orange
@@ -27,16 +33,20 @@ const INFLUENCER_COLORS = COLORS; // Use all colors as influencers to maximize v
 
 // Create an empty board
 const createBoard = () => {
-  const board = Array(GRID_SIZE).fill().map(() =>
-    Array(GRID_SIZE).fill().map(() => ({
-      color: null,
-      isActive: true,
-      isInfluencer: false,
-      isHole: false,
-      isClue: false,
-      id: uuidv4(),
-    }))
-  );
+  const board = Array(GRID_SIZE)
+    .fill()
+    .map(() =>
+      Array(GRID_SIZE)
+        .fill()
+        .map(() => ({
+          color: null,
+          isActive: true,
+          isInfluencer: false,
+          isHole: false,
+          isClue: false,
+          id: uuidv4(),
+        }))
+    );
 
   // Set influencer cells where (row + col) % 2 === 0
   for (let row = 0; row < GRID_SIZE; row++) {
@@ -60,11 +70,23 @@ const createBoard = () => {
 // Get influencer neighbors of an influenced cell
 const getNeighbors = (board, row, col) => {
   const neighbors = [];
-  const directions = [[-1, 0], [1, 0], [0, -1], [0, 1]];
+  const directions = [
+    [-1, 0],
+    [1, 0],
+    [0, -1],
+    [0, 1],
+  ];
   for (const [dr, dc] of directions) {
     const r = row + dr;
     const c = col + dc;
-    if (r >= 0 && r < GRID_SIZE && c >= 0 && c < GRID_SIZE && board[r][c].isInfluencer && !board[r][c].isHole) {
+    if (
+      r >= 0 &&
+      r < GRID_SIZE &&
+      c >= 0 &&
+      c < GRID_SIZE &&
+      board[r][c].isInfluencer &&
+      !board[r][c].isHole
+    ) {
       neighbors.push({ row: r, col: c, color: board[r][c].color });
     }
   }
@@ -74,7 +96,7 @@ const getNeighbors = (board, row, col) => {
 // Determine the color of an influenced cell
 const getInfluencedColor = (neighborColors) => {
   if (neighborColors.length !== 2) {
-    console.log('Invalid neighbor count:', neighborColors.length);
+    console.log("Invalid neighbor count:", neighborColors.length);
     return null;
   }
   // Same-color rule
@@ -85,7 +107,10 @@ const getInfluencedColor = (neighborColors) => {
   const sortedNeighbors = [...neighborColors].sort();
   for (const [resultColor, rule] of Object.entries(COLOR_MIXING_RULES)) {
     const sortedRule = [...rule].sort();
-    if (sortedNeighbors.length === sortedRule.length && sortedNeighbors.every((c, i) => c === sortedRule[i])) {
+    if (
+      sortedNeighbors.length === sortedRule.length &&
+      sortedNeighbors.every((c, i) => c === sortedRule[i])
+    ) {
       return resultColor;
     }
   }
@@ -99,9 +124,17 @@ const deduceColors = (board, colors) => {
     changed = false;
     for (let i = 0; i < GRID_SIZE; i++) {
       for (let j = 0; j < GRID_SIZE; j++) {
-        if (board[i][j].isActive && !board[i][j].isInfluencer && !board[i][j].isClue && !board[i][j].color && !board[i][j].isHole) {
+        if (
+          board[i][j].isActive &&
+          !board[i][j].isInfluencer &&
+          !board[i][j].isClue &&
+          !board[i][j].color &&
+          !board[i][j].isHole
+        ) {
           const neighbors = getNeighbors(board, i, j);
-          const neighborColors = neighbors.filter(n => n.color).map(n => n.color);
+          const neighborColors = neighbors
+            .filter((n) => n.color)
+            .map((n) => n.color);
           if (neighborColors.length === 2) {
             const deducedColor = getInfluencedColor(neighborColors);
             if (deducedColor) {
@@ -119,10 +152,11 @@ const deduceColors = (board, colors) => {
 // Check if an influenced cell's color is valid
 const checkCell = (board, row, col) => {
   const cell = board[row][col];
-  if (!cell.isActive || cell.isInfluencer || !cell.color || cell.isClue) return true;
+  if (!cell.isActive || cell.isInfluencer || !cell.color || cell.isClue)
+    return true;
 
   const neighbors = getNeighbors(board, row, col);
-  const neighborColors = neighbors.filter(n => n.color).map(n => n.color);
+  const neighborColors = neighbors.filter((n) => n.color).map((n) => n.color);
   const expectedColor = getInfluencedColor(neighborColors);
   return expectedColor === cell.color;
 };
@@ -131,7 +165,11 @@ const checkCell = (board, row, col) => {
 const validateBoard = (board) => {
   for (let row = 0; row < GRID_SIZE; row++) {
     for (let col = 0; col < GRID_SIZE; col++) {
-      if (board[row][col].isActive && !board[row][col].isInfluencer && !checkCell(board, row, col)) {
+      if (
+        board[row][col].isActive &&
+        !board[row][col].isInfluencer &&
+        !checkCell(board, row, col)
+      ) {
         return false;
       }
     }
@@ -156,14 +194,27 @@ const generateSolution = () => {
     }
   }
 
-  console.log('Influencer cells:', influencerCells.length, 'at', influencerCells);
-  console.log('Influenced cells:', influencedCells.length, 'at', influencedCells);
+  console.log(
+    "Influencer cells:",
+    influencerCells.length,
+    "at",
+    influencerCells
+  );
+  console.log(
+    "Influenced cells:",
+    influencedCells.length,
+    "at",
+    influencedCells
+  );
 
   // Verify each influenced cell has exactly 2 influencer neighbors
   for (const [row, col] of influencedCells) {
     const neighbors = getNeighbors(board, row, col);
     if (neighbors.length !== 2) {
-      console.log(`Error: Influenced cell [${row},${col}] has ${neighbors.length} neighbors at`, neighbors.map(n => `[${n.row},${n.col}]`));
+      console.log(
+        `Error: Influenced cell [${row},${col}] has ${neighbors.length} neighbors at`,
+        neighbors.map((n) => `[${n.row},${n.col}]`)
+      );
       return null;
     }
   }
@@ -206,17 +257,27 @@ const generateSolution = () => {
     influencedCells.sort((a, b) => {
       const [rowA, colA] = a;
       const [rowB, colB] = b;
-      const isEdgeA = rowA === 0 || rowA === 6 || colA === 0 || colA === 6 ? 1 : 0;
-      const isEdgeB = rowB === 0 || rowB === 6 || colB === 0 || colB === 6 ? 1 : 0;
-      const isNearHoleA = FIXED_HOLES.some(([hr, hc]) => Math.abs(rowA - hr) <= 1 && Math.abs(colA - hc) <= 1) ? 1 : 0;
-      const isNearHoleB = FIXED_HOLES.some(([hr, hc]) => Math.abs(rowB - hr) <= 1 && Math.abs(colB - hc) <= 1) ? 1 : 0;
-      return (isEdgeB + isNearHoleB) - (isEdgeA + isNearHoleA);
+      const isEdgeA =
+        rowA === 0 || rowA === 6 || colA === 0 || colA === 6 ? 1 : 0;
+      const isEdgeB =
+        rowB === 0 || rowB === 6 || colB === 0 || colB === 6 ? 1 : 0;
+      const isNearHoleA = FIXED_HOLES.some(
+        ([hr, hc]) => Math.abs(rowA - hr) <= 1 && Math.abs(colA - hc) <= 1
+      )
+        ? 1
+        : 0;
+      const isNearHoleB = FIXED_HOLES.some(
+        ([hr, hc]) => Math.abs(rowB - hr) <= 1 && Math.abs(colB - hc) <= 1
+      )
+        ? 1
+        : 0;
+      return isEdgeB + isNearHoleB - (isEdgeA + isNearHoleA);
     });
 
     let index = 0;
     while (index < influencedCells.length) {
       if (Date.now() - startTime > TIMEOUT_MS) {
-        console.log('Generation timed out');
+        console.log("Generation timed out");
         return false;
       }
 
@@ -247,11 +308,13 @@ const generateSolution = () => {
         continue;
       }
 
-      let chosenPair = validPairs[Math.floor(Math.random() * validPairs.length)];
+      let chosenPair =
+        validPairs[Math.floor(Math.random() * validPairs.length)];
       // Prioritize different-color pairs if possible
       const diffColorPairs = validPairs.filter(([c1, c2]) => c1 !== c2);
       if (diffColorPairs.length > 0 && sameColorCount < MAX_SAME_COLOR) {
-        chosenPair = diffColorPairs[Math.floor(Math.random() * diffColorPairs.length)];
+        chosenPair =
+          diffColorPairs[Math.floor(Math.random() * diffColorPairs.length)];
       }
 
       const [c1, c2, resultColor] = chosenPair;
@@ -317,13 +380,15 @@ const generateSolution = () => {
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
     if (assignColors()) {
       console.log(`Solution found after ${attempt} attempts`);
-      console.log('Same-color pairs used:', sameColorCount);
-      const boardSummary = board.map(row => row.map(cell => ({
-        color: cell.color,
-        isInfluencer: cell.isInfluencer,
-        isHole: cell.isHole,
-      })));
-      console.log('Generated board:', JSON.stringify(boardSummary, null, 2));
+      console.log("Same-color pairs used:", sameColorCount);
+      const boardSummary = board.map((row) =>
+        row.map((cell) => ({
+          color: cell.color,
+          isInfluencer: cell.isInfluencer,
+          isHole: cell.isHole,
+        }))
+      );
+      console.log("Generated board:", JSON.stringify(boardSummary, null, 2));
       return board;
     }
 
@@ -335,7 +400,7 @@ const generateSolution = () => {
     });
   }
 
-  console.log('Greedy assignment failed');
+  console.log("Greedy assignment failed");
   return null;
 };
 
@@ -347,7 +412,11 @@ const canSolvePuzzle = (puzzleBoard, solutionBoard) => {
 
   for (let row = 0; row < GRID_SIZE; row++) {
     for (let col = 0; col < GRID_SIZE; col++) {
-      if (board[row][col].isActive && !board[row][col].isClue && !board[row][col].isHole) {
+      if (
+        board[row][col].isActive &&
+        !board[row][col].isClue &&
+        !board[row][col].isHole
+      ) {
         unsolvedCount++;
       }
     }
@@ -357,11 +426,19 @@ const canSolvePuzzle = (puzzleBoard, solutionBoard) => {
     deductionsMade = false;
     for (let row = 0; row < GRID_SIZE; row++) {
       for (let col = 0; col < GRID_SIZE; col++) {
-        if (!board[row][col].isActive || board[row][col].isInfluencer || board[row][col].isClue || board[row][col].color || board[row][col].isHole) {
+        if (
+          !board[row][col].isActive ||
+          board[row][col].isInfluencer ||
+          board[row][col].isClue ||
+          board[row][col].color ||
+          board[row][col].isHole
+        ) {
           continue;
         }
         const neighbors = getNeighbors(board, row, col);
-        const neighborColors = neighbors.filter(n => n.color).map(n => n.color);
+        const neighborColors = neighbors
+          .filter((n) => n.color)
+          .map((n) => n.color);
         if (neighborColors.length === 2) {
           const deducedColor = getInfluencedColor(neighborColors);
           if (deducedColor && deducedColor === solutionBoard[row][col].color) {
@@ -374,18 +451,36 @@ const canSolvePuzzle = (puzzleBoard, solutionBoard) => {
     }
     for (let row = 0; row < GRID_SIZE; row++) {
       for (let col = 0; col < GRID_SIZE; col++) {
-        if (!board[row][col].isInfluencer || board[row][col].color || board[row][col].isHole) {
+        if (
+          !board[row][col].isInfluencer ||
+          board[row][col].color ||
+          board[row][col].isHole
+        ) {
           continue;
         }
         const influencedNeighbors = [
-          [-1, 0], [1, 0], [0, -1], [0, 1]
-        ].map(([dr, dc]) => [row + dr, col + dc]).filter(([r, c]) =>
-          r >= 0 && r < GRID_SIZE && c >= 0 && c < GRID_SIZE && board[r][c].isActive && !board[r][c].isInfluencer && !board[r][c].isHole
-        );
+          [-1, 0],
+          [1, 0],
+          [0, -1],
+          [0, 1],
+        ]
+          .map(([dr, dc]) => [row + dr, col + dc])
+          .filter(
+            ([r, c]) =>
+              r >= 0 &&
+              r < GRID_SIZE &&
+              c >= 0 &&
+              c < GRID_SIZE &&
+              board[r][c].isActive &&
+              !board[r][c].isInfluencer &&
+              !board[r][c].isHole
+          );
         for (const [r, c] of influencedNeighbors) {
           if (!board[r][c].color) continue;
           const neighbors = getNeighbors(board, r, c);
-          const otherNeighbor = neighbors.find(n => n.row !== row || n.col !== col);
+          const otherNeighbor = neighbors.find(
+            (n) => n.row !== row || n.col !== col
+          );
           if (!otherNeighbor.color) continue;
           const expectedColor = board[r][c].color;
           const otherColor = otherNeighbor.color;
@@ -393,9 +488,14 @@ const canSolvePuzzle = (puzzleBoard, solutionBoard) => {
           if (otherColor === expectedColor) {
             deducedColor = expectedColor;
           } else {
-            for (const [resultColor, [c1, c2]] of Object.entries(COLOR_MIXING_RULES)) {
+            for (const [resultColor, [c1, c2]] of Object.entries(
+              COLOR_MIXING_RULES
+            )) {
               if (resultColor === expectedColor) {
-                if ((c1 === otherColor && INFLUENCER_COLORS.includes(c2)) || (c2 === otherColor && INFLUENCER_COLORS.includes(c1))) {
+                if (
+                  (c1 === otherColor && INFLUENCER_COLORS.includes(c2)) ||
+                  (c2 === otherColor && INFLUENCER_COLORS.includes(c1))
+                ) {
                   deducedColor = c1 === otherColor ? c2 : c1;
                 }
               }
@@ -447,14 +547,23 @@ const createPuzzle = (solutionBoard, clueCount = 20) => {
 
     // Increase clue count to ensure solvability
     const clueCandidates = [
-      ...shuffleArray([...influencedCells]).slice(0, Math.ceil(clueCount * 0.7)),
-      ...shuffleArray([...influencerCells]).slice(0, Math.floor(clueCount * 0.3)),
+      ...shuffleArray([...influencedCells]).slice(
+        0,
+        Math.ceil(clueCount * 0.7)
+      ),
+      ...shuffleArray([...influencerCells]).slice(
+        0,
+        Math.floor(clueCount * 0.3)
+      ),
     ];
     const clues = clueCandidates.slice(0, clueCount);
 
     for (let row = 0; row < GRID_SIZE; row++) {
       for (let col = 0; col < GRID_SIZE; col++) {
-        if (!puzzleBoard[row][col].isHole && !clues.some(([r, c]) => r === row && c === col)) {
+        if (
+          !puzzleBoard[row][col].isHole &&
+          !clues.some(([r, c]) => r === row && c === col)
+        ) {
           puzzleBoard[row][col].color = null;
           puzzleBoard[row][col].isClue = false;
         } else if (puzzleBoard[row][col].color) {
@@ -469,13 +578,18 @@ const createPuzzle = (solutionBoard, clueCount = 20) => {
     }
   }
 
-  console.log(`Failed to generate a solvable puzzle with ${clueCount} clues, falling back to minimal clues`);
+  console.log(
+    `Failed to generate a solvable puzzle with ${clueCount} clues, falling back to minimal clues`
+  );
   const puzzleBoard = JSON.parse(JSON.stringify(solutionBoard));
   const clues = shuffleArray([...nonHoleCells]).slice(0, clueCount);
 
   for (let row = 0; row < GRID_SIZE; row++) {
     for (let col = 0; col < GRID_SIZE; col++) {
-      if (!puzzleBoard[row][col].isHole && !clues.some(([r, c]) => r === row && c === col)) {
+      if (
+        !puzzleBoard[row][col].isHole &&
+        !clues.some(([r, c]) => r === row && c === col)
+      ) {
         puzzleBoard[row][col].color = null;
         puzzleBoard[row][col].isClue = false;
       } else if (puzzleBoard[row][col].color) {
@@ -487,4 +601,14 @@ const createPuzzle = (solutionBoard, clueCount = 20) => {
   return { puzzleBoard, solutionBoard };
 };
 
-export { createBoard, getNeighbors, checkCell, generateSolution, createPuzzle, canSolvePuzzle, COLORS, INFLUENCER_COLORS, deduceColors };
+export {
+  createBoard,
+  getNeighbors,
+  checkCell,
+  generateSolution,
+  createPuzzle,
+  canSolvePuzzle,
+  COLORS,
+  INFLUENCER_COLORS,
+  deduceColors,
+};

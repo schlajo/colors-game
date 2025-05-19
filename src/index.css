@@ -40,7 +40,7 @@ h1 {
 
 button {
   border-radius: 8px;
-  border: 1px solid transparent;
+  border: 1px solid #b1b1bb;
   padding: 0.125rem 0.5rem;
   font-size: 1em;
   font-weight: 500;
@@ -71,7 +71,9 @@ button:focus-visible {
   }
 }
 
-html, body, #root {
+html,
+body,
+#root {
   height: 100%;
 }
 
@@ -85,7 +87,7 @@ html, body, #root {
 }
 
 .light-pass::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -117,20 +119,63 @@ html, body, #root {
 
 /* Congratulations message specific styles */
 .congratulations-message {
-  @apply overlay-message;
-  font-size: 2rem;
-  font-weight: bold;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #ffffff;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.7);
+  padding: 1rem 2rem;
+  border-radius: 10px;
+  z-index: 10;
+  text-align: center;
+  width: 80%;
+  .welcome-message {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #ffffff;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    background: rgba(0, 0, 0, 0.7);
+    padding: 1rem 2rem;
+    border-radius: 10px;
+    z-index: 10;
+    text-align: center;
+    width: 80%;
+    max-width: 300px;
+    margin-top: env(safe-area-inset-top);
+    margin-bottom: env(safe-area-inset-bottom);
+    font-size: 2rem;
+    font-weight: 700rem;
+  }
 }
 
 @media (min-width: 640px) {
   .congratulations-message {
     font-size: 2.5rem;
+    font-weight: 700;
   }
 }
 
 /* Welcome message specific styles */
 .welcome-message {
-  @apply overlay-message;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #ffffff;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.7);
+  padding: 1rem 2rem;
+  border-radius: 10px;
+  z-index: 10;
+  text-align: center;
+  width: 80%;
+  max-width: 300px;
+  margin-top: env(safe-area-inset-top);
+  margin-bottom: env(safe-area-inset-bottom);
   font-size: 1.5rem;
   font-weight: 600;
 }
@@ -155,9 +200,16 @@ html, body, #root {
 
 /* Timer shake animation for hint penalty */
 @keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-5px); }
-  75% { transform: translateX(5px); }
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-5px);
+  }
+  75% {
+    transform: translateX(5px);
+  }
 }
 
 .timer-shake {
