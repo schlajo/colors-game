@@ -36,7 +36,7 @@ const ColorPalette = ({ onColorClick, colors }) => {
             console.log("Palette button clicked, applying color:", color);
             onColorClick(color);
           }}
-          className={`w-[min(6vw,30px)] h-[min(6vw,30px)] sm:w-8 sm:h-8 rounded-full flex-shrink-0 p-0 flex items-center justify-center
+          className={`w-[min(8vw,36px)] h-[min(8vw,36px)] sm:w-8 sm:h-8 rounded-full flex-shrink-0 p-0 flex items-center justify-center
             ${
               color === "blue"
                 ? "bg-blue-500 border border-gray-300"
@@ -62,7 +62,7 @@ const ColorPalette = ({ onColorClick, colors }) => {
             }`}
         >
           <span
-            className={`text-black font-bold pointer-events-none text-[12px] flex items-center justify-center text-shadow-sm`}
+            className={`text-black font-bold pointer-events-none text-[14px] flex items-center justify-center text-shadow-sm`}
           >
             {getColorLabel(color)}
           </span>

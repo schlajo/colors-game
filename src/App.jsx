@@ -8,7 +8,7 @@ import {
   COLORS,
 } from "./utils/gameLogic";
 import { v4 as uuidv4 } from "uuid";
-import Venns from "./assets/color-venn-diagrams.png";
+import Venns from "./assets/venn-words.png";
 
 const App = () => {
   const initialBoard = createBoard();
@@ -293,25 +293,26 @@ const App = () => {
               The object of the game is to fill all the white and gray cells
               with the correct colors.
             </li>
-            <li>Black cells are inactive.</li>
-            <li>Gray cells are influencers.</li>
-            <li>White cells are influenced by surrounding gray cells.</li>
+            <li>Use the provided Color-Mixing Rules.</li>
             <li>
-              Use the color-mixing rules to place the correct color tiles in the
-              cells.
+              Fill the white cells with the color that would result from the
+              colors of the two surrounding gray cells; or fill the gray cells
+              with colors that will produce the color in the white cells.
             </li>
             <li>
-              Click the Start Game button for your setup tiles. The timer will
-              begin.
+              Black cells are inactive, gray cells are influencers, and white
+              cells are influenced by surrounding gray cells.
             </li>
             <li>
               Click a cell to select it, rendering a blue outline around it. You
               can't select pre-tiled cells.
             </li>
-            <li>Choose a color from the palette below to fill a cell.</li>
+            <li>
+              To fill a cell, choose a color from the palette below the board.
+            </li>
             <li>
               The Hint button fills a random cell with the correct color, but
-              you are penalized 10 seconds every usage.
+              you are penalized 10 seconds for every usage.
             </li>
             <li>The Check button places red X's on all the incorrect tiles.</li>
             <li>
@@ -462,6 +463,21 @@ const App = () => {
             <li>Cyan + Green = Silver</li>
             <li>Two of Same Color = That Color</li>
           </ul>
+
+          <h3 className="text-lg font-bold text-white mb-2">
+            Understanding RGB vs. CMY
+          </h3>
+          <div className="text-gray-300 text-left">
+            <span>
+              With RGB, we start with darkness (black) and add colored light. We
+              see light directly emitted from a source, like a TV. But with CMY,
+              we see light that has bounced off of an object, with certain
+              wavelengths absorbed by the pigments. We start with white, like a
+              sheet of paper, and subtract light through pigments. That's why a
+              red apple appears red - it absorbs most wavelengths but reflects
+              primarily red light back to our eyes.
+            </span>
+          </div>
         </div>
       </div>
       <div className="w-full text-center text-white mt-8 py-4 bg-gray-900">
