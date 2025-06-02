@@ -181,7 +181,7 @@ const App = () => {
 
     if (startTime) {
       setStartTime((prevStartTime) => {
-        const newStartTime = prevStartTime - 10000;
+        const newStartTime = prevStartTime - 15000;
         setElapsedTime(Date.now() - newStartTime);
         return newStartTime;
       });
@@ -312,7 +312,7 @@ const App = () => {
             </li>
             <li>
               The Hint button fills a random cell with the correct color, but
-              you are penalized 10 seconds for every usage.
+              you are penalized 15 seconds for every usage.
             </li>
             <li>The Check button places red X's on all the incorrect tiles.</li>
             <li>
