@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import ColorBoard from "./components/ColorBoard";
 import ColorPalette from "./components/ColorPalette";
@@ -21,7 +22,7 @@ const App = () => {
   const [elapsedTime, setElapsedTime] = useState(0);
   const [gameStarted, setGameStarted] = useState(false);
   const [timerShake, setTimerShake] = useState(false);
-  const [difficulty, setDifficulty] = useState("Medium");
+  const [difficulty, setDifficulty] = useState(null); // Start with null for "Select Difficulty"
 
   useEffect(() => {
     let timer;
@@ -41,16 +42,17 @@ const App = () => {
       .padStart(2, "0")}`;
   };
 
-  const initializeBoard = (selectedDifficulty = difficulty) => {
-    console.log("initializeBoard called with difficulty:", selectedDifficulty);
-    const solution = generateSolution(selectedDifficulty);
+  const initializeBoard = () => {
+    if (!difficulty) return; // Do nothing if no difficulty is selected
+    console.log("initializeBoard called with difficulty:", difficulty);
+    const solution = generateSolution(difficulty);
     console.log("Solution generated:", solution);
     if (solution) {
-      const { puzzleBoard, solutionBoard } = createPuzzle(solution, selectedDifficulty);
+      const { puzzleBoard, solutionBoard } = createPuzzle(solution, difficulty);
       console.log("Puzzle board:", puzzleBoard);
       const newBoard = JSON.parse(JSON.stringify(puzzleBoard));
-      for (let row = 0; row < DIFFICULTY_CONFIG[selectedDifficulty].GRID_SIZE; row++) {
-        for (let col = 0; col < DIFFICULTY_CONFIG[selectedDifficulty].GRID_SIZE; col++) {
+      for (let row = 0; row < DIFFICULTY_CONFIG[difficulty].GRID_SIZE; row++) {
+        for (let col = 0; col < DIFFICULTY_CONFIG[difficulty].GRID_SIZE; col++) {
           if (newBoard[row][col].color) {
             newBoard[row][col].isClue = true;
           }
@@ -60,9 +62,12 @@ const App = () => {
       setBoard(newBoard);
       setSolutionBoard(solutionBoard);
       console.log("Board state updated with puzzleBoard");
+      setStartTime(Date.now());
+      setElapsedTime(0);
+      setGameStarted(true);
     } else {
       console.log("No solution generated, resetting to empty board");
-      const emptyBoard = createBoard(selectedDifficulty);
+      const emptyBoard = createBoard(difficulty);
       setBoard(emptyBoard);
       setSolutionBoard([]);
       console.log("Board state updated with emptyBoard:", emptyBoard);
@@ -71,16 +76,13 @@ const App = () => {
     setIsGameWon(false);
     setLightAnimation(false);
     setShowCongrats(false);
-    setStartTime(Date.now());
-    setElapsedTime(0);
-    setGameStarted(true);
   };
 
   const endGame = () => {
     console.log("End Game called");
-    const emptyBoard = createBoard(difficulty);
-    for (let row = 0; row < DIFFICULTY_CONFIG[difficulty].GRID_SIZE; row++) {
-      for (let col = 0; col < DIFFICULTY_CONFIG[difficulty].GRID_SIZE; col++) {
+    const emptyBoard = createBoard(difficulty || "Medium");
+    for (let row = 0; row < DIFFICULTY_CONFIG[difficulty || "Medium"].GRID_SIZE; row++) {
+      for (let col = 0; col < DIFFICULTY_CONFIG[difficulty || "Medium"].GRID_SIZE; col++) {
         emptyBoard[row][col].color = null;
         emptyBoard[row][col].isClue = false;
         emptyBoard[row][col].isIncorrect = false;
@@ -180,7 +182,7 @@ const App = () => {
 
     if (startTime) {
       setStartTime((prevStartTime) => {
-        const newStartTime = prevStartTime - 15000;
+        const newStartTime = prevStartTime - 10000;
         setElapsedTime(Date.now() - newStartTime);
         return newStartTime;
       });
@@ -279,8 +281,11 @@ const App = () => {
     const newDifficulty = e.target.value;
     setDifficulty(newDifficulty);
     setGameStarted(false);
-    setBoard(null);
+    setBoard(createBoard(newDifficulty)); // Show empty board with holes
     setSolutionBoard([]);
+    setShowCongrats(false);
+    setStartTime(null);
+    setElapsedTime(0);
   };
 
   return (
@@ -336,13 +341,21 @@ const App = () => {
             />
           </div>
           <h1 className="text-2xl font-bold mb-3">Colors</h1>
+          {!difficulty && !gameStarted && !showCongrats && (
+            <div className="introduction-text text-white text-lg text-center mb-4">
+              Welcome to Colors! Please select a difficulty level and click the start button below.
+            </div>
+          )}
           <div className="mb-4">
             <select
-              value={difficulty}
+              value={difficulty || ""}
               onChange={handleDifficultyChange}
               className="px-4 py-2 bg-gray-800 text-white rounded"
               disabled={gameStarted && !showCongrats}
             >
+              <option value="" disabled>
+                Select Difficulty
+              </option>
               <option value="Easy">Easy</option>
               <option value="Medium">Medium</option>
               <option value="Difficult" disabled>
@@ -360,11 +373,6 @@ const App = () => {
               />
             ) : (
               <div>Loading board...</div>
-            )}
-            {!gameStarted && !showCongrats && (
-              <div className="welcome-message">
-                Welcome to Colors! Select a difficulty and click Start Game to begin.
-              </div>
             )}
             {showCongrats && (
               <div className="congratulations-message flex flex-col items-center">
@@ -385,7 +393,7 @@ const App = () => {
           <div className="w-full lg:w-2/4 max-w-md flex flex-nowrap justify-center gap-1 mt-2">
             <ColorPalette
               onColorClick={handleColorButton}
-              colors={DIFFICULTY_CONFIG[difficulty].COLORS}
+              colors={difficulty ? DIFFICULTY_CONFIG[difficulty].COLORS : []}
             />
           </div>
           <div className="w-full lg:w-2/4 flex flex-nowrap justify-center gap-1 mt-4">
@@ -424,6 +432,7 @@ const App = () => {
                   ? "bg-blue-500 hover:bg-blue-600"
                   : "bg-green-500 hover:bg-green-600"
               }`}
+              disabled={!difficulty}
             >
               {gameStarted && !showCongrats ? "End Game" : "Start Game"}
             </button>
