@@ -132,7 +132,7 @@ body,
   text-align: center;
   width: 80%;
   font-size: 2rem;
-  font-weight: 700rem;
+  font-weight: 700;
 }
 
 @media (min-width: 640px) {
@@ -207,14 +207,23 @@ body,
   padding-right: env(safe-area-inset-right);
 }
 
-@media (min-width: 375px) {
+.cell {
+  width: 48px;
+  height: 48px;
+}
+.cell > div {
+  width: 40px;
+  height: 40px;
+}
+
+@media (max-width: 375px) {
   .cell {
-    width: 44px;
-    height: 44px;
+    width: 40px;
+    height: 40px;
   }
   .cell > div {
-    width: 36px;
-    height: 36px;
+    width: 32px;
+    height: 32px;
   }
 }
 

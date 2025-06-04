@@ -9,9 +9,12 @@ const ColorBoard = ({ board, onCellClick, selectedCell, lightAnimation }) => {
 
   return (
     <div
-      className={`grid grid-cols-7 gap-1 relative ${
+      className={`grid gap-1 relative ${
         lightAnimation ? "light-pass" : ""
       }`}
+      style={{
+        gridTemplateColumns: `repeat(${board[0].length}, minmax(0, 1fr))`,
+      }}
     >
       {board.map((row, rowIndex) =>
         row.map((cell, colIndex) => (

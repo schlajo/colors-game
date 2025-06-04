@@ -5,15 +5,13 @@ import {
   generateSolution,
   createPuzzle,
   createBoard,
-  COLORS,
+  DIFFICULTY_CONFIG,
 } from "./utils/gameLogic";
 import { v4 as uuidv4 } from "uuid";
 import Venns from "./assets/venn-words.png";
 
 const App = () => {
-  const initialBoard = createBoard();
-
-  const [board, setBoard] = useState(initialBoard);
+  const [board, setBoard] = useState(null);
   const [solutionBoard, setSolutionBoard] = useState([]);
   const [selectedCell, setSelectedCell] = useState(null);
   const [isGameWon, setIsGameWon] = useState(false);
@@ -23,6 +21,7 @@ const App = () => {
   const [elapsedTime, setElapsedTime] = useState(0);
   const [gameStarted, setGameStarted] = useState(false);
   const [timerShake, setTimerShake] = useState(false);
+  const [difficulty, setDifficulty] = useState("Medium");
 
   useEffect(() => {
     let timer;
@@ -42,16 +41,16 @@ const App = () => {
       .padStart(2, "0")}`;
   };
 
-  const initializeBoard = () => {
-    console.log("initializeBoard called");
-    const solution = generateSolution();
+  const initializeBoard = (selectedDifficulty = difficulty) => {
+    console.log("initializeBoard called with difficulty:", selectedDifficulty);
+    const solution = generateSolution(selectedDifficulty);
     console.log("Solution generated:", solution);
     if (solution) {
-      const { puzzleBoard, solutionBoard } = createPuzzle(solution);
+      const { puzzleBoard, solutionBoard } = createPuzzle(solution, selectedDifficulty);
       console.log("Puzzle board:", puzzleBoard);
       const newBoard = JSON.parse(JSON.stringify(puzzleBoard));
-      for (let row = 0; row < 7; row++) {
-        for (let col = 0; col < 7; col++) {
+      for (let row = 0; row < DIFFICULTY_CONFIG[selectedDifficulty].GRID_SIZE; row++) {
+        for (let col = 0; col < DIFFICULTY_CONFIG[selectedDifficulty].GRID_SIZE; col++) {
           if (newBoard[row][col].color) {
             newBoard[row][col].isClue = true;
           }
@@ -63,7 +62,7 @@ const App = () => {
       console.log("Board state updated with puzzleBoard");
     } else {
       console.log("No solution generated, resetting to empty board");
-      const emptyBoard = createBoard();
+      const emptyBoard = createBoard(selectedDifficulty);
       setBoard(emptyBoard);
       setSolutionBoard([]);
       console.log("Board state updated with emptyBoard:", emptyBoard);
@@ -79,9 +78,9 @@ const App = () => {
 
   const endGame = () => {
     console.log("End Game called");
-    const emptyBoard = createBoard();
-    for (let row = 0; row < 7; row++) {
-      for (let col = 0; col < 7; col++) {
+    const emptyBoard = createBoard(difficulty);
+    for (let row = 0; row < DIFFICULTY_CONFIG[difficulty].GRID_SIZE; row++) {
+      for (let col = 0; col < DIFFICULTY_CONFIG[difficulty].GRID_SIZE; col++) {
         emptyBoard[row][col].color = null;
         emptyBoard[row][col].isClue = false;
         emptyBoard[row][col].isIncorrect = false;
@@ -102,8 +101,8 @@ const App = () => {
     if (isGameWon) return;
     const newBoard = JSON.parse(JSON.stringify(board));
     let isCorrect = true;
-    for (let row = 0; row < 7; row++) {
-      for (let col = 0; col < 7; col++) {
+    for (let row = 0; row < DIFFICULTY_CONFIG[difficulty].GRID_SIZE; row++) {
+      for (let col = 0; col < DIFFICULTY_CONFIG[difficulty].GRID_SIZE; col++) {
         if (!newBoard[row][col].isHole) {
           const isTileCorrect =
             newBoard[row][col].color ===
@@ -135,8 +134,8 @@ const App = () => {
   };
 
   const checkWinCondition = (updatedBoard) => {
-    for (let row = 0; row < 7; row++) {
-      for (let col = 0; col < 7; col++) {
+    for (let row = 0; row < DIFFICULTY_CONFIG[difficulty].GRID_SIZE; row++) {
+      for (let col = 0; col < DIFFICULTY_CONFIG[difficulty].GRID_SIZE; col++) {
         if (!updatedBoard[row][col].isHole) {
           if (
             updatedBoard[row][col].color !==
@@ -153,8 +152,8 @@ const App = () => {
   const getHint = () => {
     if (isGameWon) return;
     const emptyCells = [];
-    for (let row = 0; row < 7; row++) {
-      for (let col = 0; col < 7; col++) {
+    for (let row = 0; row < DIFFICULTY_CONFIG[difficulty].GRID_SIZE; row++) {
+      for (let col = 0; col < DIFFICULTY_CONFIG[difficulty].GRID_SIZE; col++) {
         if (
           !board[row][col].isHole &&
           !board[row][col].isClue &&
@@ -175,13 +174,13 @@ const App = () => {
     const newBoard = JSON.parse(JSON.stringify(board));
     newBoard[row][col].color =
       solutionBoard[row]?.[col]?.color ||
-      COLORS[Math.floor(Math.random() * COLORS.length)];
+      DIFFICULTY_CONFIG[difficulty].COLORS[Math.floor(Math.random() * DIFFICULTY_CONFIG[difficulty].COLORS.length)];
     newBoard[row][col].isIncorrect = false;
     setBoard(newBoard);
 
     if (startTime) {
       setStartTime((prevStartTime) => {
-        const newStartTime = prevStartTime - 10000;
+        const newStartTime = prevStartTime - 15000;
         setElapsedTime(Date.now() - newStartTime);
         return newStartTime;
       });
@@ -223,8 +222,8 @@ const App = () => {
   const clearBoard = () => {
     if (isGameWon) return;
     const newBoard = JSON.parse(JSON.stringify(board));
-    for (let row = 0; row < 7; row++) {
-      for (let col = 0; col < 7; col++) {
+    for (let row = 0; row < DIFFICULTY_CONFIG[difficulty].GRID_SIZE; row++) {
+      for (let col = 0; col < DIFFICULTY_CONFIG[difficulty].GRID_SIZE; col++) {
         if (!newBoard[row][col].isHole && !newBoard[row][col].isClue) {
           newBoard[row][col].color = null;
           newBoard[row][col].isIncorrect = false;
@@ -235,10 +234,6 @@ const App = () => {
     setSelectedCell(null);
     console.log("Board cleared of player-placed colors");
   };
-
-  useEffect(() => {
-    console.log("useEffect running");
-  }, []);
 
   const handleCellClick = (row, col) => {
     if (isGameWon) return;
@@ -278,6 +273,14 @@ const App = () => {
         );
       }
     }
+  };
+
+  const handleDifficultyChange = (e) => {
+    const newDifficulty = e.target.value;
+    setDifficulty(newDifficulty);
+    setGameStarted(false);
+    setBoard(null);
+    setSolutionBoard([]);
   };
 
   return (
@@ -333,16 +336,34 @@ const App = () => {
             />
           </div>
           <h1 className="text-2xl font-bold mb-3">Colors</h1>
+          <div className="mb-4">
+            <select
+              value={difficulty}
+              onChange={handleDifficultyChange}
+              className="px-4 py-2 bg-gray-800 text-white rounded"
+              disabled={gameStarted && !showCongrats}
+            >
+              <option value="Easy">Easy</option>
+              <option value="Medium">Medium</option>
+              <option value="Difficult" disabled>
+                Difficult (Coming Soon!)
+              </option>
+            </select>
+          </div>
           <div className="relative">
-            <ColorBoard
-              board={board}
-              onCellClick={handleCellClick}
-              selectedCell={selectedCell}
-              lightAnimation={lightAnimation}
-            />
+            {board ? (
+              <ColorBoard
+                board={board}
+                onCellClick={handleCellClick}
+                selectedCell={selectedCell}
+                lightAnimation={lightAnimation}
+              />
+            ) : (
+              <div>Loading board...</div>
+            )}
             {!gameStarted && !showCongrats && (
               <div className="welcome-message">
-                Welcome to Colors! Click Start Game to begin.
+                Welcome to Colors! Select a difficulty and click Start Game to begin.
               </div>
             )}
             {showCongrats && (
@@ -364,17 +385,7 @@ const App = () => {
           <div className="w-full lg:w-2/4 max-w-md flex flex-nowrap justify-center gap-1 mt-2">
             <ColorPalette
               onColorClick={handleColorButton}
-              colors={[
-                "cyan",
-                "magenta",
-                "yellow",
-                "red",
-                "green",
-                "blue",
-                "purple",
-                "orange",
-                "white",
-              ]}
+              colors={DIFFICULTY_CONFIG[difficulty].COLORS}
             />
           </div>
           <div className="w-full lg:w-2/4 flex flex-nowrap justify-center gap-1 mt-4">
@@ -456,14 +467,15 @@ const App = () => {
             <li>Cyan + Yellow = Green</li>
             <li>Magenta + Yellow = Red</li>
           </ul>
-          <ul className="list-disc list-inside mb-4 text-gray-300">
-            Arbitrary Mixing
-            <li>Magenta + Blue = Purple</li>
-            <li>Yellow + Red = Orange</li>
-            <li>Cyan + Green = Silver</li>
-            <li>Two of Same Color = That Color</li>
-          </ul>
-
+          {difficulty === "Medium" && (
+            <ul className="list-disc list-inside mb-4 text-gray-300">
+              Arbitrary Mixing
+              <li>Magenta + Blue = Purple</li>
+              <li>Yellow + Red = Orange</li>
+              <li>Cyan + Green = Silver</li>
+              <li>Two of Same Color = That Color</li>
+            </ul>
+          )}
           <h3 className="text-lg font-bold text-white mb-2">
             Understanding RGB vs. CMY
           </h3>
