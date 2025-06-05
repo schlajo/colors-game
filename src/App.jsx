@@ -151,16 +151,16 @@ const App = () => {
     }
   };
 
-  const triggerCelebration = () => {
-    setLightAnimation(true);
-    setTimeout(() => {
-      setLightAnimation(false);
-      setShowCongrats(true);
-      setGameStarted(false);
-      setIsPaused(false);
-      setShowWelcomeOverlay(true);
-    }, 1000);
-  };
+const triggerCelebration = () => {
+  setLightAnimation(true);
+  setTimeout(() => {
+    setLightAnimation(false);
+    setShowCongrats(true);
+    setGameStarted(false);
+    setIsPaused(false);
+    // Remove or comment out: setShowWelcomeOverlay(true);
+  }, 1000);
+};
 
   const checkWinCondition = (updatedBoard) => {
     for (let row = 0; row < DIFFICULTY_CONFIG[difficulty].GRID_SIZE; row++) {
@@ -413,13 +413,13 @@ const App = () => {
                 </div>
               </div>
             )}
-            {showWelcomeOverlay && (
-              <div className="welcome-overlay">
-                <div className="welcome-message">
-                  Welcome to Colors! Select Difficulty Level above and click Start button below.
-                </div>
-              </div>
-            )}
+           {showWelcomeOverlay && !showCongrats && (
+  <div className="welcome-overlay">
+    <div className="welcome-message">
+      Welcome to Colors! Select difficulty level above and click Start Game below.
+    </div>
+  </div>
+)}
           </div>
           <div
             className={`mt-2 text-white text-lg ${
