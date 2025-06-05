@@ -23,8 +23,16 @@ const App = () => {
   const [gameStarted, setGameStarted] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [timerShake, setTimerShake] = useState(false);
-  const [difficulty, setDifficulty] = useState(null);
+  const [difficulty, setDifficulty] = useState("Medium");
+  const [showWelcomeOverlay, setShowWelcomeOverlay] = useState(true);
 
+  // Initialize Medium board on mount
+  useEffect(() => {
+    const initialBoard = createBoard("Medium");
+    setBoard(initialBoard);
+  }, []);
+
+  // Update timer
   useEffect(() => {
     let timer;
     if (startTime && !isGameWon && !isPaused) {
@@ -67,6 +75,7 @@ const App = () => {
       setElapsedTime(0);
       setGameStarted(true);
       setIsPaused(false);
+      setShowWelcomeOverlay(false);
     } else {
       console.log("No solution generated, resetting to empty board");
       const emptyBoard = createBoard(difficulty);
@@ -83,12 +92,10 @@ const App = () => {
   const togglePause = () => {
     if (!gameStarted || isGameWon) return;
     if (isPaused) {
-      // Resume game
       setStartTime(Date.now() - elapsedTime);
       setIsPaused(false);
       console.log("Game resumed, timer restarted from:", formatTime(elapsedTime));
     } else {
-      // Pause game
       setIsPaused(true);
       console.log("Game paused at:", formatTime(elapsedTime));
     }
@@ -114,6 +121,7 @@ const App = () => {
     setShowCongrats(false);
     setGameStarted(false);
     setIsPaused(false);
+    setShowWelcomeOverlay(true);
   };
 
   const checkSolution = () => {
@@ -150,6 +158,7 @@ const App = () => {
       setShowCongrats(true);
       setGameStarted(false);
       setIsPaused(false);
+      setShowWelcomeOverlay(true);
     }, 1000);
   };
 
@@ -300,12 +309,18 @@ const App = () => {
     setDifficulty(newDifficulty);
     setGameStarted(false);
     setIsPaused(false);
-    setBoard(newDifficulty ? createBoard(newDifficulty) : null);
+    setBoard(createBoard(newDifficulty));
     setSolutionBoard([]);
     setShowCongrats(false);
     setStartTime(null);
     setElapsedTime(0);
+    setShowWelcomeOverlay(false);
   };
+
+  // Calculate board container height based on difficulty
+  const boardContainerHeight = difficulty
+    ? `${DIFFICULTY_CONFIG[difficulty].GRID_SIZE * 48}px`
+    : "336px";
 
   return (
     <>
@@ -351,7 +366,7 @@ const App = () => {
         </div>
 
         {/* Center: Game Board and Controls */}
-        <div className="flex flex-col items-center w-full lg:w-2/4">
+        <div className="flex flex-col items-center w-full lg:w-2/4 relative">
           <div className="flex justify-center mb-2 mt-5">
             <img
               src={Venns}
@@ -360,21 +375,14 @@ const App = () => {
             />
           </div>
           <h1 className="text-2xl font-bold mb-3">Colors</h1>
-          {!difficulty && !gameStarted && !showCongrats && (
-            <div className="introduction-text text-white text-lg text-center mb-4">
-              Welcome to Colors! Please select a difficulty level and click the start button below.
-            </div>
-          )}
+         
           <div className="mb-4">
             <select
-              value={difficulty || ""}
+              value={difficulty}
               onChange={handleDifficultyChange}
-              className="px-4 py-2 bg-gray-800 text-white rounded"
+              className="px-4 py-2 bg-gray-800 text-white rounded z-20"
               disabled={gameStarted && !showCongrats && !isPaused}
             >
-              <option value="" disabled>
-                Select Difficulty
-              </option>
               <option value="Easy">Easy</option>
               <option value="Medium">Medium</option>
               <option value="Difficult" disabled>
@@ -382,8 +390,8 @@ const App = () => {
               </option>
             </select>
           </div>
-          <div className="relative">
-            {board ? (
+          <div className="relative board-container" style={{ minHeight: boardContainerHeight }}>
+            {board && (
               isPaused ? (
                 <div className="paused-message text-white text-lg text-center">
                   Game Paused
@@ -396,14 +404,19 @@ const App = () => {
                   lightAnimation={lightAnimation}
                 />
               )
-            ) : (
-              <div>Loading board...</div>
             )}
             {showCongrats && (
               <div className="congratulations-message flex flex-col items-center">
                 <div className="whitespace-nowrap font-bold">You Win!</div>
                 <div className="text-xl mt-2">
                   Time: {formatTime(elapsedTime)}
+                </div>
+              </div>
+            )}
+            {showWelcomeOverlay && (
+              <div className="welcome-overlay">
+                <div className="welcome-message">
+                  Welcome to Colors! Select Difficulty Level above and click Start button below.
                 </div>
               </div>
             )}
@@ -422,23 +435,13 @@ const App = () => {
             />
           </div>
           <div className="w-full lg:w-2/4 flex flex-col items-center gap-2 mt-4">
-            <div className="flex flex-nowrap justify-center gap-1 w-full">
-              <button
-                onClick={() => {
-                  console.log("Check button clicked");
-                  checkSolution();
-                }}
-                className="px-2 h-8 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm flex-shrink"
-                disabled={isGameWon || !gameStarted || isPaused}
-              >
-                Check
-              </button>
+            <div className="flex flex-nowrap justify-center gap-2 w-full">
               <button
                 onClick={() => {
                   console.log("Hint button clicked");
                   getHint();
                 }}
-                className="px-2 h-8 bg-yellow-300 text-white rounded hover:bg-yellow-600 text-sm flex-shrink"
+                className="px-2 h-8 bg-yellow-400 text-white rounded hover:bg-yellow-600 text-sm w-[140px]"
                 disabled={isGameWon || !gameStarted || isPaused}
               >
                 Hint
@@ -453,7 +456,7 @@ const App = () => {
                     initializeBoard();
                   }
                 }}
-                className={`px-2 h-8 text-white rounded min-w-[100px] text-sm flex-shrink ${
+                className={`px-2 h-8 text-white rounded text-sm w-[200px] ${
                   gameStarted && !showCongrats
                     ? "bg-blue-500 hover:bg-blue-600"
                     : "bg-green-500 hover:bg-green-600"
@@ -464,39 +467,51 @@ const App = () => {
                   ? isPaused
                     ? "Resume"
                     : "Pause"
-                  : "Start"}
+                  : "Start Game"}
               </button>
               <button
                 onClick={() => {
                   console.log("Delete button clicked");
                   deleteLast();
                 }}
-                className="px-2 h-8 bg-red-500 text-white rounded hover:bg-red-600 text-sm flex-shrink"
+                className="px-2 h-8 bg-red-500 text-white rounded hover:bg-red-600 text-sm w-[140px]"
                 disabled={isGameWon || !gameStarted || isPaused}
               >
                 Delete
+              </button>
+            </div>
+            <div className="flex flex-nowrap justify-center gap-2 w-full">
+              <button
+                onClick={() => {
+                  console.log("Check button clicked");
+                  checkSolution();
+                }}
+                className="px-2 h-8 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm w-[140px]"
+                disabled={isGameWon || !gameStarted || isPaused}
+              >
+                Check
+              </button>
+              <button
+                onClick={() => {
+                  console.log("End Game button clicked");
+                  endGame();
+                }}
+                className="px-2 h-8 bg-red-500 text-white rounded hover:bg-red-600 text-sm w-[200px]"
+                disabled={!gameStarted || showCongrats}
+              >
+                End Game
               </button>
               <button
                 onClick={() => {
                   console.log("Clear button clicked");
                   clearBoard();
                 }}
-                className="px-2 h-8 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm flex-shrink"
+                className="px-2 h-8 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm w-[140px]"
                 disabled={isGameWon || !gameStarted || isPaused}
               >
                 Clear
               </button>
             </div>
-            <button
-              onClick={() => {
-                console.log("End Game button clicked");
-                endGame();
-              }}
-              className="px-2 h-8 bg-red-500 text-white rounded hover:bg-red-600 text-sm w-[100px]"
-              disabled={!gameStarted || showCongrats}
-            >
-              End Game
-            </button>
           </div>
         </div>
 
