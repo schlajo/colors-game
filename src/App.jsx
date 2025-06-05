@@ -21,18 +21,19 @@ const App = () => {
   const [startTime, setStartTime] = useState(null);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [gameStarted, setGameStarted] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
   const [timerShake, setTimerShake] = useState(false);
-  const [difficulty, setDifficulty] = useState(null); // Start with null for "Select Difficulty"
+  const [difficulty, setDifficulty] = useState(null);
 
   useEffect(() => {
     let timer;
-    if (startTime && !isGameWon) {
+    if (startTime && !isGameWon && !isPaused) {
       timer = setInterval(() => {
         setElapsedTime(Date.now() - startTime);
       }, 1000);
     }
     return () => clearInterval(timer);
-  }, [startTime, isGameWon]);
+  }, [startTime, isGameWon, isPaused]);
 
   const formatTime = (ms) => {
     const seconds = Math.floor((ms / 1000) % 60);
@@ -43,7 +44,7 @@ const App = () => {
   };
 
   const initializeBoard = () => {
-    if (!difficulty) return; // Do nothing if no difficulty is selected
+    if (!difficulty) return;
     console.log("initializeBoard called with difficulty:", difficulty);
     const solution = generateSolution(difficulty);
     console.log("Solution generated:", solution);
@@ -65,6 +66,7 @@ const App = () => {
       setStartTime(Date.now());
       setElapsedTime(0);
       setGameStarted(true);
+      setIsPaused(false);
     } else {
       console.log("No solution generated, resetting to empty board");
       const emptyBoard = createBoard(difficulty);
@@ -76,6 +78,20 @@ const App = () => {
     setIsGameWon(false);
     setLightAnimation(false);
     setShowCongrats(false);
+  };
+
+  const togglePause = () => {
+    if (!gameStarted || isGameWon) return;
+    if (isPaused) {
+      // Resume game
+      setStartTime(Date.now() - elapsedTime);
+      setIsPaused(false);
+      console.log("Game resumed, timer restarted from:", formatTime(elapsedTime));
+    } else {
+      // Pause game
+      setIsPaused(true);
+      console.log("Game paused at:", formatTime(elapsedTime));
+    }
   };
 
   const endGame = () => {
@@ -97,10 +113,11 @@ const App = () => {
     setLightAnimation(false);
     setShowCongrats(false);
     setGameStarted(false);
+    setIsPaused(false);
   };
 
   const checkSolution = () => {
-    if (isGameWon) return;
+    if (isGameWon || isPaused) return;
     const newBoard = JSON.parse(JSON.stringify(board));
     let isCorrect = true;
     for (let row = 0; row < DIFFICULTY_CONFIG[difficulty].GRID_SIZE; row++) {
@@ -132,6 +149,7 @@ const App = () => {
       setLightAnimation(false);
       setShowCongrats(true);
       setGameStarted(false);
+      setIsPaused(false);
     }, 1000);
   };
 
@@ -152,7 +170,7 @@ const App = () => {
   };
 
   const getHint = () => {
-    if (isGameWon) return;
+    if (isGameWon || isPaused) return;
     const emptyCells = [];
     for (let row = 0; row < DIFFICULTY_CONFIG[difficulty].GRID_SIZE; row++) {
       for (let col = 0; col < DIFFICULTY_CONFIG[difficulty].GRID_SIZE; col++) {
@@ -182,7 +200,7 @@ const App = () => {
 
     if (startTime) {
       setStartTime((prevStartTime) => {
-        const newStartTime = prevStartTime - 10000;
+        const newStartTime = prevStartTime - 15000;
         setElapsedTime(Date.now() - newStartTime);
         return newStartTime;
       });
@@ -200,7 +218,7 @@ const App = () => {
   };
 
   const deleteLast = () => {
-    if (isGameWon) return;
+    if (isGameWon || isPaused) return;
     if (!selectedCell) {
       alert("No cell selected to delete!");
       return;
@@ -222,7 +240,7 @@ const App = () => {
   };
 
   const clearBoard = () => {
-    if (isGameWon) return;
+    if (isGameWon || isPaused) return;
     const newBoard = JSON.parse(JSON.stringify(board));
     for (let row = 0; row < DIFFICULTY_CONFIG[difficulty].GRID_SIZE; row++) {
       for (let col = 0; col < DIFFICULTY_CONFIG[difficulty].GRID_SIZE; col++) {
@@ -238,7 +256,7 @@ const App = () => {
   };
 
   const handleCellClick = (row, col) => {
-    if (isGameWon) return;
+    if (isGameWon || isPaused) return;
     console.log(
       `Cell clicked: [${row},${col}], isHole=${board[row][col].isHole}, isClue=${board[row][col].isClue}, hasColor=${board[row][col].color}`
     );
@@ -251,7 +269,7 @@ const App = () => {
   };
 
   const handleColorButton = (color) => {
-    if (isGameWon) return;
+    if (isGameWon || isPaused) return;
     if (!selectedCell) {
       alert("Please select a cell first!");
       console.log("Color button clicked, but no cell selected");
@@ -281,7 +299,8 @@ const App = () => {
     const newDifficulty = e.target.value;
     setDifficulty(newDifficulty);
     setGameStarted(false);
-    setBoard(createBoard(newDifficulty)); // Show empty board with holes
+    setIsPaused(false);
+    setBoard(newDifficulty ? createBoard(newDifficulty) : null);
     setSolutionBoard([]);
     setShowCongrats(false);
     setStartTime(null);
@@ -351,7 +370,7 @@ const App = () => {
               value={difficulty || ""}
               onChange={handleDifficultyChange}
               className="px-4 py-2 bg-gray-800 text-white rounded"
-              disabled={gameStarted && !showCongrats}
+              disabled={gameStarted && !showCongrats && !isPaused}
             >
               <option value="" disabled>
                 Select Difficulty
@@ -365,12 +384,18 @@ const App = () => {
           </div>
           <div className="relative">
             {board ? (
-              <ColorBoard
-                board={board}
-                onCellClick={handleCellClick}
-                selectedCell={selectedCell}
-                lightAnimation={lightAnimation}
-              />
+              isPaused ? (
+                <div className="paused-message text-white text-lg text-center">
+                  Game Paused
+                </div>
+              ) : (
+                <ColorBoard
+                  board={board}
+                  onCellClick={handleCellClick}
+                  selectedCell={selectedCell}
+                  lightAnimation={lightAnimation}
+                />
+              )
             ) : (
               <div>Loading board...</div>
             )}
@@ -396,65 +421,81 @@ const App = () => {
               colors={difficulty ? DIFFICULTY_CONFIG[difficulty].COLORS : []}
             />
           </div>
-          <div className="w-full lg:w-2/4 flex flex-nowrap justify-center gap-1 mt-4">
+          <div className="w-full lg:w-2/4 flex flex-col items-center gap-2 mt-4">
+            <div className="flex flex-nowrap justify-center gap-1 w-full">
+              <button
+                onClick={() => {
+                  console.log("Check button clicked");
+                  checkSolution();
+                }}
+                className="px-2 h-8 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm flex-shrink"
+                disabled={isGameWon || !gameStarted || isPaused}
+              >
+                Check
+              </button>
+              <button
+                onClick={() => {
+                  console.log("Hint button clicked");
+                  getHint();
+                }}
+                className="px-2 h-8 bg-yellow-300 text-white rounded hover:bg-yellow-600 text-sm flex-shrink"
+                disabled={isGameWon || !gameStarted || isPaused}
+              >
+                Hint
+              </button>
+              <button
+                onClick={() => {
+                  if (gameStarted && !showCongrats) {
+                    console.log("Pause/Resume button clicked");
+                    togglePause();
+                  } else {
+                    console.log("Start Game button clicked");
+                    initializeBoard();
+                  }
+                }}
+                className={`px-2 h-8 text-white rounded min-w-[100px] text-sm flex-shrink ${
+                  gameStarted && !showCongrats
+                    ? "bg-blue-500 hover:bg-blue-600"
+                    : "bg-green-500 hover:bg-green-600"
+                }`}
+                disabled={!difficulty}
+              >
+                {gameStarted && !showCongrats
+                  ? isPaused
+                    ? "Resume"
+                    : "Pause"
+                  : "Start"}
+              </button>
+              <button
+                onClick={() => {
+                  console.log("Delete button clicked");
+                  deleteLast();
+                }}
+                className="px-2 h-8 bg-red-500 text-white rounded hover:bg-red-600 text-sm flex-shrink"
+                disabled={isGameWon || !gameStarted || isPaused}
+              >
+                Delete
+              </button>
+              <button
+                onClick={() => {
+                  console.log("Clear button clicked");
+                  clearBoard();
+                }}
+                className="px-2 h-8 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm flex-shrink"
+                disabled={isGameWon || !gameStarted || isPaused}
+              >
+                Clear
+              </button>
+            </div>
             <button
               onClick={() => {
-                console.log("Check button clicked");
-                checkSolution();
+                console.log("End Game button clicked");
+                endGame();
               }}
-              className="px-2 h-8 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm flex-shrink"
-              disabled={isGameWon || !gameStarted}
+              className="px-2 h-8 bg-red-500 text-white rounded hover:bg-red-600 text-sm w-[100px]"
+              disabled={!gameStarted || showCongrats}
             >
-              Check
-            </button>
-            <button
-              onClick={() => {
-                console.log("Hint button clicked");
-                getHint();
-              }}
-              className="px-2 h-8 bg-yellow-300 text-white rounded hover:bg-yellow-600 text-sm flex-shrink"
-              disabled={isGameWon || !gameStarted}
-            >
-              Hint
-            </button>
-            <button
-              onClick={() => {
-                if (gameStarted && !showCongrats) {
-                  console.log("End Game button clicked");
-                  endGame();
-                } else {
-                  console.log("Start Game button clicked");
-                  initializeBoard();
-                }
-              }}
-              className={`px-2 h-8 text-white rounded min-w-[100px] text-sm flex-shrink ${
-                gameStarted && !showCongrats
-                  ? "bg-blue-500 hover:bg-blue-600"
-                  : "bg-green-500 hover:bg-green-600"
-              }`}
-              disabled={!difficulty}
-            >
-              {gameStarted && !showCongrats ? "End Game" : "Start Game"}
-            </button>
-            <button
-              onClick={() => {
-                console.log("Delete button clicked");
-                deleteLast();
-              }}
-              className="px-2 h-8 bg-red-500 text-white rounded hover:bg-red-600 text-sm flex-shrink"
-              disabled={isGameWon || !gameStarted}
-            >
-              Delete
-            </button>
-            <button
-              onClick={() => {
-                console.log("Clear button clicked");
-                clearBoard();
-              }}
-              className="px-2 h-8 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm flex-shrink"
-              disabled={isGameWon || !gameStarted}
-            >
-              Clear
+              End Game
             </button>
           </div>
         </div>

@@ -194,3 +194,12 @@ body,
   max-width: 300px;
   line-height: 1.4;
 }
+
+/* Paused message styling */
+.paused-message {
+  font-size: 1.2rem;
+  font-weight: 500;
+  max-width: 300px;
+  line-height: 1.4;
+  min-height: 48px; /* Match cell height for alignment */
+}
