@@ -441,55 +441,58 @@ const triggerCelebration = () => {
                   console.log("Hint button clicked");
                   getHint();
                 }}
-                className="px-2 h-8 bg-yellow-400 text-white rounded hover:bg-yellow-600 text-sm w-[140px]"
+                className="px-2 h-8 bg-blue-500 text-white rounded hover:bg-yellow-500 text-sm w-[140px]"
                 disabled={isGameWon || !gameStarted || isPaused}
               >
                 Hint
               </button>
-              <button
-                onClick={() => {
-                  if (gameStarted && !showCongrats) {
-                    console.log("Pause/Resume button clicked");
-                    togglePause();
-                  } else {
-                    console.log("Start Game button clicked");
-                    initializeBoard();
-                  }
-                }}
-                className={`px-2 h-8 text-white rounded text-sm w-[200px] ${
-                  gameStarted && !showCongrats
-                    ? "bg-blue-500 hover:bg-blue-600"
-                    : "bg-green-500 hover:bg-green-600"
-                }`}
-                disabled={!difficulty}
-              >
-                {gameStarted && !showCongrats
-                  ? isPaused
-                    ? "Resume"
-                    : "Pause"
-                  : "Start Game"}
-              </button>
-              <button
-                onClick={() => {
-                  console.log("Delete button clicked");
-                  deleteLast();
-                }}
-                className="px-2 h-8 bg-red-500 text-white rounded hover:bg-red-600 text-sm w-[140px]"
-                disabled={isGameWon || !gameStarted || isPaused}
-              >
-                Delete
-              </button>
-            </div>
-            <div className="flex flex-nowrap justify-center gap-2 w-full">
+<button
+  onClick={() => {
+    if (gameStarted && !showCongrats) {
+      console.log("Pause/Resume button clicked");
+      togglePause();
+    } else {
+      console.log("Start Game button clicked");
+      initializeBoard();
+    }
+  }}
+  className={`px-2 h-8 text-white rounded text-sm w-[200px] ${
+    gameStarted && !showCongrats
+      ? isPaused
+        ? "bg-green-500 hover:bg-green-600"  // Resume button - green
+        : "bg-yellow-500 hover:bg-yellow-600" // Pause button - yellow
+      : "bg-green-500 hover:bg-green-600"     // Start Game button - green
+  }`}
+  disabled={!difficulty}
+>
+  {gameStarted && !showCongrats
+    ? isPaused
+      ? "Resume"
+      : "Pause"
+    : "Start Game"}
+</button>
               <button
                 onClick={() => {
                   console.log("Check button clicked");
                   checkSolution();
                 }}
-                className="px-2 h-8 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm w-[140px]"
+                className="px-2 h-8 bg-blue-500 text-white rounded hover:bg-yellow-500 text-sm w-[140px]"
                 disabled={isGameWon || !gameStarted || isPaused}
               >
                 Check
+              </button>
+            </div>
+            <div className="flex flex-nowrap justify-center gap-2 w-full">
+              
+              <button
+                onClick={() => {
+                  console.log("Delete button clicked");
+                  deleteLast();
+                }}
+                className="px-2 h-8 bg-blue-500 text-white rounded hover:bg-red-500 text-sm w-[140px]"
+                disabled={isGameWon || !gameStarted || isPaused}
+              >
+                Delete
               </button>
               <button
                 onClick={() => {
@@ -506,7 +509,7 @@ const triggerCelebration = () => {
                   console.log("Clear button clicked");
                   clearBoard();
                 }}
-                className="px-2 h-8 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm w-[140px]"
+                className="px-2 h-8 bg-blue-500 text-white rounded hover:bg-red-500 text-sm w-[140px]"
                 disabled={isGameWon || !gameStarted || isPaused}
               >
                 Clear
