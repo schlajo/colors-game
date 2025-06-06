@@ -391,20 +391,22 @@ const triggerCelebration = () => {
             </select>
           </div>
           <div className="relative board-container" style={{ minHeight: boardContainerHeight }}>
-            {board && (
-              isPaused ? (
-                <div className="paused-message text-white text-lg text-center">
-                  Game Paused
-                </div>
-              ) : (
-                <ColorBoard
-                  board={board}
-                  onCellClick={handleCellClick}
-                  selectedCell={selectedCell}
-                  lightAnimation={lightAnimation}
-                />
-              )
-            )}
+{board && (
+  isPaused ? (
+    <div className="absolute inset-0 flex items-center justify-center">
+      <div className="paused-message text-white text-lg text-center bg-gray-800 bg-opacity-90 px-8 py-4 rounded-lg border-2 border-gray-600">
+        Game Paused
+      </div>
+    </div>
+  ) : (
+    <ColorBoard
+      board={board}
+      onCellClick={handleCellClick}
+      selectedCell={selectedCell}
+      lightAnimation={lightAnimation}
+    />
+  )
+)}
             {showCongrats && (
               <div className="congratulations-message flex flex-col items-center">
                 <div className="whitespace-nowrap font-bold">You Win!</div>
