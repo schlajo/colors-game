@@ -354,7 +354,7 @@ const triggerCelebration = () => {
             </li>
             <li>
               The Hint button fills a random cell with the correct color, but
-              you are penalized 10 seconds for every usage.
+              you are penalized 15 seconds for every usage.
             </li>
             <li>The Check button places red X's on all the incorrect tiles.</li>
             <li>
@@ -443,7 +443,7 @@ const triggerCelebration = () => {
                   console.log("Hint button clicked");
                   getHint();
                 }}
-                className="px-2 h-8 bg-blue-500 text-white rounded hover:bg-yellow-500 text-sm w-[140px]"
+                className="px-2 h-8 bg-yellow-500 text-white rounded hover:bg-green-600 text-sm w-[140px]"
                 disabled={isGameWon || !gameStarted || isPaused}
               >
                 Hint
@@ -462,7 +462,7 @@ const triggerCelebration = () => {
     gameStarted && !showCongrats
       ? isPaused
         ? "bg-green-500 hover:bg-green-600"  // Resume button - green
-        : "bg-yellow-500 hover:bg-yellow-600" // Pause button - yellow
+        : "bg-green-500 hover:bg-green-600" // Pause button - yellow
       : "bg-green-500 hover:bg-green-600"     // Start Game button - green
   }`}
   disabled={!difficulty}
@@ -478,7 +478,7 @@ const triggerCelebration = () => {
                   console.log("Check button clicked");
                   checkSolution();
                 }}
-                className="px-2 h-8 bg-blue-500 text-white rounded hover:bg-yellow-500 text-sm w-[140px]"
+                className="px-2 h-8 bg-blue-500 text-white rounded hover:bg-green-600 text-sm w-[140px]"
                 disabled={isGameWon || !gameStarted || isPaused}
               >
                 Check
@@ -491,7 +491,7 @@ const triggerCelebration = () => {
                   console.log("Delete button clicked");
                   deleteLast();
                 }}
-                className="px-2 h-8 bg-blue-500 text-white rounded hover:bg-red-500 text-sm w-[140px]"
+                className="px-2 h-8 bg-orange-500 text-white rounded hover:bg-red-600 text-sm w-[140px]"
                 disabled={isGameWon || !gameStarted || isPaused}
               >
                 Delete
@@ -511,7 +511,7 @@ const triggerCelebration = () => {
                   console.log("Clear button clicked");
                   clearBoard();
                 }}
-                className="px-2 h-8 bg-blue-500 text-white rounded hover:bg-red-500 text-sm w-[140px]"
+                className="px-2 h-8 bg-purple-500 text-white rounded hover:bg-red-600 text-sm w-[140px]"
                 disabled={isGameWon || !gameStarted || isPaused}
               >
                 Clear
