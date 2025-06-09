@@ -395,7 +395,7 @@ const triggerCelebration = () => {
   isPaused ? (
     <div className="absolute inset-0 flex items-center justify-center">
       <div className="paused-message text-white text-lg text-center bg-gray-800 bg-opacity-90 px-8 py-4 rounded-lg border-2 border-gray-600">
-        Game Paused
+        Paused
       </div>
     </div>
   ) : (
@@ -436,14 +436,25 @@ const triggerCelebration = () => {
               colors={difficulty ? DIFFICULTY_CONFIG[difficulty].COLORS : []}
             />
           </div>
-          <div className="w-full lg:w-2/4 flex flex-col items-center gap-2 mt-4">
+          <div className="w-full lg:w-2/4 flex flex-nowrap justify-center gap-2 mt-4 max-w-m">
             <div className="flex flex-nowrap justify-center gap-2 w-full">
+                            <button
+                onClick={() => {
+                  console.log("Check button clicked");
+                  checkSolution();
+                }}
+                className="px-2 h-8 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm w-[60px]"
+                disabled={isGameWon || !gameStarted || isPaused}
+              >
+                Check
+              </button>
+              
               <button
                 onClick={() => {
                   console.log("Hint button clicked");
                   getHint();
                 }}
-                className="px-2 h-8 bg-yellow-500 text-white rounded hover:bg-green-600 text-sm w-[140px]"
+                className="px-2 h-8 bg-orange-500 text-white rounded hover:bg-orange-600 text-sm w-[88px]"
                 disabled={isGameWon || !gameStarted || isPaused}
               >
                 Hint
@@ -458,11 +469,11 @@ const triggerCelebration = () => {
       initializeBoard();
     }
   }}
-  className={`px-2 h-8 text-white rounded text-sm w-[200px] ${
+  className={`px-2 h-8 text-white rounded text-sm w-[140px] ${
     gameStarted && !showCongrats
       ? isPaused
         ? "bg-green-500 hover:bg-green-600"  // Resume button - green
-        : "bg-green-500 hover:bg-green-600" // Pause button - yellow
+        : "bg-yellow-500 hover:bg-yellow-600" // Pause button - yellow
       : "bg-green-500 hover:bg-green-600"     // Start Game button - green
   }`}
   disabled={!difficulty}
@@ -473,16 +484,7 @@ const triggerCelebration = () => {
       : "Pause"
     : "Start Game"}
 </button>
-              <button
-                onClick={() => {
-                  console.log("Check button clicked");
-                  checkSolution();
-                }}
-                className="px-2 h-8 bg-blue-500 text-white rounded hover:bg-green-600 text-sm w-[140px]"
-                disabled={isGameWon || !gameStarted || isPaused}
-              >
-                Check
-              </button>
+
             </div>
             <div className="flex flex-nowrap justify-center gap-2 w-full">
               
@@ -491,12 +493,12 @@ const triggerCelebration = () => {
                   console.log("Delete button clicked");
                   deleteLast();
                 }}
-                className="px-2 h-8 bg-orange-500 text-white rounded hover:bg-red-600 text-sm w-[140px]"
+                className="px-2 h-8 bg-red-500 text-white rounded hover:bg-red-600 text-sm w-[60px]"
                 disabled={isGameWon || !gameStarted || isPaused}
               >
                 Delete
               </button>
-              <button
+              {/* <button
                 onClick={() => {
                   console.log("End Game button clicked");
                   endGame();
@@ -505,13 +507,13 @@ const triggerCelebration = () => {
                 disabled={!gameStarted || showCongrats}
               >
                 End Game
-              </button>
+              </button> */}
               <button
                 onClick={() => {
                   console.log("Clear button clicked");
                   clearBoard();
                 }}
-                className="px-2 h-8 bg-purple-500 text-white rounded hover:bg-red-600 text-sm w-[140px]"
+                className="px-2 h-8 bg-purple-500 text-white rounded hover:bg-purple-600 text-sm w-[60px]"
                 disabled={isGameWon || !gameStarted || isPaused}
               >
                 Clear
