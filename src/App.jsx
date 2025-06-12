@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import ColorBoard from "./components/ColorBoard";
 import ColorPalette from "./components/ColorPalette";
@@ -10,6 +9,10 @@ import {
 } from "./utils/gameLogic";
 import { v4 as uuidv4 } from "uuid";
 import Venns from "./assets/venn-words.png";
+import Magenta from "./assets/magenta-example.png";
+import BC from "./assets/blue-cyan-example.png";
+import RG from "./assets/red-green-example.png";
+import Yellow from "./assets/yellow-example.png";
 
 const App = () => {
   const [board, setBoard] = useState(null);
@@ -61,7 +64,11 @@ const App = () => {
       console.log("Puzzle board:", puzzleBoard);
       const newBoard = JSON.parse(JSON.stringify(puzzleBoard));
       for (let row = 0; row < DIFFICULTY_CONFIG[difficulty].GRID_SIZE; row++) {
-        for (let col = 0; col < DIFFICULTY_CONFIG[difficulty].GRID_SIZE; col++) {
+        for (
+          let col = 0;
+          col < DIFFICULTY_CONFIG[difficulty].GRID_SIZE;
+          col++
+        ) {
           if (newBoard[row][col].color) {
             newBoard[row][col].isClue = true;
           }
@@ -94,7 +101,10 @@ const App = () => {
     if (isPaused) {
       setStartTime(Date.now() - elapsedTime);
       setIsPaused(false);
-      console.log("Game resumed, timer restarted from:", formatTime(elapsedTime));
+      console.log(
+        "Game resumed, timer restarted from:",
+        formatTime(elapsedTime)
+      );
     } else {
       setIsPaused(true);
       console.log("Game paused at:", formatTime(elapsedTime));
@@ -104,8 +114,16 @@ const App = () => {
   const endGame = () => {
     console.log("End Game called");
     const emptyBoard = createBoard(difficulty || "Medium");
-    for (let row = 0; row < DIFFICULTY_CONFIG[difficulty || "Medium"].GRID_SIZE; row++) {
-      for (let col = 0; col < DIFFICULTY_CONFIG[difficulty || "Medium"].GRID_SIZE; col++) {
+    for (
+      let row = 0;
+      row < DIFFICULTY_CONFIG[difficulty || "Medium"].GRID_SIZE;
+      row++
+    ) {
+      for (
+        let col = 0;
+        col < DIFFICULTY_CONFIG[difficulty || "Medium"].GRID_SIZE;
+        col++
+      ) {
         emptyBoard[row][col].color = null;
         emptyBoard[row][col].isClue = false;
         emptyBoard[row][col].isIncorrect = false;
@@ -151,16 +169,16 @@ const App = () => {
     }
   };
 
-const triggerCelebration = () => {
-  setLightAnimation(true);
-  setTimeout(() => {
-    setLightAnimation(false);
-    setShowCongrats(true);
-    setGameStarted(false);
-    setIsPaused(false);
-    // Remove or comment out: setShowWelcomeOverlay(true);
-  }, 1000);
-};
+  const triggerCelebration = () => {
+    setLightAnimation(true);
+    setTimeout(() => {
+      setLightAnimation(false);
+      setShowCongrats(true);
+      setGameStarted(false);
+      setIsPaused(false);
+      // Remove or comment out: setShowWelcomeOverlay(true);
+    }, 1000);
+  };
 
   const checkWinCondition = (updatedBoard) => {
     for (let row = 0; row < DIFFICULTY_CONFIG[difficulty].GRID_SIZE; row++) {
@@ -203,7 +221,9 @@ const triggerCelebration = () => {
     const newBoard = JSON.parse(JSON.stringify(board));
     newBoard[row][col].color =
       solutionBoard[row]?.[col]?.color ||
-      DIFFICULTY_CONFIG[difficulty].COLORS[Math.floor(Math.random() * DIFFICULTY_CONFIG[difficulty].COLORS.length)];
+      DIFFICULTY_CONFIG[difficulty].COLORS[
+        Math.floor(Math.random() * DIFFICULTY_CONFIG[difficulty].COLORS.length)
+      ];
     newBoard[row][col].isIncorrect = false;
     setBoard(newBoard);
 
@@ -341,13 +361,45 @@ const triggerCelebration = () => {
               colors of the two surrounding gray cells; or fill the gray cells
               with colors that will produce the color in the white cells.
             </li>
+            <br></br>
+            <li>
+              So Red and Green...
+              <img
+                src={RG}
+                alt="cyan and magenta surrounding and empty white cell"
+                className="max-w-[76] h-10 mx-auto"
+              />
+              ......make Yellow.
+              <img
+                src={Yellow}
+                alt="example showing blue made by cyan and magenta"
+                className="max-w-[76] h-10 mx-auto"
+              />
+            </li>
+              <br></br>
+            <li>
+              What and Cyan make Blue?
+              <img
+                src={BC}
+                alt="cyan and magenta surrounding and empty white cell"
+                className="max-w-[76] h-10 mx-auto"
+              />
+              .......Magenta!
+              <img
+                src={Magenta}
+                alt="example showing blue made by cyan and magenta"
+                className="max-w-[76] h-10 mx-auto"
+              />
+            </li>
+            <br></br>
             <li>
               Black cells are inactive, gray cells are influencers, and white
               cells are influenced by surrounding gray cells.
             </li>
+            <li>Logic applies vertically and horizontally.</li>
             <li>
-              Click a cell to select it, rendering a blue outline around it. You
-              can't select pre-tiled cells.
+              Click a cell to select it, outlining it in blue. You can't select
+              pre-tiled cells.
             </li>
             <li>
               To fill a cell, choose a color from the palette below the board.
@@ -375,7 +427,7 @@ const triggerCelebration = () => {
             />
           </div>
           <h1 className="text-2xl font-bold mb-3">Colors</h1>
-         
+
           <div className="mb-4">
             <select
               value={difficulty}
@@ -390,23 +442,25 @@ const triggerCelebration = () => {
               </option>
             </select>
           </div>
-          <div className="relative board-container" style={{ minHeight: boardContainerHeight }}>
-{board && (
-  isPaused ? (
-    <div className="absolute inset-0 flex items-center justify-center">
-      <div className="paused-message text-white text-lg text-center bg-gray-800 bg-opacity-90 px-8 py-4 rounded-lg border-2 border-gray-600">
-        Paused
-      </div>
-    </div>
-  ) : (
-    <ColorBoard
-      board={board}
-      onCellClick={handleCellClick}
-      selectedCell={selectedCell}
-      lightAnimation={lightAnimation}
-    />
-  )
-)}
+          <div
+            className="relative board-container"
+            style={{ minHeight: boardContainerHeight }}
+          >
+            {board &&
+              (isPaused ? (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="paused-message text-white text-lg text-center bg-gray-800 bg-opacity-90 px-8 py-4 rounded-lg border-2 border-gray-600">
+                    Paused
+                  </div>
+                </div>
+              ) : (
+                <ColorBoard
+                  board={board}
+                  onCellClick={handleCellClick}
+                  selectedCell={selectedCell}
+                  lightAnimation={lightAnimation}
+                />
+              ))}
             {showCongrats && (
               <div className="congratulations-message flex flex-col items-center">
                 <div className="whitespace-nowrap font-bold">You Win!</div>
@@ -415,13 +469,14 @@ const triggerCelebration = () => {
                 </div>
               </div>
             )}
-           {showWelcomeOverlay && !showCongrats && (
-  <div className="welcome-overlay">
-    <div className="welcome-message">
-      Welcome to Colors! Select difficulty level above and click Start Game below.
-    </div>
-  </div>
-)}
+            {showWelcomeOverlay && !showCongrats && (
+              <div className="welcome-overlay">
+                <div className="welcome-message">
+                  Welcome to Colors! Select difficulty level above and click
+                  Start Game below.
+                </div>
+              </div>
+            )}
           </div>
           <div
             className={`mt-2 text-white text-lg ${
@@ -438,7 +493,7 @@ const triggerCelebration = () => {
           </div>
           <div className="w-full lg:w-2/4 flex flex-nowrap justify-center gap-2 mt-4 max-w-m">
             <div className="flex flex-nowrap justify-center gap-2 w-full">
-                            <button
+              <button
                 onClick={() => {
                   console.log("Check button clicked");
                   checkSolution();
@@ -448,7 +503,7 @@ const triggerCelebration = () => {
               >
                 Check
               </button>
-              
+
               <button
                 onClick={() => {
                   console.log("Hint button clicked");
@@ -459,35 +514,33 @@ const triggerCelebration = () => {
               >
                 Hint
               </button>
-<button
-  onClick={() => {
-    if (gameStarted && !showCongrats) {
-      console.log("Pause/Resume button clicked");
-      togglePause();
-    } else {
-      console.log("Start Game button clicked");
-      initializeBoard();
-    }
-  }}
-  className={`px-2 h-8 text-white rounded text-sm w-[140px] ${
-    gameStarted && !showCongrats
-      ? isPaused
-        ? "bg-green-500 hover:bg-green-600"  // Resume button - green
-        : "bg-yellow-500 hover:bg-yellow-600" // Pause button - yellow
-      : "bg-green-500 hover:bg-green-600"     // Start Game button - green
-  }`}
-  disabled={!difficulty}
->
-  {gameStarted && !showCongrats
-    ? isPaused
-      ? "Resume"
-      : "Pause"
-    : "Start Game"}
-</button>
-
+              <button
+                onClick={() => {
+                  if (gameStarted && !showCongrats) {
+                    console.log("Pause/Resume button clicked");
+                    togglePause();
+                  } else {
+                    console.log("Start Game button clicked");
+                    initializeBoard();
+                  }
+                }}
+                className={`px-2 h-8 text-white rounded text-sm w-[140px] ${
+                  gameStarted && !showCongrats
+                    ? isPaused
+                      ? "bg-green-500 hover:bg-green-600" // Resume button - green
+                      : "bg-yellow-500 hover:bg-yellow-600" // Pause button - yellow
+                    : "bg-green-500 hover:bg-green-600" // Start Game button - green
+                }`}
+                disabled={!difficulty}
+              >
+                {gameStarted && !showCongrats
+                  ? isPaused
+                    ? "Resume"
+                    : "Pause"
+                  : "Start Game"}
+              </button>
             </div>
             <div className="flex flex-nowrap justify-center gap-2 w-full">
-              
               <button
                 onClick={() => {
                   console.log("Delete button clicked");
@@ -498,16 +551,7 @@ const triggerCelebration = () => {
               >
                 Delete
               </button>
-              {/* <button
-                onClick={() => {
-                  console.log("End Game button clicked");
-                  endGame();
-                }}
-                className="px-2 h-8 bg-red-500 text-white rounded hover:bg-red-600 text-sm w-[200px]"
-                disabled={!gameStarted || showCongrats}
-              >
-                End Game
-              </button> */}
+
               <button
                 onClick={() => {
                   console.log("Clear button clicked");
@@ -520,6 +564,16 @@ const triggerCelebration = () => {
               </button>
             </div>
           </div>
+          <button
+            onClick={() => {
+              console.log("End Game button clicked");
+              endGame();
+            }}
+            className="px-2 mt-4 bg-red-500 text-white rounded hover:bg-red-600 text-sm w-[200px]"
+            disabled={!gameStarted || showCongrats}
+          >
+            End Game
+          </button>
         </div>
 
         {/* Right Panel: Color-Mixing Rules */}
@@ -553,13 +607,21 @@ const triggerCelebration = () => {
           </h3>
           <div className="text-gray-300 text-left">
             <span>
-              With RGB, we start with darkness (black) and add colored light. We
-              see light directly emitted from a source, like a TV. But with CMY,
-              we see light that has bounced off of an object, with certain
-              wavelengths absorbed by the pigments. We start with white, like a
-              sheet of paper, and subtract light through pigments. That's why a
-              red apple appears red - it absorbs most wavelengths but reflects
-              primarily red light back to our eyes.
+              With the additive color-mixing RGB model, we start with darkness
+              (black) and add colored light. We see light directly emitted from
+              a source, like a TV, using red, green, and blue as the primary
+              colors.<br></br>
+              <br></br>
+              But with subtractive color-mixing (CMY), we see light that has
+              bounced off of an object, with certain wavelengths absorbed by the
+              pigments. We start with white, like a sheet of paper, and subtract
+              light through pigments. That's why a red apple appears red - it
+              absorbs most wavelengths but reflects primarily red light back to
+              our eyes. <br></br>
+              <br></br>
+              On an ink cartridge, the letters CMYK refer to cyan, magenta,
+              yellow, and black. The K stands for black, which is the
+              combination of those three primary colors used in printers.
             </span>
           </div>
         </div>
