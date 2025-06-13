@@ -5,15 +5,17 @@ import {
   generateSolution,
   createPuzzle,
   createBoard,
-  COLORS,
+  DIFFICULTY_CONFIG,
 } from "./utils/gameLogic";
 import { v4 as uuidv4 } from "uuid";
 import Venns from "./assets/venn-words.png";
+import Magenta from "./assets/magenta-example.png";
+import BC from "./assets/blue-cyan-example.png";
+import RG from "./assets/red-green-example.png";
+import Yellow from "./assets/yellow-example.png";
 
 const App = () => {
-  const initialBoard = createBoard();
-
-  const [board, setBoard] = useState(initialBoard);
+  const [board, setBoard] = useState(null);
   const [solutionBoard, setSolutionBoard] = useState([]);
   const [selectedCell, setSelectedCell] = useState(null);
   const [isGameWon, setIsGameWon] = useState(false);
@@ -22,17 +24,27 @@ const App = () => {
   const [startTime, setStartTime] = useState(null);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [gameStarted, setGameStarted] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
   const [timerShake, setTimerShake] = useState(false);
+  const [difficulty, setDifficulty] = useState("Easy");
+  const [showWelcomeOverlay, setShowWelcomeOverlay] = useState(true);
 
+  // Initialize Easy board on mount
+  useEffect(() => {
+    const initialBoard = createBoard("Easy");
+    setBoard(initialBoard);
+  }, []);
+
+  // Update timer
   useEffect(() => {
     let timer;
-    if (startTime && !isGameWon) {
+    if (startTime && !isGameWon && !isPaused) {
       timer = setInterval(() => {
         setElapsedTime(Date.now() - startTime);
       }, 1000);
     }
     return () => clearInterval(timer);
-  }, [startTime, isGameWon]);
+  }, [startTime, isGameWon, isPaused]);
 
   const formatTime = (ms) => {
     const seconds = Math.floor((ms / 1000) % 60);
@@ -43,15 +55,20 @@ const App = () => {
   };
 
   const initializeBoard = () => {
-    console.log("initializeBoard called");
-    const solution = generateSolution();
+    if (!difficulty) return;
+    console.log("initializeBoard called with difficulty:", difficulty);
+    const solution = generateSolution(difficulty);
     console.log("Solution generated:", solution);
     if (solution) {
-      const { puzzleBoard, solutionBoard } = createPuzzle(solution);
+      const { puzzleBoard, solutionBoard } = createPuzzle(solution, difficulty);
       console.log("Puzzle board:", puzzleBoard);
       const newBoard = JSON.parse(JSON.stringify(puzzleBoard));
-      for (let row = 0; row < 7; row++) {
-        for (let col = 0; col < 7; col++) {
+      for (let row = 0; row < DIFFICULTY_CONFIG[difficulty].GRID_SIZE; row++) {
+        for (
+          let col = 0;
+          col < DIFFICULTY_CONFIG[difficulty].GRID_SIZE;
+          col++
+        ) {
           if (newBoard[row][col].color) {
             newBoard[row][col].isClue = true;
           }
@@ -61,9 +78,14 @@ const App = () => {
       setBoard(newBoard);
       setSolutionBoard(solutionBoard);
       console.log("Board state updated with puzzleBoard");
+      setStartTime(Date.now());
+      setElapsedTime(0);
+      setGameStarted(true);
+      setIsPaused(false);
+      setShowWelcomeOverlay(false);
     } else {
       console.log("No solution generated, resetting to empty board");
-      const emptyBoard = createBoard();
+      const emptyBoard = createBoard(difficulty);
       setBoard(emptyBoard);
       setSolutionBoard([]);
       console.log("Board state updated with emptyBoard:", emptyBoard);
@@ -72,16 +94,36 @@ const App = () => {
     setIsGameWon(false);
     setLightAnimation(false);
     setShowCongrats(false);
-    setStartTime(Date.now());
-    setElapsedTime(0);
-    setGameStarted(true);
+  };
+
+  const togglePause = () => {
+    if (!gameStarted || isGameWon) return;
+    if (isPaused) {
+      setStartTime(Date.now() - elapsedTime);
+      setIsPaused(false);
+      console.log(
+        "Game resumed, timer restarted from:",
+        formatTime(elapsedTime)
+      );
+    } else {
+      setIsPaused(true);
+      console.log("Game paused at:", formatTime(elapsedTime));
+    }
   };
 
   const endGame = () => {
     console.log("End Game called");
-    const emptyBoard = createBoard();
-    for (let row = 0; row < 7; row++) {
-      for (let col = 0; col < 7; col++) {
+    const emptyBoard = createBoard(difficulty || "Easy");
+    for (
+      let row = 0;
+      row < DIFFICULTY_CONFIG[difficulty || "Easy"].GRID_SIZE;
+      row++
+    ) {
+      for (
+        let col = 0;
+        col < DIFFICULTY_CONFIG[difficulty || "Easy"].GRID_SIZE;
+        col++
+      ) {
         emptyBoard[row][col].color = null;
         emptyBoard[row][col].isClue = false;
         emptyBoard[row][col].isIncorrect = false;
@@ -96,14 +138,16 @@ const App = () => {
     setLightAnimation(false);
     setShowCongrats(false);
     setGameStarted(false);
+    setIsPaused(false);
+    setShowWelcomeOverlay(true);
   };
 
   const checkSolution = () => {
-    if (isGameWon) return;
+    if (isGameWon || isPaused) return;
     const newBoard = JSON.parse(JSON.stringify(board));
     let isCorrect = true;
-    for (let row = 0; row < 7; row++) {
-      for (let col = 0; col < 7; col++) {
+    for (let row = 0; row < DIFFICULTY_CONFIG[difficulty].GRID_SIZE; row++) {
+      for (let col = 0; col < DIFFICULTY_CONFIG[difficulty].GRID_SIZE; col++) {
         if (!newBoard[row][col].isHole) {
           const isTileCorrect =
             newBoard[row][col].color ===
@@ -131,12 +175,14 @@ const App = () => {
       setLightAnimation(false);
       setShowCongrats(true);
       setGameStarted(false);
+      setIsPaused(false);
+      // Remove or comment out: setShowWelcomeOverlay(true);
     }, 1000);
   };
 
   const checkWinCondition = (updatedBoard) => {
-    for (let row = 0; row < 7; row++) {
-      for (let col = 0; col < 7; col++) {
+    for (let row = 0; row < DIFFICULTY_CONFIG[difficulty].GRID_SIZE; row++) {
+      for (let col = 0; col < DIFFICULTY_CONFIG[difficulty].GRID_SIZE; col++) {
         if (!updatedBoard[row][col].isHole) {
           if (
             updatedBoard[row][col].color !==
@@ -151,10 +197,10 @@ const App = () => {
   };
 
   const getHint = () => {
-    if (isGameWon) return;
+    if (isGameWon || isPaused) return;
     const emptyCells = [];
-    for (let row = 0; row < 7; row++) {
-      for (let col = 0; col < 7; col++) {
+    for (let row = 0; row < DIFFICULTY_CONFIG[difficulty].GRID_SIZE; row++) {
+      for (let col = 0; col < DIFFICULTY_CONFIG[difficulty].GRID_SIZE; col++) {
         if (
           !board[row][col].isHole &&
           !board[row][col].isClue &&
@@ -175,7 +221,9 @@ const App = () => {
     const newBoard = JSON.parse(JSON.stringify(board));
     newBoard[row][col].color =
       solutionBoard[row]?.[col]?.color ||
-      COLORS[Math.floor(Math.random() * COLORS.length)];
+      DIFFICULTY_CONFIG[difficulty].COLORS[
+        Math.floor(Math.random() * DIFFICULTY_CONFIG[difficulty].COLORS.length)
+      ];
     newBoard[row][col].isIncorrect = false;
     setBoard(newBoard);
 
@@ -199,7 +247,7 @@ const App = () => {
   };
 
   const deleteLast = () => {
-    if (isGameWon) return;
+    if (isGameWon || isPaused) return;
     if (!selectedCell) {
       alert("No cell selected to delete!");
       return;
@@ -221,10 +269,10 @@ const App = () => {
   };
 
   const clearBoard = () => {
-    if (isGameWon) return;
+    if (isGameWon || isPaused) return;
     const newBoard = JSON.parse(JSON.stringify(board));
-    for (let row = 0; row < 7; row++) {
-      for (let col = 0; col < 7; col++) {
+    for (let row = 0; row < DIFFICULTY_CONFIG[difficulty].GRID_SIZE; row++) {
+      for (let col = 0; col < DIFFICULTY_CONFIG[difficulty].GRID_SIZE; col++) {
         if (!newBoard[row][col].isHole && !newBoard[row][col].isClue) {
           newBoard[row][col].color = null;
           newBoard[row][col].isIncorrect = false;
@@ -236,12 +284,8 @@ const App = () => {
     console.log("Board cleared of player-placed colors");
   };
 
-  useEffect(() => {
-    console.log("useEffect running");
-  }, []);
-
   const handleCellClick = (row, col) => {
-    if (isGameWon) return;
+    if (isGameWon || isPaused) return;
     console.log(
       `Cell clicked: [${row},${col}], isHole=${board[row][col].isHole}, isClue=${board[row][col].isClue}, hasColor=${board[row][col].color}`
     );
@@ -254,7 +298,7 @@ const App = () => {
   };
 
   const handleColorButton = (color) => {
-    if (isGameWon) return;
+    if (isGameWon || isPaused) return;
     if (!selectedCell) {
       alert("Please select a cell first!");
       console.log("Color button clicked, but no cell selected");
@@ -280,6 +324,24 @@ const App = () => {
     }
   };
 
+  const handleDifficultyChange = (e) => {
+    const newDifficulty = e.target.value;
+    setDifficulty(newDifficulty);
+    setGameStarted(false);
+    setIsPaused(false);
+    setBoard(createBoard(newDifficulty));
+    setSolutionBoard([]);
+    setShowCongrats(false);
+    setStartTime(null);
+    setElapsedTime(0);
+    setShowWelcomeOverlay(false);
+  };
+
+  // Calculate board container height based on difficulty
+  const boardContainerHeight = difficulty
+    ? `${DIFFICULTY_CONFIG[difficulty].GRID_SIZE * 48}px`
+    : "240px";
+
   return (
     <>
       <div className="app-container flex flex-col lg:flex-row justify-center gap-4 p-4 w-full max-w-6xl mx-auto relative">
@@ -299,13 +361,45 @@ const App = () => {
               colors of the two surrounding gray cells; or fill the gray cells
               with colors that will produce the color in the white cells.
             </li>
+            <br></br>
+            <li>
+              So Red and Green...
+              <img
+                src={RG}
+                alt="cyan and magenta surrounding and empty white cell"
+                className="max-w-[76] h-10 mx-auto"
+              />
+              ......make Yellow.
+              <img
+                src={Yellow}
+                alt="example showing blue made by cyan and magenta"
+                className="max-w-[76] h-10 mx-auto"
+              />
+            </li>
+            <br></br>
+            <li>
+              What and Cyan make Blue?
+              <img
+                src={BC}
+                alt="cyan and magenta surrounding and empty white cell"
+                className="max-w-[76] h-10 mx-auto"
+              />
+              .......Magenta!
+              <img
+                src={Magenta}
+                alt="example showing blue made by cyan and magenta"
+                className="max-w-[76] h-10 mx-auto"
+              />
+            </li>
+            <br></br>
             <li>
               Black cells are inactive, gray cells are influencers, and white
               cells are influenced by surrounding gray cells.
             </li>
+            <li>Logic applies vertically and horizontally.</li>
             <li>
-              Click a cell to select it, rendering a blue outline around it. You
-              can't select pre-tiled cells.
+              Click a cell to select it, outlining it in blue. You can't select
+              pre-tiled cells.
             </li>
             <li>
               To fill a cell, choose a color from the palette below the board.
@@ -324,7 +418,7 @@ const App = () => {
         </div>
 
         {/* Center: Game Board and Controls */}
-        <div className="flex flex-col items-center w-full lg:w-2/4">
+        <div className="flex flex-col items-center w-full lg:w-2/4 relative">
           <div className="flex justify-center mb-2 mt-5">
             <img
               src={Venns}
@@ -333,23 +427,53 @@ const App = () => {
             />
           </div>
           <h1 className="text-2xl font-bold mb-3">Colors</h1>
-          <div className="relative">
-            <ColorBoard
-              board={board}
-              onCellClick={handleCellClick}
-              selectedCell={selectedCell}
-              lightAnimation={lightAnimation}
-            />
-            {!gameStarted && !showCongrats && (
-              <div className="welcome-message">
-                Welcome to Colors! Click Start Game to begin.
-              </div>
-            )}
+
+          <div className="mb-4">
+            <select
+              value={difficulty}
+              onChange={handleDifficultyChange}
+              className="px-4 py-2 bg-gray-800 text-white rounded z-20"
+              disabled={gameStarted && !showCongrats && !isPaused}
+            >
+              <option value="Easy">Easy</option>
+              <option value="Medium">Medium</option>
+              <option value="Difficult" disabled>
+                Difficult (Coming Soon!)
+              </option>
+            </select>
+          </div>
+          <div
+            className="relative board-container"
+            style={{ minHeight: boardContainerHeight }}
+          >
+            {board &&
+              (isPaused ? (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="paused-message text-white text-lg text-center bg-gray-800 bg-opacity-90 px-8 py-4 rounded-lg border-2 border-gray-600">
+                    Paused
+                  </div>
+                </div>
+              ) : (
+                <ColorBoard
+                  board={board}
+                  onCellClick={handleCellClick}
+                  selectedCell={selectedCell}
+                  lightAnimation={lightAnimation}
+                />
+              ))}
             {showCongrats && (
               <div className="congratulations-message flex flex-col items-center">
                 <div className="whitespace-nowrap font-bold">You Win!</div>
                 <div className="text-xl mt-2">
                   Time: {formatTime(elapsedTime)}
+                </div>
+              </div>
+            )}
+            {showWelcomeOverlay && !showCongrats && (
+              <div className="welcome-overlay">
+                <div className="welcome-message">
+                  Welcome to Colors! Select difficulty level above and click
+                  Start Game below.
                 </div>
               </div>
             )}
@@ -364,79 +488,92 @@ const App = () => {
           <div className="w-full lg:w-2/4 max-w-md flex flex-nowrap justify-center gap-1 mt-2">
             <ColorPalette
               onColorClick={handleColorButton}
-              colors={[
-                "cyan",
-                "magenta",
-                "yellow",
-                "red",
-                "green",
-                "blue",
-                "purple",
-                "orange",
-                "white",
-              ]}
+              colors={difficulty ? DIFFICULTY_CONFIG[difficulty].COLORS : []}
             />
           </div>
-          <div className="w-full lg:w-2/4 flex flex-nowrap justify-center gap-1 mt-4">
-            <button
-              onClick={() => {
-                console.log("Check button clicked");
-                checkSolution();
-              }}
-              className="px-2 h-8 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm flex-shrink"
-              disabled={isGameWon || !gameStarted}
-            >
-              Check
-            </button>
-            <button
-              onClick={() => {
-                console.log("Hint button clicked");
-                getHint();
-              }}
-              className="px-2 h-8 bg-yellow-300 text-white rounded hover:bg-yellow-600 text-sm flex-shrink"
-              disabled={isGameWon || !gameStarted}
-            >
-              Hint
-            </button>
-            <button
-              onClick={() => {
-                if (gameStarted && !showCongrats) {
-                  console.log("End Game button clicked");
-                  endGame();
-                } else {
-                  console.log("Start Game button clicked");
-                  initializeBoard();
-                }
-              }}
-              className={`px-2 h-8 text-white rounded min-w-[100px] text-sm flex-shrink ${
-                gameStarted && !showCongrats
-                  ? "bg-blue-500 hover:bg-blue-600"
-                  : "bg-green-500 hover:bg-green-600"
-              }`}
-            >
-              {gameStarted && !showCongrats ? "End Game" : "Start Game"}
-            </button>
-            <button
-              onClick={() => {
-                console.log("Delete button clicked");
-                deleteLast();
-              }}
-              className="px-2 h-8 bg-red-500 text-white rounded hover:bg-red-600 text-sm flex-shrink"
-              disabled={isGameWon || !gameStarted}
-            >
-              Delete
-            </button>
-            <button
-              onClick={() => {
-                console.log("Clear button clicked");
-                clearBoard();
-              }}
-              className="px-2 h-8 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm flex-shrink"
-              disabled={isGameWon || !gameStarted}
-            >
-              Clear
-            </button>
+          <div className="w-full lg:w-2/4 flex flex-nowrap justify-center gap-2 mt-4 max-w-m">
+            <div className="flex flex-nowrap justify-center gap-2 w-full">
+              <button
+                onClick={() => {
+                  console.log("Check button clicked");
+                  checkSolution();
+                }}
+                className="px-2 h-8 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm w-[60px]"
+                disabled={isGameWon || !gameStarted || isPaused}
+              >
+                Check
+              </button>
+
+              <button
+                onClick={() => {
+                  console.log("Hint button clicked");
+                  getHint();
+                }}
+                className="px-2 h-8 bg-orange-500 text-white rounded hover:bg-orange-600 text-sm w-[88px]"
+                disabled={isGameWon || !gameStarted || isPaused}
+              >
+                Hint
+              </button>
+              <button
+                onClick={() => {
+                  if (gameStarted && !showCongrats) {
+                    console.log("Pause/Resume button clicked");
+                    togglePause();
+                  } else {
+                    console.log("Start Game button clicked");
+                    initializeBoard();
+                  }
+                }}
+                className={`px-2 h-8 text-white rounded text-sm w-[140px] ${
+                  gameStarted && !showCongrats
+                    ? isPaused
+                      ? "bg-green-500 hover:bg-green-600" // Resume button - green
+                      : "bg-yellow-400 hover:bg-yellow-500" // Pause button - yellow
+                    : "bg-green-500 hover:bg-green-600" // Start Game button - green
+                }`}
+                disabled={!difficulty}
+              >
+                {gameStarted && !showCongrats
+                  ? isPaused
+                    ? "Resume"
+                    : "Pause"
+                  : "Start Game"}
+              </button>
+            </div>
+            <div className="flex flex-nowrap justify-center gap-2 w-full">
+              <button
+                onClick={() => {
+                  console.log("Delete button clicked");
+                  deleteLast();
+                }}
+                className="px-2 h-8 bg-red-500 text-white rounded hover:bg-red-600 text-sm w-[60px]"
+                disabled={isGameWon || !gameStarted || isPaused}
+              >
+                Delete
+              </button>
+
+              <button
+                onClick={() => {
+                  console.log("Clear button clicked");
+                  clearBoard();
+                }}
+                className="px-2 h-8 bg-purple-500 text-white rounded hover:bg-purple-600 text-sm w-[60px]"
+                disabled={isGameWon || !gameStarted || isPaused}
+              >
+                Clear
+              </button>
+            </div>
           </div>
+          <button
+            onClick={() => {
+              console.log("End Game button clicked");
+              endGame();
+            }}
+            className="px-2 mt-4 bg-red-500 text-white rounded hover:bg-red-600 text-sm w-[200px]"
+            disabled={!gameStarted || showCongrats}
+          >
+            End Game
+          </button>
         </div>
 
         {/* Right Panel: Color-Mixing Rules */}
@@ -456,26 +593,34 @@ const App = () => {
             <li>Cyan + Yellow = Green</li>
             <li>Magenta + Yellow = Red</li>
           </ul>
-          <ul className="list-disc list-inside mb-4 text-gray-300">
-            Arbitrary Mixing
-            <li>Magenta + Blue = Purple</li>
-            <li>Yellow + Red = Orange</li>
-            <li>Cyan + Green = Silver</li>
-            <li>Two of Same Color = That Color</li>
-          </ul>
-
+          {difficulty === "Medium" && (
+            <ul className="list-disc list-inside mb-4 text-gray-300">
+              Arbitrary Mixing
+              <li>Magenta + Blue = Purple</li>
+              <li>Yellow + Red = Orange</li>
+              <li>Cyan + Green = Silver</li>
+              <li>Two of Same Color = That Color</li>
+            </ul>
+          )}
           <h3 className="text-lg font-bold text-white mb-2">
             Understanding RGB vs. CMY
           </h3>
           <div className="text-gray-300 text-left">
             <span>
-              With RGB, we start with darkness (black) and add colored light. We
-              see light directly emitted from a source, like a TV. But with CMY,
-              we see light that has bounced off of an object, with certain
-              wavelengths absorbed by the pigments. We start with white, like a
-              sheet of paper, and subtract light through pigments. That's why a
-              red apple appears red - it absorbs most wavelengths but reflects
-              primarily red light back to our eyes.
+              With additive color-mixing (RGB), we start with darkness
+              (black) and add colored light. We see light directly emitted from
+              a source, like a TV.  This model's three primary colors (red, green, and
+              blue) can combine to make white.<br></br>
+              <br></br>
+              But with subtractive color-mixing (CMY), we see light that has
+              bounced off of an object, with certain wavelengths absorbed by the
+              pigments. We start with white, like a sheet of paper, and subtract
+              light through pigments. That's why a red apple appears red - it
+              absorbs most wavelengths but reflects primarily red light back to
+              our eyes. <br></br>
+              <br></br>
+              On ink cartridges, the letters CMYK refer to cyan, magenta,
+              yellow, and black. Cartridges include black ink even though CMY's three primary colors could combine to make black.
             </span>
           </div>
         </div>

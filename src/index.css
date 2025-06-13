@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -98,25 +99,6 @@ body,
   z-index: 5;
 }
 
-/* Shared overlay message styling for welcome and congratulations messages */
-.overlay-message {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  color: #ffffff;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-  background: rgba(0, 0, 0, 0.7);
-  padding: 1rem 2rem;
-  border-radius: 10px;
-  z-index: 10;
-  text-align: center;
-  width: 80%;
-  max-width: 300px;
-  margin-top: env(safe-area-inset-top);
-  margin-bottom: env(safe-area-inset-bottom);
-}
-
 /* Congratulations message specific styles */
 .congratulations-message {
   position: absolute;
@@ -132,40 +114,13 @@ body,
   text-align: center;
   width: 80%;
   font-size: 2rem;
-  font-weight: 700rem;
+  font-weight: 700;
 }
 
 @media (min-width: 640px) {
   .congratulations-message {
     font-size: 2.5rem;
     font-weight: 700;
-  }
-}
-
-/* Welcome message specific styles */
-.welcome-message {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  color: #ffffff;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-  background: rgba(0, 0, 0, 0.7);
-  padding: 1rem 2rem;
-  border-radius: 10px;
-  z-index: 10;
-  text-align: center;
-  width: 80%;
-  max-width: 300px;
-  margin-top: env(safe-area-inset-top);
-  margin-bottom: env(safe-area-inset-bottom);
-  font-size: 1.5rem;
-  font-weight: 600;
-}
-
-@media (min-width: 640px) {
-  .welcome-message {
-    font-size: 2rem;
   }
 }
 
@@ -207,18 +162,97 @@ body,
   padding-right: env(safe-area-inset-right);
 }
 
-@media (min-width: 375px) {
+.cell {
+  width: 48px;
+  height: 48px;
+}
+.cell > div {
+  width: 40px;
+  height: 40px;
+}
+
+@media (max-width: 375px) {
   .cell {
-    width: 44px;
-    height: 44px;
+    width: 40px;
+    height: 40px;
   }
   .cell > div {
-    width: 36px;
-    height: 36px;
+    width: 32px;
+    height: 32px;
   }
 }
 
 /* Incorrect X styling */
 .incorrect-x {
   filter: drop-shadow(1px 1px 1px rgba(255, 255, 255, 0.8));
+}
+
+/* Introduction text styling */
+.introduction-text {
+  font-size: 1.2rem;
+  font-weight: 500;
+  max-width: 300px;
+  line-height: 1.4;
+}
+
+/* Paused message styling */
+.paused-message {
+  font-size: 1.2rem;
+  font-weight: 500;
+  max-width: 300px;
+  line-height: 1.4;
+  text-align: center;
+  margin-top: 20px;
+}
+
+/* Board container styling */
+.board-container {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  position: relative;
+}
+
+/* Welcome overlay styling */
+.welcome-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.welcome-message {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0, 0, 0, 0.7);
+  color: #ffffff;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+  padding: 2rem;
+  border-radius: 10px;
+  text-align: center;
+  width: 280px;
+  height: 280px;
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.4;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+@media (max-width: 640px) {
+  .welcome-message {
+    font-size: 1.2rem;
+    padding: 1.5rem;
+    width: 280px;
+    height: 280px;
+  }
 }
