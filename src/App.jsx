@@ -376,7 +376,7 @@ const App = () => {
                 className="max-w-[76] h-10 mx-auto"
               />
             </li>
-              <br></br>
+            <br></br>
             <li>
               What and Cyan make Blue?
               <img
@@ -607,10 +607,10 @@ const App = () => {
           </h3>
           <div className="text-gray-300 text-left">
             <span>
-              With the additive color-mixing RGB model, we start with darkness
+              With additive color-mixing (RGB), we start with darkness
               (black) and add colored light. We see light directly emitted from
-              a source, like a TV, using red, green, and blue as the primary
-              colors.<br></br>
+              a source, like a TV.  This model's three primary colors (red, green, and
+              blue) can combine to make white.<br></br>
               <br></br>
               But with subtractive color-mixing (CMY), we see light that has
               bounced off of an object, with certain wavelengths absorbed by the
@@ -619,9 +619,8 @@ const App = () => {
               absorbs most wavelengths but reflects primarily red light back to
               our eyes. <br></br>
               <br></br>
-              On an ink cartridge, the letters CMYK refer to cyan, magenta,
-              yellow, and black. The K stands for black, which is the
-              combination of those three primary colors used in printers.
+              On ink cartridges, the letters CMYK refer to cyan, magenta,
+              yellow, and black. Cartridges include black ink even though CMY's three primary colors could combine to make black.
             </span>
           </div>
         </div>
