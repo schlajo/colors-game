@@ -26,12 +26,12 @@ const App = () => {
   const [gameStarted, setGameStarted] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [timerShake, setTimerShake] = useState(false);
-  const [difficulty, setDifficulty] = useState("Medium");
+  const [difficulty, setDifficulty] = useState("Easy");
   const [showWelcomeOverlay, setShowWelcomeOverlay] = useState(true);
 
-  // Initialize Medium board on mount
+  // Initialize Easy board on mount
   useEffect(() => {
-    const initialBoard = createBoard("Medium");
+    const initialBoard = createBoard("Easy");
     setBoard(initialBoard);
   }, []);
 
@@ -113,15 +113,15 @@ const App = () => {
 
   const endGame = () => {
     console.log("End Game called");
-    const emptyBoard = createBoard(difficulty || "Medium");
+    const emptyBoard = createBoard(difficulty || "Easy");
     for (
       let row = 0;
-      row < DIFFICULTY_CONFIG[difficulty || "Medium"].GRID_SIZE;
+      row < DIFFICULTY_CONFIG[difficulty || "Easy"].GRID_SIZE;
       row++
     ) {
       for (
         let col = 0;
-        col < DIFFICULTY_CONFIG[difficulty || "Medium"].GRID_SIZE;
+        col < DIFFICULTY_CONFIG[difficulty || "Easy"].GRID_SIZE;
         col++
       ) {
         emptyBoard[row][col].color = null;
@@ -340,7 +340,7 @@ const App = () => {
   // Calculate board container height based on difficulty
   const boardContainerHeight = difficulty
     ? `${DIFFICULTY_CONFIG[difficulty].GRID_SIZE * 48}px`
-    : "336px";
+    : "240px";
 
   return (
     <>
@@ -528,7 +528,7 @@ const App = () => {
                   gameStarted && !showCongrats
                     ? isPaused
                       ? "bg-green-500 hover:bg-green-600" // Resume button - green
-                      : "bg-yellow-500 hover:bg-yellow-600" // Pause button - yellow
+                      : "bg-yellow-400 hover:bg-yellow-500" // Pause button - yellow
                     : "bg-green-500 hover:bg-green-600" // Start Game button - green
                 }`}
                 disabled={!difficulty}
