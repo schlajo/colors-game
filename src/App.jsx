@@ -176,7 +176,6 @@ const App = () => {
       setShowCongrats(true);
       setGameStarted(false);
       setIsPaused(false);
-      // Remove or comment out: setShowWelcomeOverlay(true);
     }, 1000);
   };
 
@@ -337,8 +336,8 @@ const App = () => {
     setShowWelcomeOverlay(false);
   };
 
-  // Calculate board container height based on difficulty
-  const boardContainerHeight = difficulty
+  // Calculate board container size based on difficulty
+  const boardContainerSize = difficulty
     ? `${DIFFICULTY_CONFIG[difficulty].GRID_SIZE * 48}px`
     : "240px";
 
@@ -444,7 +443,7 @@ const App = () => {
           </div>
           <div
             className="relative board-container"
-            style={{ minHeight: boardContainerHeight }}
+            style={{ minHeight: boardContainerSize, maxWidth: boardContainerSize }}
           >
             {board &&
               (isPaused ? (
@@ -491,89 +490,91 @@ const App = () => {
               colors={difficulty ? DIFFICULTY_CONFIG[difficulty].COLORS : []}
             />
           </div>
-          <div className="w-full lg:w-2/4 flex flex-nowrap justify-center gap-2 mt-4 max-w-m">
-            <div className="flex flex-nowrap justify-center gap-2 w-full">
-              <button
-                onClick={() => {
-                  console.log("Check button clicked");
-                  checkSolution();
-                }}
-                className="px-2 h-8 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm w-[60px]"
-                disabled={isGameWon || !gameStarted || isPaused}
-              >
-                Check
-              </button>
-
-              <button
-                onClick={() => {
-                  console.log("Hint button clicked");
-                  getHint();
-                }}
-                className="px-2 h-8 bg-orange-500 text-white rounded hover:bg-orange-600 text-sm w-[88px]"
-                disabled={isGameWon || !gameStarted || isPaused}
-              >
-                Hint
-              </button>
-              <button
-                onClick={() => {
-                  if (gameStarted && !showCongrats) {
-                    console.log("Pause/Resume button clicked");
-                    togglePause();
-                  } else {
-                    console.log("Start Game button clicked");
-                    initializeBoard();
-                  }
-                }}
-                className={`px-2 h-8 text-white rounded text-sm w-[140px] ${
-                  gameStarted && !showCongrats
-                    ? isPaused
-                      ? "bg-green-500 hover:bg-green-600" // Resume button - green
-                      : "bg-yellow-400 hover:bg-yellow-500" // Pause button - yellow
-                    : "bg-green-500 hover:bg-green-600" // Start Game button - green
-                }`}
-                disabled={!difficulty}
-              >
-                {gameStarted && !showCongrats
-                  ? isPaused
-                    ? "Resume"
-                    : "Pause"
-                  : "Start Game"}
-              </button>
-            </div>
-            <div className="flex flex-nowrap justify-center gap-2 w-full">
-              <button
-                onClick={() => {
-                  console.log("Delete button clicked");
-                  deleteLast();
-                }}
-                className="px-2 h-8 bg-red-500 text-white rounded hover:bg-red-600 text-sm w-[60px]"
-                disabled={isGameWon || !gameStarted || isPaused}
-              >
-                Delete
-              </button>
-
-              <button
-                onClick={() => {
-                  console.log("Clear button clicked");
-                  clearBoard();
-                }}
-                className="px-2 h-8 bg-purple-500 text-white rounded hover:bg-purple-600 text-sm w-[60px]"
-                disabled={isGameWon || !gameStarted || isPaused}
-              >
-                Clear
-              </button>
-            </div>
-          </div>
-          <button
-            onClick={() => {
-              console.log("End Game button clicked");
-              endGame();
-            }}
-            className="px-2 mt-4 bg-red-500 text-white rounded hover:bg-red-600 text-sm w-[200px]"
-            disabled={!gameStarted || showCongrats}
+          <div
+            className="mt-4 flex flex-wrap justify-center gap-2"
+            style={{ maxWidth: boardContainerSize }}
           >
-            End Game
-          </button>
+            <button
+              onClick={() => {
+                console.log("Hint button clicked");
+                getHint();
+              }}
+              className="px-2 h-8 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm flex-1 min-w-[60px] max-w-[80px]"
+              disabled={isGameWon || !gameStarted || isPaused}
+            >
+              Hint
+            </button>
+            <button
+              onClick={() => {
+                if (gameStarted && !showCongrats) {
+                  console.log("Pause/Resume button clicked");
+                  togglePause();
+                } else {
+                  console.log("Start Game button clicked");
+                  initializeBoard();
+                }
+              }}
+              className={`px-2 h-8 text-white rounded text-sm flex-1 min-w-[100px] max-w-[120px] ${
+                gameStarted && !showCongrats
+                  ? isPaused
+                    ? "bg-green-500 hover:bg-green-600"
+                    : "bg-yellow-400 hover:bg-yellow-500"
+                  : "bg-green-500 hover:bg-green-600"
+              }`}
+              disabled={!difficulty}
+            >
+              {gameStarted && !showCongrats
+                ? isPaused
+                  ? "Resume"
+                  : "Pause"
+                : "Start Game"}
+            </button>
+            <button
+              onClick={() => {
+                console.log("Check button clicked");
+                checkSolution();
+              }}
+              className="px-2 h-8 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm flex-1 min-w-[60px] max-w-[80px]"
+              disabled={isGameWon || !gameStarted || isPaused}
+            >
+              Check
+            </button>
+          </div>
+          <div
+            className="mt-4 flex flex-wrap justify-center gap-2"
+            style={{ maxWidth: boardContainerSize }}
+          >
+            <button
+              onClick={() => {
+                console.log("Delete button clicked");
+                deleteLast();
+              }}
+              className="px-2 h-8 bg-purple-500 text-white rounded hover:bg-purple-600 text-sm flex-1 min-w-[60px] max-w-[80px]"
+              disabled={isGameWon || !gameStarted || isPaused}
+            >
+              Delete
+            </button>
+            <button
+              onClick={() => {
+                console.log("End Game button clicked");
+                endGame();
+              }}
+              className="px-2 h-8 bg-red-500 text-white rounded hover:bg-red-600 text-sm flex-1 min-w-[100px] max-w-[100px]"
+              disabled={!gameStarted || showCongrats}
+            >
+              End Game
+            </button>
+            <button
+              onClick={() => {
+                console.log("Clear button clicked");
+                clearBoard();
+              }}
+              className="px-2 h-8 bg-purple-500 text-white rounded hover:bg-purple-600 text-sm flex-1 min-w-[60px] max-w-[80px]"
+              disabled={isGameWon || !gameStarted || isPaused}
+            >
+              Clear
+            </button>
+          </div>
         </div>
 
         {/* Right Panel: Color-Mixing Rules */}
