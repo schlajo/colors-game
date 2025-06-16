@@ -9,7 +9,7 @@ const Cell = ({ cell, onClick, isSelected, glossAnimation }) => {
     switch (color) {
       case "green":
         return "G";
-      case "white":
+      case "silver":
         return "S";
       case "blue":
         return "B";
@@ -23,12 +23,17 @@ const Cell = ({ cell, onClick, isSelected, glossAnimation }) => {
         return "Y";
       case "cyan":
         return "C";
-      case "magenta":
-        return "M";
+      case "black":
+        return "K"; // K for black
+      case "white":
+        return "W";
+      case "gold":
+        return "Gld";
       default:
         return "";
     }
   };
+
   return (
     <div
       onClick={cell.isHole || cell.isClue ? null : onClick}
@@ -65,14 +70,22 @@ const Cell = ({ cell, onClick, isSelected, glossAnimation }) => {
           ? "bg-cyan-400"
           : cell.color === "magenta"
           ? "bg-pink-500"
+          : cell.color === "black"
+          ? "bg-black"
           : cell.color === "white"
+          ? "bg-white"
+          : cell.color === "gold"
+          ? "bg-yellow-600" // Corrected to yellow-600 for gold
+          : cell.color === "silver"
           ? "bg-gray-400"
           : "bg-gray-200"
       }`}
         >
           <span
             className={`text-black font-bold pointer-events-none text-[12px]
-        flex items-center justify-center text-shadow-sm`}
+        flex items-center justify-center text-shadow-sm ${
+          cell.color === "black" ? "text-white" : "text-black"
+        }`}
           >
             {getColorLabel(cell.color)}
           </span>

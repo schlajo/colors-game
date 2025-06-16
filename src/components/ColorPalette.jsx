@@ -20,8 +20,14 @@ const ColorPalette = ({ onColorClick, colors }) => {
         return "C";
       case "magenta":
         return "M";
-      case "white":
+      case "silver":
         return "S";
+      case "black":
+        return "K"; // K for black
+      case "white":
+        return "W";
+      case "gold":
+        return "Gld";
       default:
         return "";
     }
@@ -54,15 +60,21 @@ const ColorPalette = ({ onColorClick, colors }) => {
                 ? "bg-cyan-400 border border-gray-300"
                 : color === "magenta"
                 ? "bg-pink-500 border border-gray-300"
-                : color === "white"
+                : color === "silver"
                 ? "bg-gray-400 border border-gray-300"
-                : color === "gray"
-                ? "bg-gray-500"
+                : color === "black"
+                ? "bg-black border border-gray-300"
+                : color === "white"
+                ? "bg-white border border-gray-300"
+                : color === "gold"
+                ? "bg-yellow-600 border border-gray-300" // Corrected to yellow-600 for gold
                 : "bg-gray-200"
             }`}
         >
           <span
-            className={`text-black font-bold pointer-events-none text-[14px] flex items-center justify-center text-shadow-sm`}
+            className={`text-black font-bold pointer-events-none text-[14px] flex items-center justify-center text-shadow-sm ${
+              color === "white" || color === "gold" ? "text-black" : "text-white"
+            }`}
           >
             {getColorLabel(color)}
           </span>

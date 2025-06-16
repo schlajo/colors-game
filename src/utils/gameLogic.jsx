@@ -11,7 +11,7 @@ const DIFFICULTY_CONFIG = {
       [3, 3],
     ],
     COLORS: ["cyan", "magenta", "yellow", "red", "green", "blue"],
-    CLUE_COUNT: 10, // Increased to 10 for easier logical deduction
+    CLUE_COUNT: 10,
   },
   Medium: {
     GRID_SIZE: 7,
@@ -26,13 +26,35 @@ const DIFFICULTY_CONFIG = {
       [5, 3],
       [5, 5],
     ],
-    COLORS: ["cyan", "magenta", "yellow", "red", "green", "blue", "purple", "orange", "white"],
+    COLORS: ["cyan", "magenta", "yellow", "red", "green", "blue", "purple", "orange", "silver"],
     CLUE_COUNT: 20,
   },
-  // Difficult: To be defined later
+  Difficult: {
+    GRID_SIZE: 9,
+    FIXED_HOLES: [
+      [0, 4],
+      [1, 1],
+      [1, 7],
+      [2, 2],
+      [2, 6],
+      [3, 3],
+      [3, 5],
+      [4, 0],
+      [4, 8],
+      [5, 3],
+      [5, 5],
+      [6, 2],
+      [6, 6],
+      [7, 1],
+      [7, 7],
+      [8, 4],
+    ],
+    COLORS: ["cyan", "magenta", "yellow", "red", "green", "blue", "purple", "orange", "silver", "black", "white", "gold"],
+    CLUE_COUNT: 30,
+  },
 };
 
-// Color mixing rules (same for all difficulties, but only use applicable colors)
+// Color mixing rules (updated for black, white, and gold)
 const COLOR_MIXING_RULES = {
   magenta: ["red", "blue"],
   cyan: ["green", "blue"],
@@ -40,10 +62,18 @@ const COLOR_MIXING_RULES = {
   blue: ["cyan", "magenta"],
   green: ["cyan", "yellow"],
   red: ["magenta", "yellow"],
-  white: ["green", "cyan"],
+  silver: ["green", "cyan"],
   purple: ["blue", "magenta"],
   orange: ["red", "yellow"],
+  white: ["red", "green", "blue"], // Additive mixing
+  black: ["cyan", "magenta", "yellow"], // Subtractive mixing
+  gold: ["yellow", "orange", "red"], // Arbitrary three-color mix
 };
+
+// ... (rest of the functions remain unchanged, e.g., createBoard, getNeighbors, etc.)
+// Note: The rest of the logic (deduceColors, generateSolution, etc.) will automatically use the updated COLORS and COLOR_MIXING_RULES
+
+
 
 // Create an empty board based on difficulty
 const createBoard = (difficulty = "Medium") => {

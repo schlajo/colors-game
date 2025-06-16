@@ -436,9 +436,7 @@ const App = () => {
             >
               <option value="Easy">Easy</option>
               <option value="Medium">Medium</option>
-              <option value="Difficult" disabled>
-                Difficult (Coming Soon!)
-              </option>
+              <option value="Difficult">Difficult</option>
             </select>
           </div>
           <div
