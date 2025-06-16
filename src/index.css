@@ -132,11 +132,13 @@ body,
   background: rgba(0, 0, 0, 0.7);
   color: #ffffff;
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-  padding: 1.5rem;
+  padding: 1rem 2rem;
   border-radius: 10px;
   text-align: center;
   width: 270px;
+  max-width: 270px;
   height: 270px;
+  max-height: 270px;
   font-size: 1.5rem;
   font-weight: 600;
   line-height: 1.4;
@@ -144,6 +146,26 @@ body,
   justify-content: center;
   align-items: center;
 }
+
+/* Shared overlay message styling for welcome and congratulations messages
+.welcome-message {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #ffffff;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.7);
+  padding: 1rem 2rem;
+  border-radius: 10px;
+  z-index: 10;
+  text-align: center;
+  width: 100%;
+  max-width: 300px;
+  margin-top: env(safe-area-inset-top);
+  margin-bottom: env(safe-area-inset-bottom);
+} */
+
 
 @media (max-width: 640px) {
   .welcome-message {
