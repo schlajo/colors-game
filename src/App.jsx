@@ -469,7 +469,7 @@ const App = () => {
               </div>
             )}
             {showWelcomeOverlay && !showCongrats && (
-              <div className="welcome-overlay">
+              <div className="overlay-message">
                 <div className="welcome-message">
                   Welcome to Colors! Select difficulty level above and click
                   Start Game below.
