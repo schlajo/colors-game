@@ -9,7 +9,9 @@ const Cell = ({ cell, onClick, isSelected, glossAnimation }) => {
     switch (color) {
       case "green":
         return "G";
-      case "silver":
+       case "magenta":
+        return "M";
+        case "silver":
         return "S";
       case "blue":
         return "B";
