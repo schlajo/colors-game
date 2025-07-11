@@ -98,6 +98,51 @@ body,
   z-index: 5;
 }
 
+/* Shine effect for silver and gold tiles */
+@keyframes shine {
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 200%;
+  }
+}
+
+.shine-effect {
+  position: relative;
+  overflow: hidden;
+}
+
+.shine-effect::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.5) 0%,
+    rgba(255, 255, 255, 0) 60%
+  );
+  animation: shine 2s linear infinite;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Custom classes for thinner outlines */
+.thin-white-ring {
+  outline: 0.5px solid white;
+}
+
+.thin-white-outline {
+  outline: 0.5px solid white;
+}
+
+.thin-black-ring {
+  outline: 0.5px solid black;
+  outline-offset: 1px;
+}
 
 /* Congratulations message specific styles */
 .congratulations-message {
@@ -114,7 +159,7 @@ body,
   text-align: center;
   width: 80%;
   font-size: 2rem;
-  font-weight: 700rem;
+  font-weight: 700;
 }
 
 @media (min-width: 640px) {
@@ -146,26 +191,6 @@ body,
   justify-content: center;
   align-items: center;
 }
-
-/* Shared overlay message styling for welcome and congratulations messages
-.welcome-message {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  color: #ffffff;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-  background: rgba(0, 0, 0, 0.7);
-  padding: 1rem 2rem;
-  border-radius: 10px;
-  z-index: 10;
-  text-align: center;
-  width: 100%;
-  max-width: 300px;
-  margin-top: env(safe-area-inset-top);
-  margin-bottom: env(safe-area-inset-bottom);
-} */
-
 
 @media (max-width: 640px) {
   .welcome-message {

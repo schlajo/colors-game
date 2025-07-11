@@ -13,6 +13,7 @@ import Magenta from "./assets/magenta-example.png";
 import BC from "./assets/blue-cyan-example.png";
 import RG from "./assets/red-green-example.png";
 import Yellow from "./assets/yellow-example.png";
+import ColorMixingRules from "./components/ColorMixingRules";
 
 const App = () => {
   const [board, setBoard] = useState(null);
@@ -576,54 +577,10 @@ const App = () => {
         </div>
 
         {/* Right Panel: Color-Mixing Rules */}
-        <div className="instruction-panel lg:w-1/2 w-full text-center mt-2 lg:mt-4 bg-gray-800 p-4 rounded-lg">
-          <h2 className="text-xl font-bold text-white mb-2">
-            Color-Mixing Rules
-          </h2>
-          <ul className="list-disc list-inside mb-4 text-gray-300">
-            Additive Mixing (RGB) for Light
-            <li>Red + Green = Yellow</li>
-            <li>Red + Blue = Magenta</li>
-            <li>Blue + Green = Cyan</li>
-          </ul>
-          <ul className="list-disc list-inside mb-4 text-gray-300">
-            Subtractive Mixing (CMY) for Ink
-            <li>Cyan + Magenta = Blue</li>
-            <li>Cyan + Yellow = Green</li>
-            <li>Magenta + Yellow = Red</li>
-          </ul>
-          {difficulty === "Medium" && (
-            <ul className="list-disc list-inside mb-4 text-gray-300">
-              Arbitrary Mixing
-              <li>Magenta + Blue = Purple</li>
-              <li>Yellow + Red = Orange</li>
-              <li>Cyan + Green = Silver</li>
-              <li>Two of Same Color = That Color</li>
-            </ul>
-          )}
-          <h3 className="text-lg font-bold text-white mb-2">
-            Understanding RGB vs. CMY
-          </h3>
-          <div className="text-gray-300 text-left">
-            <span>
-              With additive color-mixing (RGB), we start with darkness
-              (black) and add colored light. We see light directly emitted from
-              a source, like a TV.  This model's three primary colors (red, green, and
-              blue) can combine to make white.<br></br>
-              <br></br>
-              But with subtractive color-mixing (CMY), we see light that has
-              bounced off of an object, with certain wavelengths absorbed by the
-              pigments. We start with white, like a sheet of paper, and subtract
-              light through pigments. That's why a red apple appears red - it
-              absorbs most wavelengths but reflects primarily red light back to
-              our eyes. <br></br>
-              <br></br>
-              On ink cartridges, the letters CMYK refer to cyan, magenta,
-              yellow, and black. Cartridges include black ink even though CMY's three primary colors could combine to make black.
-            </span>
-          </div>
+       
+          <ColorMixingRules difficulty={difficulty} />
         </div>
-      </div>
+
       <div className="w-full text-center text-white mt-8 py-4 bg-gray-900">
         © 2025 Schlajo. All Rights Reserved.
       </div>

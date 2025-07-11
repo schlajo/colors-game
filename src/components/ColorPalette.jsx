@@ -12,12 +12,12 @@ const ColorPalette = ({ onColorClick, colors }) => {
             onColorClick(color);
           }}
           className={`w-[min(8vw,36px)] h-[min(8vw,36px)] sm:w-8 sm:h-8 rounded-full flex-shrink-0 p-0 flex items-center justify-center
-            ${COLOR_CLASSES[color] || "bg-gray-200"} border border-gray-300`}
+            ${COLOR_CLASSES[color] || "bg-gray-200"} border border-black thin-white-ring ring-offset-2
+            ${color === "silver" || color === "gold" ? "shine-effect" : ""}`}
         >
           <span
-            className={`text-black font-bold pointer-events-none text-[14px] flex items-center justify-center text-shadow-sm ${
-              color === "white" || color === "gold" ? "text-black" : "text-white"
-            }`}
+            className={`font-bold pointer-events-none text-[14px] flex items-center justify-center text-shadow-sm
+            ${color === "white" ? "text-black" : "text-white"}`}
           >
             {COLOR_LABELS[color]}
           </span>

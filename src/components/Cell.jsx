@@ -13,23 +13,25 @@ const Cell = ({ cell, onClick, isSelected, glossAnimation }) => {
       className={`cell border border-gray-300 flex items-center justify-center relative
         ${cell.isHole ? "bg-black cursor-default" : cell.isClue ? "cursor-default" : "cursor-pointer"}
         ${!cell.isHole ? (cell.isInfluencer ? "bg-gray-500" : "bg-white") : ""}
-        ${isSelected ? "ring-2 ring-blue-500 ring-offset-2" : ""}
+        ${isSelected ? "ring-4 ring-blue-600" : ""}
         ${glossAnimation ? "animate-gloss" : ""}
       `}
     >
       {cell.color && (
-        <div
-          className={`w-[min(8vw,36px)] h-[min(8vw,36px)] rounded-full flex items-center justify-center
-          ${COLOR_CLASSES[cell.color] || "bg-gray-200"}`}
-        >
-          <span
-            className={`text-black font-bold pointer-events-none text-[12px]
-            flex items-center justify-center text-shadow-sm ${
-              cell.color === "black" ? "text-white" : "text-black"
-            }`}
+        <div className="relative bg-gray-900 rounded-full w-[min(8vw,36px)] h-[min(8vw,36px)] flex items-center justify-center">
+          <div
+            className={`w-[min(8vw,36px)] h-[min(8vw,36px)] rounded-full flex items-center justify-center
+            ${COLOR_CLASSES[cell.color] || "bg-gray-200"} border border-black thin-white-ring ring-offset-2
+            ${cell.color === "silver" || cell.color === "gold" ? "shine-effect" : ""}`}
           >
-            {COLOR_LABELS[cell.color]}
-          </span>
+            <span
+              className={`font-bold pointer-events-none text-[12px]
+              flex items-center justify-center text-shadow-sm
+              ${cell.color === "white" ? "text-black" : "text-white"}`}
+            >
+              {COLOR_LABELS[cell.color]}
+            </span>
+          </div>
         </div>
       )}
       {cell.isIncorrect && (

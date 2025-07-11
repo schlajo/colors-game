@@ -78,7 +78,7 @@ const COLOR_MIXING_RULES = {
 
 // Create an empty board based on difficulty
 const createBoard = (difficulty = "Medium") => {
-  const { GRID_SIZE, FIXED_HOLES } = DIFFICULTY_CONFIG[difficulty];
+  const { GRID_SIZE, FIXED_HOLES, THREE_NEIGHBOR_CELLS = [] } = DIFFICULTY_CONFIG[difficulty];
   const board = Array(GRID_SIZE)
     .fill()
     .map(() =>
@@ -94,19 +94,45 @@ const createBoard = (difficulty = "Medium") => {
         }))
     );
 
-  for (let row = 0; row < GRID_SIZE; row++) {
-    for (let col = 0; col < GRID_SIZE; col++) {
-      if ((row + col) % 2 === 0) {
-        board[row][col].isInfluencer = true;
-      }
-    }
-  }
-
+  // First, mark all holes as inactive
   FIXED_HOLES.forEach(([row, col]) => {
     board[row][col].isHole = true;
     board[row][col].isActive = false;
     board[row][col].isInfluencer = false;
   });
+
+  // Then set influencer pattern for non-hole cells
+  for (let row = 0; row < GRID_SIZE; row++) {
+    for (let col = 0; col < GRID_SIZE; col++) {
+      // Skip holes
+      if (board[row][col].isHole) continue;
+      
+      // Set influencer cells based on checkerboard pattern
+      if ((row + col) % 2 === 0) {
+        board[row][col].isInfluencer = true;
+      }
+      // All non-hole cells should be active and playable
+      board[row][col].isActive = true;
+    }
+  }
+
+  // NEW: Validate influenced cells have correct neighbor counts
+  for (let row = 0; row < GRID_SIZE; row++) {
+    for (let col = 0; col < GRID_SIZE; col++) {
+      // Skip holes and influencer cells
+      if (board[row][col].isHole || board[row][col].isInfluencer) continue;
+      
+      // This is an influenced cell - check its neighbors
+      const neighbors = getNeighbors(board, row, col);
+      const isThreeNeighborCell = THREE_NEIGHBOR_CELLS.some(([r, c]) => r === row && c === col);
+      const expectedCount = isThreeNeighborCell ? 3 : 2;
+      
+      if (neighbors.length !== expectedCount) {
+        console.warn(`Influenced cell [${row},${col}] has ${neighbors.length} neighbors, expected ${expectedCount}. Marking as inactive.`);
+        board[row][col].isActive = false;
+      }
+    }
+  }
 
   return board;
 };
