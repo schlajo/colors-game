@@ -21,8 +21,16 @@ const Cell = ({ cell, onClick, isSelected, glossAnimation }) => {
         <div className="relative bg-gray-900 rounded-full w-[min(8vw,36px)] h-[min(8vw,36px)] flex items-center justify-center">
           <div
             className={`w-[min(8vw,36px)] h-[min(8vw,36px)] rounded-full flex items-center justify-center
-            ${COLOR_CLASSES[cell.color] || "bg-gray-200"} border border-black thin-white-ring ring-offset-2
-            ${cell.color === "silver" || cell.color === "gold" ? "shine-effect" : ""}`}
+            ${
+              COLOR_CLASSES[cell.color] || "bg-gray-200"
+            } border border-black thin-white-ring ring-offset-2
+            ${
+              cell.color === "silver" ||
+              cell.color === "gold" ||
+              cell.color === "bronze"
+                ? "shine-effect"
+                : ""
+            }`}
           >
             <span
               className={`font-bold pointer-events-none text-[12px]

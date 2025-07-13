@@ -10,7 +10,7 @@ const DIFFICULTY_CONFIG = {
       [3, 1],
       [3, 3],
     ],
-    COLORS: ["cyan", "magenta", "yellow", "red", "green", "blue"],
+    COLORS: ["red", "green", "blue", "cyan", "magenta", "yellow"],
     CLUE_COUNT: 10,
   },
   Medium: {
@@ -26,7 +26,7 @@ const DIFFICULTY_CONFIG = {
       [5, 3],
       [5, 5],
     ],
-    COLORS: ["cyan", "magenta", "yellow", "red", "green", "blue", "purple", "orange", "silver"],
+    COLORS: ["red", "green", "blue", "cyan", "magenta", "yellow", "purple", "orange", "teal"],
     CLUE_COUNT: 20,
   },
   Difficult: {
@@ -49,7 +49,7 @@ const DIFFICULTY_CONFIG = {
       [7, 7],
       [8, 4],
     ],
-    COLORS: ["cyan", "magenta", "yellow", "red", "green", "blue", "purple", "orange", "silver", "black", "white", "gold"],
+    COLORS: ["red", "green", "blue", "cyan", "magenta", "yellow", "purple", "orange", "teal", "white", "black", "gold", "silver", "bronze"],
     CLUE_COUNT: 30,
     THREE_NEIGHBOR_CELLS: [
       [1, 4],
@@ -68,12 +68,14 @@ const COLOR_MIXING_RULES = {
   blue: ["cyan", "magenta"],
   green: ["cyan", "yellow"],
   red: ["magenta", "yellow"],
-  silver: ["green", "cyan"],
+  teal: ["green", "cyan"],
   purple: ["blue", "magenta"],
   orange: ["red", "yellow"],
   white: ["red", "green", "blue"],
   black: ["cyan", "magenta", "yellow"],
   gold: ["yellow", "orange", "red"],
+  silver: ["Cyan", "Yellow", "Blue"],
+  bronze: ["purple", "orange", "teal"],
 };
 
 // Create an empty board based on difficulty
@@ -173,12 +175,12 @@ const getInfluencedColor = (neighborColors, colors, isThreeNeighborCell) => {
   if (neighborColors.every((c, i, arr) => c === arr[0])) {
     const color = neighborColors[0];
     if (colors.includes(color)) {
-      // For 3-neighbor cells, same color only works for black, white, gold
+      // For 3-neighbor cells, same color only works for black, white, gold, silver, bronze
       if (isThreeNeighborCell) {
-        return ["black", "white", "gold"].includes(color) ? color : null;
+        return ["black", "white", "gold", "silver", "bronze"].includes(color) ? color : null;
       }
-      // For 2-neighbor cells, same color works for all colors except black, white, gold
-      return !["black", "white", "gold"].includes(color) ? color : null;
+      // For 2-neighbor cells, same color works for all colors except black, white, gold, silver, bronze
+      return !["black", "white", "gold", "silver", "bronze"].includes(color) ? color : null;
     }
   }
 
