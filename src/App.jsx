@@ -342,8 +342,14 @@ const App = () => {
     ? `${DIFFICULTY_CONFIG[difficulty].GRID_SIZE * 48}px`
     : "240px";
 
-  return (
-    <>
+return (
+  <>
+    <style>
+      {`:root {
+        --cell-size: ${48 - DIFFICULTY_CONFIG[difficulty].GRID_SIZE}px;
+        --inner-size: ${38 - DIFFICULTY_CONFIG[difficulty].GRID_SIZE}px;
+      }`}
+    </style>
       <div className="app-container flex flex-col lg:flex-row justify-center gap-4 p-4 w-full max-w-6xl mx-auto relative">
         {/* Left Panel: Instructions */}
         <div className="instruction-panel lg:w-1/2 w-full mt-4 lg:mb-0 bg-gray-800 p-4 rounded-lg">
@@ -483,12 +489,16 @@ const App = () => {
           >
             Time: {formatTime(elapsedTime)}
           </div>
-          <div className="w-full lg:w-2/4 max-w-md flex flex-nowrap justify-center gap-1 mt-2">
-            <ColorPalette
-              onColorClick={handleColorButton}
-              colors={difficulty ? DIFFICULTY_CONFIG[difficulty].COLORS : []}
-            />
-          </div>
+          <div
+  className="w-full lg:w-2/4 max-w-md flex flex-wrap justify-center gap-1 mt-2"
+  style={{ maxWidth: "680px" }}
+>
+  <ColorPalette
+    onColorClick={handleColorButton}
+    colors={difficulty ? DIFFICULTY_CONFIG[difficulty].COLORS : []}
+  />
+</div>
+
           <div
             className="mt-4 flex flex-wrap justify-center gap-2"
             style={{ maxWidth: boardContainerSize }}

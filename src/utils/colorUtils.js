@@ -26,10 +26,10 @@ export const COLOR_CLASSES = {
   yellow: "bg-yellow-300",
   purple: "bg-purple-500",
   orange: "bg-orange-500",
-  teal: "bg-teal",
+  teal: "bg-emerald-700",
   black: "bg-black",
   white: "bg-white",
   gold: "bg-yellow-600", // used as "gold"
   silver: "bg-gray-400",
-  bronze: "bg-bronze",
+  bronze: "bg-amber-700",
 };
