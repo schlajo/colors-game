@@ -241,8 +241,8 @@ body,
 
 @media (min-width: 375px) {
   .cell {
-    width: 44px;
-    height: 44px;
+    width: 40px;
+    height: 40px;
   }
   .cell > div {
     width: 36px;

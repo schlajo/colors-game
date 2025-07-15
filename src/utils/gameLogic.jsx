@@ -71,9 +71,9 @@ const DIFFICULTY_CONFIG = {
       "teal",
       "white",
       "black",
-      "gold",
-      "silver",
-      "bronze",
+      // "gold",
+      // "silver",
+      // "bronze",
     ],
     CLUE_COUNT: 30,
     THREE_NEIGHBOR_CELLS: [
@@ -98,9 +98,9 @@ const COLOR_MIXING_RULES = {
   orange: ["red", "yellow"],
   white: ["red", "green", "blue"],
   black: ["cyan", "magenta", "yellow"],
-  gold: ["yellow", "orange", "red"],
-  silver: ["cyan", "magenta", "yellow"],
-  bronze: ["purple", "orange", "teal"],
+  // gold: ["yellow", "orange", "red"],
+  // silver: ["cyan", "magenta", "yellow"],
+  // bronze: ["purple", "orange", "teal"],
 };
 
 // Create an empty board based on difficulty
