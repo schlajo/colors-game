@@ -7,6 +7,12 @@ import {
   createBoard,
   DIFFICULTY_CONFIG,
 } from "./utils/gameLogic";
+import {
+  generateSolutionDifficult,
+  createPuzzleDifficult,
+  createBoardDifficult,
+  DIFFICULTY_CONFIG_DIFFICULT,
+} from "./utils/gameLogicDifficult";
 import { v4 as uuidv4 } from "uuid";
 import Venns from "./assets/venn-words.png";
 import Magenta from "./assets/magenta-example.png";
@@ -58,18 +64,33 @@ const App = () => {
   const initializeBoard = () => {
     if (!difficulty) return;
     console.log("initializeBoard called with difficulty:", difficulty);
-    const solution = generateSolution(difficulty);
+
+    let solution, puzzleObj;
+
+    if (difficulty === "Difficult") {
+      // Use Difficult-specific functions
+      solution = generateSolutionDifficult();
+      puzzleObj = createPuzzleDifficult(solution);
+    } else {
+      // Use original functions for Easy and Medium
+      solution = generateSolution(difficulty);
+      puzzleObj = createPuzzle(solution, difficulty);
+    }
+
     console.log("Solution generated:", solution);
     if (solution) {
-      const { puzzleBoard, solutionBoard } = createPuzzle(solution, difficulty);
+      const { puzzleBoard, solutionBoard } = puzzleObj;
       console.log("Puzzle board:", puzzleBoard);
       const newBoard = JSON.parse(JSON.stringify(puzzleBoard));
-      for (let row = 0; row < DIFFICULTY_CONFIG[difficulty].GRID_SIZE; row++) {
-        for (
-          let col = 0;
-          col < DIFFICULTY_CONFIG[difficulty].GRID_SIZE;
-          col++
-        ) {
+
+      // Get the correct config based on difficulty
+      const config =
+        difficulty === "Difficult"
+          ? DIFFICULTY_CONFIG_DIFFICULT
+          : DIFFICULTY_CONFIG[difficulty];
+
+      for (let row = 0; row < config.GRID_SIZE; row++) {
+        for (let col = 0; col < config.GRID_SIZE; col++) {
           if (newBoard[row][col].color) {
             newBoard[row][col].isClue = true;
           }
@@ -79,6 +100,12 @@ const App = () => {
       setBoard(newBoard);
       setSolutionBoard(solutionBoard);
       console.log("Board state updated with puzzleBoard");
+      console.log("Solution board stored:", solutionBoard);
+      console.log("Sample solution cells:", {
+        "[0,0]": solutionBoard[0]?.[0]?.color,
+        "[1,1]": solutionBoard[1]?.[1]?.color,
+        "[4,4]": solutionBoard[4]?.[4]?.color,
+      });
       setStartTime(Date.now());
       setElapsedTime(0);
       setGameStarted(true);
@@ -86,7 +113,10 @@ const App = () => {
       setShowWelcomeOverlay(false);
     } else {
       console.log("No solution generated, resetting to empty board");
-      const emptyBoard = createBoard(difficulty);
+      const emptyBoard =
+        difficulty === "Difficult"
+          ? createBoardDifficult()
+          : createBoard(difficulty);
       setBoard(emptyBoard);
       setSolutionBoard([]);
       console.log("Board state updated with emptyBoard:", emptyBoard);
@@ -112,19 +142,22 @@ const App = () => {
     }
   };
 
+  // Helper function to get the correct config based on difficulty
+  const getConfig = (diff) => {
+    return diff === "Difficult"
+      ? DIFFICULTY_CONFIG_DIFFICULT
+      : DIFFICULTY_CONFIG[diff];
+  };
+
   const endGame = () => {
     console.log("End Game called");
-    const emptyBoard = createBoard(difficulty || "Easy");
-    for (
-      let row = 0;
-      row < DIFFICULTY_CONFIG[difficulty || "Easy"].GRID_SIZE;
-      row++
-    ) {
-      for (
-        let col = 0;
-        col < DIFFICULTY_CONFIG[difficulty || "Easy"].GRID_SIZE;
-        col++
-      ) {
+    const config = getConfig(difficulty || "Easy");
+    const emptyBoard =
+      (difficulty || "Easy") === "Difficult"
+        ? createBoardDifficult()
+        : createBoard(difficulty || "Easy");
+    for (let row = 0; row < config.GRID_SIZE; row++) {
+      for (let col = 0; col < config.GRID_SIZE; col++) {
         emptyBoard[row][col].color = null;
         emptyBoard[row][col].isClue = false;
         emptyBoard[row][col].isIncorrect = false;
@@ -145,10 +178,11 @@ const App = () => {
 
   const checkSolution = () => {
     if (isGameWon || isPaused) return;
+    const config = getConfig(difficulty);
     const newBoard = JSON.parse(JSON.stringify(board));
     let isCorrect = true;
-    for (let row = 0; row < DIFFICULTY_CONFIG[difficulty].GRID_SIZE; row++) {
-      for (let col = 0; col < DIFFICULTY_CONFIG[difficulty].GRID_SIZE; col++) {
+    for (let row = 0; row < config.GRID_SIZE; row++) {
+      for (let col = 0; col < config.GRID_SIZE; col++) {
         if (!newBoard[row][col].isHole) {
           const isTileCorrect =
             newBoard[row][col].color ===
@@ -181,35 +215,55 @@ const App = () => {
   };
 
   const checkWinCondition = (updatedBoard) => {
-    for (let row = 0; row < DIFFICULTY_CONFIG[difficulty].GRID_SIZE; row++) {
-      for (let col = 0; col < DIFFICULTY_CONFIG[difficulty].GRID_SIZE; col++) {
+    const config = getConfig(difficulty);
+    console.log("Checking win condition for difficulty:", difficulty);
+    console.log("Solution board length:", solutionBoard.length);
+
+    for (let row = 0; row < config.GRID_SIZE; row++) {
+      for (let col = 0; col < config.GRID_SIZE; col++) {
         if (!updatedBoard[row][col].isHole) {
-          if (
-            updatedBoard[row][col].color !==
-            (solutionBoard[row]?.[col]?.color || null)
-          ) {
+          const boardColor = updatedBoard[row][col].color;
+          const solutionColor = solutionBoard[row]?.[col]?.color || null;
+
+          if (boardColor !== solutionColor) {
+            console.log(
+              `Win condition failed at [${row},${col}]: board=${boardColor}, solution=${solutionColor}`
+            );
             return false;
           }
         }
       }
     }
+    console.log("Win condition passed! All cells match solution.");
     return true;
   };
 
   const getHint = () => {
     if (isGameWon || isPaused) return;
+    const config = getConfig(difficulty);
     const emptyCells = [];
-    for (let row = 0; row < DIFFICULTY_CONFIG[difficulty].GRID_SIZE; row++) {
-      for (let col = 0; col < DIFFICULTY_CONFIG[difficulty].GRID_SIZE; col++) {
-        if (
-          !board[row][col].isHole &&
-          !board[row][col].isClue &&
-          !board[row][col].color
-        ) {
+    let clueCount = 0;
+    let holeCount = 0;
+    let filledCount = 0;
+
+    for (let row = 0; row < config.GRID_SIZE; row++) {
+      for (let col = 0; col < config.GRID_SIZE; col++) {
+        if (board[row][col].isHole) {
+          holeCount++;
+        } else if (board[row][col].isClue) {
+          clueCount++;
+        } else if (board[row][col].color) {
+          filledCount++;
+        } else {
           emptyCells.push([row, col]);
         }
       }
     }
+
+    console.log(
+      `Board analysis: ${clueCount} clues, ${holeCount} holes, ${filledCount} filled, ${emptyCells.length} empty`
+    );
+    console.log("Empty cells:", emptyCells);
 
     if (emptyCells.length === 0) {
       alert("No empty cells left for a hint!");
@@ -219,11 +273,38 @@ const App = () => {
     const [row, col] =
       emptyCells[Math.floor(Math.random() * emptyCells.length)];
     const newBoard = JSON.parse(JSON.stringify(board));
-    newBoard[row][col].color =
-      solutionBoard[row]?.[col]?.color ||
-      DIFFICULTY_CONFIG[difficulty].COLORS[
-        Math.floor(Math.random() * DIFFICULTY_CONFIG[difficulty].COLORS.length)
-      ];
+
+    // For Difficult level, respect 3-neighbor rules
+    let hintColor;
+    if (difficulty === "Difficult") {
+      // Always use solution color for hints in Difficult level
+      console.log(
+        `Checking solution for cell [${row},${col}]:`,
+        solutionBoard[row]?.[col]?.color
+      );
+      if (solutionBoard[row]?.[col]?.color) {
+        hintColor = solutionBoard[row][col].color;
+        console.log(`Using solution color: ${hintColor}`);
+      } else {
+        // Fallback to a regular color if no solution color (shouldn't happen)
+        console.log(`No solution color found, using fallback`);
+        const regularColors = config.COLORS.filter(
+          (color) => color !== "white" && color !== "black"
+        );
+        hintColor =
+          regularColors[Math.floor(Math.random() * regularColors.length)];
+      }
+    } else {
+      // For Easy/Medium, use solution color or random color
+      hintColor =
+        solutionBoard[row]?.[col]?.color ||
+        config.COLORS[Math.floor(Math.random() * config.COLORS.length)];
+    }
+
+    // Debug: Log the final hint color
+    console.log(`Final hint color for [${row},${col}]: ${hintColor}`);
+
+    newBoard[row][col].color = hintColor;
     newBoard[row][col].isIncorrect = false;
     setBoard(newBoard);
 
@@ -270,9 +351,10 @@ const App = () => {
 
   const clearBoard = () => {
     if (isGameWon || isPaused) return;
+    const config = getConfig(difficulty);
     const newBoard = JSON.parse(JSON.stringify(board));
-    for (let row = 0; row < DIFFICULTY_CONFIG[difficulty].GRID_SIZE; row++) {
-      for (let col = 0; col < DIFFICULTY_CONFIG[difficulty].GRID_SIZE; col++) {
+    for (let row = 0; row < config.GRID_SIZE; row++) {
+      for (let col = 0; col < config.GRID_SIZE; col++) {
         if (!newBoard[row][col].isHole && !newBoard[row][col].isClue) {
           newBoard[row][col].color = null;
           newBoard[row][col].isIncorrect = false;
@@ -312,9 +394,15 @@ const App = () => {
         newBoard[row][col].isIncorrect = false;
         setBoard(newBoard);
         console.log(`Cell [${row},${col}] updated to color: ${color}`);
+
+        // Check win condition
+        console.log("Checking win condition after color placement...");
         if (checkWinCondition(newBoard)) {
+          console.log("Win condition met! Triggering celebration.");
           setIsGameWon(true);
           triggerCelebration();
+        } else {
+          console.log("Win condition not met yet.");
         }
       } else {
         console.log(
@@ -329,7 +417,12 @@ const App = () => {
     setDifficulty(newDifficulty);
     setGameStarted(false);
     setIsPaused(false);
-    setBoard(createBoard(newDifficulty));
+    const config = getConfig(newDifficulty);
+    const newBoard =
+      newDifficulty === "Difficult"
+        ? createBoardDifficult()
+        : createBoard(newDifficulty);
+    setBoard(newBoard);
     setSolutionBoard([]);
     setShowCongrats(false);
     setStartTime(null);
@@ -338,18 +431,19 @@ const App = () => {
   };
 
   // Calculate board container size based on difficulty
+  const config = getConfig(difficulty);
   const boardContainerSize = difficulty
-    ? `${DIFFICULTY_CONFIG[difficulty].GRID_SIZE * 48}px`
+    ? `${config.GRID_SIZE * 48}px`
     : "240px";
 
-return (
-  <>
-    <style>
-      {`:root {
-        --cell-size: ${48 - DIFFICULTY_CONFIG[difficulty].GRID_SIZE}px;
-        --inner-size: ${38 - DIFFICULTY_CONFIG[difficulty].GRID_SIZE}px;
+  return (
+    <>
+      <style>
+        {`:root {
+        --cell-size: ${48 - config.GRID_SIZE}px;
+        --inner-size: ${38 - config.GRID_SIZE}px;
       }`}
-    </style>
+      </style>
       <div className="app-container flex flex-col lg:flex-row justify-center gap-4 p-4 w-full max-w-6xl mx-auto relative">
         {/* Left Panel: Instructions */}
         <div className="instruction-panel lg:w-1/2 w-full mt-4 lg:mb-0 bg-gray-800 p-4 rounded-lg">
@@ -448,7 +542,10 @@ return (
           </div>
           <div
             className="relative board-container"
-            style={{ minHeight: boardContainerSize, maxWidth: boardContainerSize }}
+            style={{
+              minHeight: boardContainerSize,
+              maxWidth: boardContainerSize,
+            }}
           >
             {board &&
               (isPaused ? (
@@ -490,14 +587,14 @@ return (
             Time: {formatTime(elapsedTime)}
           </div>
           <div
-  className="w-full lg:w-2/4 max-w-md flex flex-wrap justify-center gap-1 mt-2"
-  style={{ maxWidth: "680px" }}
->
-  <ColorPalette
-    onColorClick={handleColorButton}
-    colors={difficulty ? DIFFICULTY_CONFIG[difficulty].COLORS : []}
-  />
-</div>
+            className="w-full lg:w-2/4 max-w-md flex flex-wrap justify-center gap-1 mt-2"
+            style={{ maxWidth: "680px" }}
+          >
+            <ColorPalette
+              onColorClick={handleColorButton}
+              colors={difficulty ? config.COLORS : []}
+            />
+          </div>
 
           <div
             className="mt-4 flex flex-wrap justify-center gap-2"
@@ -587,9 +684,9 @@ return (
         </div>
 
         {/* Right Panel: Color-Mixing Rules */}
-       
-          <ColorMixingRules difficulty={difficulty} />
-        </div>
+
+        <ColorMixingRules difficulty={difficulty} />
+      </div>
 
       <div className="w-full text-center text-white mt-8 py-4 bg-gray-900">
         © 2025 Schlajo. All Rights Reserved.

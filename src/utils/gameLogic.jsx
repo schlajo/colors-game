@@ -39,50 +39,6 @@ const DIFFICULTY_CONFIG = {
     ],
     CLUE_COUNT: 20,
   },
-  Difficult: {
-    GRID_SIZE: 9,
-    FIXED_HOLES: [
-      [0, 4],
-      [1, 1],
-      [1, 7],
-      [2, 2],
-      [2, 6],
-      [3, 3],
-      [3, 5],
-      [4, 0],
-      [4, 8],
-      [5, 3],
-      [5, 5],
-      [6, 2],
-      [6, 6],
-      [7, 1],
-      [7, 7],
-      [8, 4],
-    ],
-    COLORS: [
-      "red",
-      "green",
-      "blue",
-      "cyan",
-      "magenta",
-      "yellow",
-      "purple",
-      "orange",
-      "teal",
-      "white",
-      "black",
-      // "gold",
-      // "silver",
-      // "bronze",
-    ],
-    CLUE_COUNT: 30,
-    THREE_NEIGHBOR_CELLS: [
-      [1, 4],
-      [4, 1],
-      [4, 7],
-      [7, 4],
-    ],
-  },
 };
 
 // Color mixing rules
@@ -96,17 +52,11 @@ const COLOR_MIXING_RULES = {
   teal: ["green", "cyan"],
   purple: ["blue", "magenta"],
   orange: ["red", "yellow"],
-  white: ["red", "green", "blue"],
-  black: ["cyan", "magenta", "yellow"],
-  // gold: ["yellow", "orange", "red"],
-  // silver: ["cyan", "magenta", "yellow"],
-  // bronze: ["purple", "orange", "teal"],
 };
 
 // Create an empty board based on difficulty
 const createBoard = (difficulty = "Medium") => {
-  const { GRID_SIZE, FIXED_HOLES, THREE_NEIGHBOR_CELLS } =
-    DIFFICULTY_CONFIG[difficulty];
+  const { GRID_SIZE, FIXED_HOLES } = DIFFICULTY_CONFIG[difficulty];
   const board = Array(GRID_SIZE)
     .fill()
     .map(() =>
@@ -137,15 +87,6 @@ const createBoard = (difficulty = "Medium") => {
     board[row][col].isActive = false;
     board[row][col].isInfluencer = false;
   });
-
-  // For difficult level, mark three-neighbor cells
-  if (difficulty === "Difficult" && THREE_NEIGHBOR_CELLS) {
-    THREE_NEIGHBOR_CELLS.forEach(([row, col]) => {
-      if (!board[row][col].isHole) {
-        board[row][col].isThreeNeighbor = true;
-      }
-    });
-  }
 
   return board;
 };
@@ -178,57 +119,28 @@ const getNeighbors = (board, row, col) => {
 
 // Determine the color of an influenced cell
 const getInfluencedColor = (neighborColors, colors) => {
-  if (neighborColors.length < 2 || neighborColors.length > 3) {
+  if (neighborColors.length !== 2) {
     console.log("Invalid neighbor count:", neighborColors.length);
     return null;
   }
 
-  // Handle 2-neighbor cells (same as before)
-  if (neighborColors.length === 2) {
-    // Same-color rule
-    if (
-      neighborColors[0] === neighborColors[1] &&
-      colors.includes(neighborColors[0])
-    ) {
-      return neighborColors[0];
-    }
-    // Different-color mixing rules
-    const sortedNeighbors = [...neighborColors].sort();
-    for (const [resultColor, rule] of Object.entries(COLOR_MIXING_RULES)) {
-      if (!colors.includes(resultColor)) continue;
-      const sortedRule = [...rule].sort();
-      if (
-        sortedNeighbors.length === sortedRule.length &&
-        sortedNeighbors.every((c, i) => c === sortedRule[i])
-      ) {
-        return resultColor;
-      }
-    }
+  // Same-color rule
+  if (
+    neighborColors[0] === neighborColors[1] &&
+    colors.includes(neighborColors[0])
+  ) {
+    return neighborColors[0];
   }
-
-  // Handle 3-neighbor cells (for difficult level)
-  if (neighborColors.length === 3) {
-    const sortedNeighbors = [...neighborColors].sort();
-
-    // Check for 3-color mixing rules (white, black, gold, silver, bronze)
-    for (const [resultColor, rule] of Object.entries(COLOR_MIXING_RULES)) {
-      if (!colors.includes(resultColor)) continue;
-      const sortedRule = [...rule].sort();
-      if (
-        sortedNeighbors.length === sortedRule.length &&
-        sortedNeighbors.every((c, i) => c === sortedRule[i])
-      ) {
-        return resultColor;
-      }
-    }
-
-    // If no 3-color rule matches, check if all colors are the same
+  // Different-color mixing rules
+  const sortedNeighbors = [...neighborColors].sort();
+  for (const [resultColor, rule] of Object.entries(COLOR_MIXING_RULES)) {
+    if (!colors.includes(resultColor)) continue;
+    const sortedRule = [...rule].sort();
     if (
-      neighborColors[0] === neighborColors[1] &&
-      neighborColors[1] === neighborColors[2] &&
-      colors.includes(neighborColors[0])
+      sortedNeighbors.length === sortedRule.length &&
+      sortedNeighbors.every((c, i) => c === sortedRule[i])
     ) {
-      return neighborColors[0];
+      return resultColor;
     }
   }
 
@@ -253,8 +165,7 @@ const deduceColors = (board, colors) => {
           const neighborColors = neighbors
             .filter((n) => n.color)
             .map((n) => n.color);
-          const expectedNeighbors = board[i][j].isThreeNeighbor ? 3 : 2;
-          if (neighborColors.length === expectedNeighbors) {
+          if (neighborColors.length === 2) {
             const deducedColor = getInfluencedColor(neighborColors, colors);
             if (deducedColor) {
               board[i][j].color = deducedColor;
@@ -308,31 +219,7 @@ const deduceColors = (board, colors) => {
 
           let deducedColor = null;
 
-          if (board[r][c].isThreeNeighbor) {
-            // Handle 3-neighbor deduction
-            if (otherColors.length === 2) {
-              const allColors = [expectedColor, ...otherColors].sort();
-              for (const [resultColor, rule] of Object.entries(
-                COLOR_MIXING_RULES
-              )) {
-                if (!colors.includes(resultColor) || rule.length !== 3)
-                  continue;
-                const sortedRule = [...rule].sort();
-                if (
-                  allColors.length === sortedRule.length &&
-                  allColors.every((c, idx) => c === sortedRule[idx])
-                ) {
-                  // Find the missing color
-                  const missingColor = rule.find((c) => !allColors.includes(c));
-                  if (missingColor && colors.includes(missingColor)) {
-                    deducedColor = missingColor;
-                    break;
-                  }
-                }
-              }
-            }
-          } else {
-            // Handle 2-neighbor deduction (original logic)
+          if (otherColors.length === 2) {
             const otherColor = otherColors[0];
             if (otherColor === expectedColor) {
               deducedColor = expectedColor;
@@ -426,7 +313,7 @@ const generateSolution = (difficulty = "Medium") => {
   // Verify each influenced cell has the correct number of influencer neighbors
   for (const [row, col] of influencedCells) {
     const neighbors = getNeighbors(board, row, col);
-    const expectedNeighbors = board[row][col].isThreeNeighbor ? 3 : 2;
+    const expectedNeighbors = 2;
     if (neighbors.length !== expectedNeighbors) {
       console.log(
         `Error: Influenced cell [${row},${col}] has ${neighbors.length} neighbors (expected ${expectedNeighbors}) at`,
@@ -434,7 +321,7 @@ const generateSolution = (difficulty = "Medium") => {
       );
       console.log(
         `Cell [${row},${col}] isThreeNeighbor:`,
-        board[row][col].isThreeNeighbor
+        false // Removed isThreeNeighbor check
       );
       return null;
     }
@@ -445,101 +332,31 @@ const generateSolution = (difficulty = "Medium") => {
   let sameColorCount = 0;
 
   // Get valid color combinations for influencers
-  const getValidColorCombinations = (
-    neighborColors,
-    isThreeNeighbor = false
-  ) => {
+  const getValidColorCombinations = (neighborColors) => {
     const combinations = [];
 
-    if (!isThreeNeighbor) {
-      // Handle 2-neighbor cells (same as before)
-      const [n1Color, n2Color] = neighborColors;
-      // Prioritize different-color pairs
-      for (const [resultColor, [c1, c2]] of Object.entries(
-        COLOR_MIXING_RULES
-      )) {
-        if (!COLORS.includes(resultColor)) continue;
-        if ((!n1Color || n1Color === c1) && (!n2Color || n2Color === c2)) {
-          combinations.push([c1, c2, resultColor]);
-        }
-        if ((!n1Color || n1Color === c2) && (!n2Color || n2Color === c1)) {
-          combinations.push([c2, c1, resultColor]);
-        }
+    // Handle 2-neighbor cells (same as before)
+    const [n1Color, n2Color] = neighborColors;
+    // Prioritize different-color pairs
+    for (const [resultColor, [c1, c2]] of Object.entries(COLOR_MIXING_RULES)) {
+      if (!COLORS.includes(resultColor)) continue;
+      if ((!n1Color || n1Color === c1) && (!n2Color || n2Color === c2)) {
+        combinations.push([c1, c2, resultColor]);
       }
-      // Allow same-color pairs, limited to 3 for Easy
-      if (
-        combinations.length === 0 ||
-        (difficulty === "Easy" && sameColorCount >= 3)
-      ) {
-        return combinations;
+      if ((!n1Color || n1Color === c2) && (!n2Color || n2Color === c1)) {
+        combinations.push([c2, c1, resultColor]);
       }
-      for (const c of COLORS) {
-        if ((!n1Color || n1Color === c) && (!n2Color || n2Color === c)) {
-          combinations.push([c, c, c]);
-        }
-      }
-    } else {
-      // Handle 3-neighbor cells for difficult level
-      const [n1Color, n2Color, n3Color] = neighborColors;
-
-      // Check for 3-color mixing rules (white, black, gold, silver, bronze)
-      for (const [resultColor, rule] of Object.entries(COLOR_MIXING_RULES)) {
-        if (!COLORS.includes(resultColor) || rule.length !== 3) continue;
-        const [c1, c2, c3] = rule;
-        if (
-          (!n1Color || n1Color === c1) &&
-          (!n2Color || n2Color === c2) &&
-          (!n3Color || n3Color === c3)
-        ) {
-          combinations.push([c1, c2, c3, resultColor]);
-        }
-        // Add permutations
-        if (
-          (!n1Color || n1Color === c1) &&
-          (!n2Color || n2Color === c3) &&
-          (!n3Color || n3Color === c2)
-        ) {
-          combinations.push([c1, c3, c2, resultColor]);
-        }
-        if (
-          (!n1Color || n1Color === c2) &&
-          (!n2Color || n2Color === c1) &&
-          (!n3Color || n3Color === c3)
-        ) {
-          combinations.push([c2, c1, c3, resultColor]);
-        }
-        if (
-          (!n1Color || n1Color === c2) &&
-          (!n2Color || n2Color === c3) &&
-          (!n3Color || n3Color === c1)
-        ) {
-          combinations.push([c2, c3, c1, resultColor]);
-        }
-        if (
-          (!n1Color || n1Color === c3) &&
-          (!n2Color || n2Color === c1) &&
-          (!n3Color || n3Color === c2)
-        ) {
-          combinations.push([c3, c1, c2, resultColor]);
-        }
-        if (
-          (!n1Color || n1Color === c3) &&
-          (!n2Color || n2Color === c2) &&
-          (!n3Color || n3Color === c1)
-        ) {
-          combinations.push([c3, c2, c1, resultColor]);
-        }
-      }
-
-      // Allow same-color combinations
-      for (const c of COLORS) {
-        if (
-          (!n1Color || n1Color === c) &&
-          (!n2Color || n2Color === c) &&
-          (!n3Color || n3Color === c)
-        ) {
-          combinations.push([c, c, c, c]);
-        }
+    }
+    // Allow same-color pairs, limited to 3 for Easy
+    if (
+      combinations.length === 0 ||
+      (difficulty === "Easy" && sameColorCount >= 3)
+    ) {
+      return combinations;
+    }
+    for (const c of COLORS) {
+      if ((!n1Color || n1Color === c) && (!n2Color || n2Color === c)) {
+        combinations.push([c, c, c]);
       }
     }
 
@@ -593,7 +410,6 @@ const generateSolution = (difficulty = "Medium") => {
 
       const [row, col] = influencedCells[index];
       const neighbors = getNeighbors(board, row, col);
-      const isThreeNeighbor = board[row][col].isThreeNeighbor;
       const cellKey = `${row},${col}`;
       if (!triedPairs.has(cellKey)) triedPairs.set(cellKey, new Set());
 
@@ -601,8 +417,7 @@ const generateSolution = (difficulty = "Medium") => {
         influencerColors.get(`${n.row},${n.col}`)
       );
       const validCombinations = getValidColorCombinations(
-        currentNeighborColors,
-        isThreeNeighbor
+        currentNeighborColors
       ).filter(
         (combo) => !triedPairs.get(cellKey).has(combo.slice(0, -1).join(","))
       );
@@ -769,8 +584,7 @@ const canSolvePuzzle = (puzzleBoard, solutionBoard, colors) => {
         const neighborColors = neighbors
           .filter((n) => n.color)
           .map((n) => n.color);
-        const expectedNeighbors = board[row][col].isThreeNeighbor ? 3 : 2;
-        if (neighborColors.length === expectedNeighbors) {
+        if (neighborColors.length === 2) {
           const deducedColor = getInfluencedColor(neighborColors, colors);
           if (deducedColor) {
             board[row][col].color = deducedColor;
@@ -824,31 +638,7 @@ const canSolvePuzzle = (puzzleBoard, solutionBoard, colors) => {
 
           let deducedColor = null;
 
-          if (board[r][c].isThreeNeighbor) {
-            // Handle 3-neighbor deduction
-            if (otherColors.length === 2) {
-              const allColors = [expectedColor, ...otherColors].sort();
-              for (const [resultColor, rule] of Object.entries(
-                COLOR_MIXING_RULES
-              )) {
-                if (!colors.includes(resultColor) || rule.length !== 3)
-                  continue;
-                const sortedRule = [...rule].sort();
-                if (
-                  allColors.length === sortedRule.length &&
-                  allColors.every((c, idx) => c === sortedRule[idx])
-                ) {
-                  // Find the missing color
-                  const missingColor = rule.find((c) => !allColors.includes(c));
-                  if (missingColor && colors.includes(missingColor)) {
-                    deducedColor = missingColor;
-                    break;
-                  }
-                }
-              }
-            }
-          } else {
-            // Handle 2-neighbor deduction (original logic)
+          if (otherColors.length === 2) {
             const otherColor = otherColors[0];
             if (otherColor === expectedColor) {
               deducedColor = expectedColor;
