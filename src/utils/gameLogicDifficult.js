@@ -63,6 +63,19 @@ const COLOR_MIXING_RULES_DIFFICULT = {
   black: ["cyan", "magenta", "yellow"],
 };
 
+// Valid 2-color combinations for influencers
+const VALID_INFLUENCER_COMBINATIONS = [
+  ["red", "blue"], // makes magenta
+  ["green", "blue"], // makes cyan
+  ["red", "green"], // makes yellow
+  ["red", "yellow"], // makes orange
+  ["blue", "magenta"], // makes purple
+  ["green", "cyan"], // makes teal
+  ["magenta", "yellow"], // makes red
+  ["cyan", "yellow"], // makes green
+  ["cyan", "magenta"], // makes blue
+];
+
 export function createBoardDifficult() {
   const { GRID_SIZE, FIXED_HOLES, THREE_NEIGHBOR_CELLS } =
     DIFFICULTY_CONFIG_DIFFICULT;
@@ -415,12 +428,62 @@ function assignThreeNeighborColors(board, threeNeighborCells, allColors) {
     }
   }
 
-  // Now fill in the remaining influencer cells with basic colors
+  // Now fill in the remaining influencer cells with colors that have valid mixing rules
   const basicColors = ["red", "green", "blue", "cyan", "magenta", "yellow"];
   for (const [row, col] of influencers) {
     if (!board[row][col].color) {
-      board[row][col].color =
-        basicColors[Math.floor(Math.random() * basicColors.length)];
+      // Get all influenced neighbors of this influencer
+      const influencedNeighbors = getInfluencedNeighbors(board, row, col);
+
+      // Find colors that would create valid combinations with existing neighbors
+      const validColors = [];
+      for (const color of basicColors) {
+        let isValid = true;
+
+        // Check each influenced neighbor
+        for (const neighbor of influencedNeighbors) {
+          const allNeighbors = getNeighborsDifficult(
+            board,
+            neighbor.row,
+            neighbor.col
+          );
+          const otherNeighbors = allNeighbors.filter(
+            (n) => n.row !== row || n.col !== col
+          );
+          const otherColors = otherNeighbors
+            .map((n) => n.color)
+            .filter(Boolean);
+
+          if (otherColors.length === 1) {
+            // This would be a 2-neighbor cell - check if this combination is valid
+            const testColors = [...otherColors, color].sort();
+            const isValidCombination = VALID_INFLUENCER_COMBINATIONS.some(
+              (combination) => {
+                const sortedCombination = [...combination].sort();
+                return sortedCombination.every((c, i) => c === testColors[i]);
+              }
+            );
+
+            if (!isValidCombination) {
+              isValid = false;
+              break;
+            }
+          }
+        }
+
+        if (isValid) {
+          validColors.push(color);
+        }
+      }
+
+      // Assign a valid color, or fallback to random if none found
+      if (validColors.length > 0) {
+        board[row][col].color =
+          validColors[Math.floor(Math.random() * validColors.length)];
+      } else {
+        board[row][col].color =
+          basicColors[Math.floor(Math.random() * basicColors.length)];
+      }
     }
   }
 
