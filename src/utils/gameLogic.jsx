@@ -123,12 +123,8 @@ const getInfluencedColor = (neighborColors, colors) => {
     console.log("Invalid neighbor count:", neighborColors.length);
     return null;
   }
-
   // Same-color rule
-  if (
-    neighborColors[0] === neighborColors[1] &&
-    colors.includes(neighborColors[0])
-  ) {
+  if (neighborColors[0] === neighborColors[1] && colors.includes(neighborColors[0])) {
     return neighborColors[0];
   }
   // Different-color mixing rules
@@ -143,7 +139,6 @@ const getInfluencedColor = (neighborColors, colors) => {
       return resultColor;
     }
   }
-
   return null;
 };
 
@@ -205,41 +200,30 @@ const deduceColors = (board, colors) => {
         for (const [r, c] of influencedNeighbors) {
           if (!board[r][c].color) continue;
           const neighbors = getNeighbors(board, r, c);
-          const otherNeighbors = neighbors.filter(
+          const otherNeighbor = neighbors.find(
             (n) => n.row !== i || n.col !== j
           );
-          if (otherNeighbors.length === 0) continue;
-
+          if (!otherNeighbor.color) continue;
           const expectedColor = board[r][c].color;
-          const otherColors = otherNeighbors
-            .map((n) => n.color)
-            .filter(Boolean);
-
-          if (otherColors.length === 0) continue;
-
+          const otherColor = otherNeighbor.color;
           let deducedColor = null;
-
-          if (otherColors.length === 2) {
-            const otherColor = otherColors[0];
-            if (otherColor === expectedColor) {
-              deducedColor = expectedColor;
-            } else {
-              for (const [resultColor, [c1, c2]] of Object.entries(
-                COLOR_MIXING_RULES
-              )) {
-                if (!colors.includes(resultColor)) continue;
-                if (resultColor === expectedColor) {
-                  if (
-                    (c1 === otherColor && colors.includes(c2)) ||
-                    (c2 === otherColor && colors.includes(c1))
-                  ) {
-                    deducedColor = c1 === otherColor ? c2 : c1;
-                  }
+          if (otherColor === expectedColor) {
+            deducedColor = expectedColor;
+          } else {
+            for (const [resultColor, [c1, c2]] of Object.entries(
+              COLOR_MIXING_RULES
+            )) {
+              if (!colors.includes(resultColor)) continue;
+              if (resultColor === expectedColor) {
+                if (
+                  (c1 === otherColor && colors.includes(c2)) ||
+                  (c2 === otherColor && colors.includes(c1))
+                ) {
+                  deducedColor = c1 === otherColor ? c2 : c1;
                 }
               }
             }
           }
-
           if (deducedColor) {
             board[i][j].color = deducedColor;
             changed = true;
@@ -310,18 +294,13 @@ const generateSolution = (difficulty = "Medium") => {
     influencedCells
   );
 
-  // Verify each influenced cell has the correct number of influencer neighbors
+  // Verify each influenced cell has exactly 2 influencer neighbors
   for (const [row, col] of influencedCells) {
     const neighbors = getNeighbors(board, row, col);
-    const expectedNeighbors = 2;
-    if (neighbors.length !== expectedNeighbors) {
+    if (neighbors.length !== 2) {
       console.log(
-        `Error: Influenced cell [${row},${col}] has ${neighbors.length} neighbors (expected ${expectedNeighbors}) at`,
+        `Error: Influenced cell [${row},${col}] has ${neighbors.length} neighbors at`,
         neighbors.map((n) => `[${n.row},${n.col}]`)
-      );
-      console.log(
-        `Cell [${row},${col}] isThreeNeighbor:`,
-        false // Removed isThreeNeighbor check
       );
       return null;
     }
@@ -331,36 +310,29 @@ const generateSolution = (difficulty = "Medium") => {
   const TIMEOUT_MS = 15000;
   let sameColorCount = 0;
 
-  // Get valid color combinations for influencers
-  const getValidColorCombinations = (neighborColors) => {
-    const combinations = [];
-
-    // Handle 2-neighbor cells (same as before)
-    const [n1Color, n2Color] = neighborColors;
+  // Get valid color pairs for influencers
+  const getValidColorPairs = (n1Color, n2Color) => {
+    const pairs = [];
     // Prioritize different-color pairs
     for (const [resultColor, [c1, c2]] of Object.entries(COLOR_MIXING_RULES)) {
       if (!COLORS.includes(resultColor)) continue;
       if ((!n1Color || n1Color === c1) && (!n2Color || n2Color === c2)) {
-        combinations.push([c1, c2, resultColor]);
+        pairs.push([c1, c2, resultColor]);
       }
       if ((!n1Color || n1Color === c2) && (!n2Color || n2Color === c1)) {
-        combinations.push([c2, c1, resultColor]);
+        pairs.push([c2, c1, resultColor]);
       }
     }
     // Allow same-color pairs, limited to 3 for Easy
-    if (
-      combinations.length === 0 ||
-      (difficulty === "Easy" && sameColorCount >= 3)
-    ) {
-      return combinations;
+    if (pairs.length === 0 || (difficulty === "Easy" && sameColorCount >= 3)) {
+      return pairs;
     }
     for (const c of COLORS) {
       if ((!n1Color || n1Color === c) && (!n2Color || n2Color === c)) {
-        combinations.push([c, c, c]);
+        pairs.push([c, c, c]);
       }
     }
-
-    return combinations;
+    return pairs;
   };
 
   // Greedy assignment with backtracking
@@ -375,19 +347,9 @@ const generateSolution = (difficulty = "Medium") => {
       const [rowA, colA] = a;
       const [rowB, colB] = b;
       const isEdgeA =
-        rowA === 0 ||
-        rowA === GRID_SIZE - 1 ||
-        colA === 0 ||
-        colA === GRID_SIZE - 1
-          ? 1
-          : 0;
+        rowA === 0 || rowA === GRID_SIZE - 1 || colA === 0 || colA === GRID_SIZE - 1 ? 1 : 0;
       const isEdgeB =
-        rowB === 0 ||
-        rowB === GRID_SIZE - 1 ||
-        colB === 0 ||
-        colB === GRID_SIZE - 1
-          ? 1
-          : 0;
+        rowB === 0 || rowB === GRID_SIZE - 1 || colB === 0 || colB === GRID_SIZE - 1 ? 1 : 0;
       const isNearHoleA = FIXED_HOLES.some(
         ([hr, hc]) => Math.abs(rowA - hr) <= 1 && Math.abs(colA - hc) <= 1
       )
@@ -410,98 +372,85 @@ const generateSolution = (difficulty = "Medium") => {
 
       const [row, col] = influencedCells[index];
       const neighbors = getNeighbors(board, row, col);
+      const [n1, n2] = neighbors;
+      const n1Key = `${n1.row},${n1.col}`;
+      const n2Key = `${n2.row},${n2.col}`;
       const cellKey = `${row},${col}`;
       if (!triedPairs.has(cellKey)) triedPairs.set(cellKey, new Set());
 
-      const currentNeighborColors = neighbors.map((n) =>
-        influencerColors.get(`${n.row},${n.col}`)
-      );
-      const validCombinations = getValidColorCombinations(
-        currentNeighborColors
-      ).filter(
-        (combo) => !triedPairs.get(cellKey).has(combo.slice(0, -1).join(","))
-      );
+      const validPairs = getValidColorPairs(
+        influencerColors.get(n1Key),
+        influencerColors.get(n2Key)
+      ).filter(([c1, c2]) => !triedPairs.get(cellKey).has(`${c1},${c2}`));
 
-      if (validCombinations.length === 0) {
+      if (validPairs.length === 0) {
         triedPairs.get(cellKey).clear();
         if (assignmentStack.length === 0) return false;
         const lastAssignment = assignmentStack.pop();
         index = lastAssignment.index;
-        // Clear all neighbor colors
-        lastAssignment.neighbors.forEach((n) => {
-          influencerColors.delete(`${n.row},${n.col}`);
-          board[n.row][n.col].color = null;
-        });
+        influencerColors.delete(lastAssignment.n1Key);
+        influencerColors.delete(lastAssignment.n2Key);
+        board[lastAssignment.n1.row][lastAssignment.n1.col].color = null;
+        board[lastAssignment.n2.row][lastAssignment.n2.col].color = null;
         board[lastAssignment.row][lastAssignment.col].color = null;
         if (lastAssignment.wasSameColor) sameColorCount--;
         continue;
       }
 
-      let chosenCombination =
-        validCombinations[Math.floor(Math.random() * validCombinations.length)];
-      const diffColorCombinations = validCombinations.filter((combo) => {
-        const colors = combo.slice(0, -1);
-        return colors.length === new Set(colors).size; // All colors different
-      });
-      if (diffColorCombinations.length > 0 && sameColorCount < MAX_SAME_COLOR) {
-        chosenCombination =
-          diffColorCombinations[
-            Math.floor(Math.random() * diffColorCombinations.length)
-          ];
+      let chosenPair =
+        validPairs[Math.floor(Math.random() * validPairs.length)];
+      const diffColorPairs = validPairs.filter(([c1, c2]) => c1 !== c2);
+      if (diffColorPairs.length > 0 && sameColorCount < MAX_SAME_COLOR) {
+        chosenPair =
+          diffColorPairs[Math.floor(Math.random() * diffColorPairs.length)];
       }
 
-      const resultColor = chosenCombination[chosenCombination.length - 1];
-      const neighborColors = chosenCombination.slice(0, -1);
-      triedPairs.get(cellKey).add(neighborColors.join(","));
+      const [c1, c2, resultColor] = chosenPair;
+      triedPairs.get(cellKey).add(`${c1},${c2}`);
 
-      // Check if any neighbor already has a conflicting color
-      let hasConflict = false;
-      for (let i = 0; i < neighbors.length; i++) {
-        const neighbor = neighbors[i];
-        const neighborKey = `${neighbor.row},${neighbor.col}`;
-        const expectedColor = neighborColors[i];
-        if (
-          influencerColors.has(neighborKey) &&
-          influencerColors.get(neighborKey) !== expectedColor
-        ) {
-          hasConflict = true;
-          break;
-        }
-      }
-
-      if (hasConflict) {
+      if (influencerColors.has(n1Key) && influencerColors.get(n1Key) !== c1) {
         triedPairs.get(cellKey).clear();
         if (assignmentStack.length === 0) return false;
         const lastAssignment = assignmentStack.pop();
         index = lastAssignment.index;
-        // Clear all neighbor colors
-        lastAssignment.neighbors.forEach((n) => {
-          influencerColors.delete(`${n.row},${n.col}`);
-          board[n.row][n.col].color = null;
-        });
+        influencerColors.delete(lastAssignment.n1Key);
+        influencerColors.delete(lastAssignment.n2Key);
+        board[lastAssignment.n1.row][lastAssignment.n1.col].color = null;
+        board[lastAssignment.n2.row][lastAssignment.n2.col].color = null;
+        board[lastAssignment.row][lastAssignment.col].color = null;
+        if (lastAssignment.wasSameColor) sameColorCount--;
+        continue;
+      }
+      if (influencerColors.has(n2Key) && influencerColors.get(n2Key) !== c2) {
+        triedPairs.get(cellKey).clear();
+        if (assignmentStack.length === 0) return false;
+        const lastAssignment = assignmentStack.pop();
+        index = lastAssignment.index;
+        influencerColors.delete(lastAssignment.n1Key);
+        influencerColors.delete(lastAssignment.n2Key);
+        board[lastAssignment.n1.row][lastAssignment.n1.col].color = null;
+        board[lastAssignment.n2.row][lastAssignment.n2.col].color = null;
         board[lastAssignment.row][lastAssignment.col].color = null;
         if (lastAssignment.wasSameColor) sameColorCount--;
         continue;
       }
 
-      // Assign colors to all neighbors
-      for (let i = 0; i < neighbors.length; i++) {
-        const neighbor = neighbors[i];
-        const neighborKey = `${neighbor.row},${neighbor.col}`;
-        const color = neighborColors[i];
-        influencerColors.set(neighborKey, color);
-        board[neighbor.row][neighbor.col].color = color;
-      }
-
+      influencerColors.set(n1Key, c1);
+      influencerColors.set(n2Key, c2);
+      board[n1.row][n1.col].color = c1;
+      board[n2.row][n2.col].color = c2;
       board[row][col].color = resultColor;
-      const isSameColor = new Set(neighborColors).size === 1;
+      const isSameColor = c1 === c2;
       if (isSameColor) sameColorCount++;
 
       assignmentStack.push({
         index,
         row,
         col,
-        neighbors,
+        n1,
+        n2,
+        n1Key,
+        n2Key,
         wasSameColor: isSameColor,
       });
 
@@ -540,9 +489,6 @@ const generateSolution = (difficulty = "Medium") => {
   }
 
   console.log("Greedy assignment failed");
-  console.log(
-    "This might be due to complex 3-color rules. Trying with simplified rules..."
-  );
   return null;
 };
 
@@ -624,41 +570,30 @@ const canSolvePuzzle = (puzzleBoard, solutionBoard, colors) => {
         for (const [r, c] of influencedNeighbors) {
           if (!board[r][c].color) continue;
           const neighbors = getNeighbors(board, r, c);
-          const otherNeighbors = neighbors.filter(
+          const otherNeighbor = neighbors.find(
             (n) => n.row !== row || n.col !== col
           );
-          if (otherNeighbors.length === 0) continue;
-
+          if (!otherNeighbor.color) continue;
           const expectedColor = board[r][c].color;
-          const otherColors = otherNeighbors
-            .map((n) => n.color)
-            .filter(Boolean);
-
-          if (otherColors.length === 0) continue;
-
+          const otherColor = otherNeighbor.color;
           let deducedColor = null;
-
-          if (otherColors.length === 2) {
-            const otherColor = otherColors[0];
-            if (otherColor === expectedColor) {
-              deducedColor = expectedColor;
-            } else {
-              for (const [resultColor, [c1, c2]] of Object.entries(
-                COLOR_MIXING_RULES
-              )) {
-                if (!colors.includes(resultColor)) continue;
-                if (resultColor === expectedColor) {
-                  if (
-                    (c1 === otherColor && colors.includes(c2)) ||
-                    (c2 === otherColor && colors.includes(c1))
-                  ) {
-                    deducedColor = c1 === otherColor ? c2 : c1;
-                  }
+          if (otherColor === expectedColor) {
+            deducedColor = expectedColor;
+          } else {
+            for (const [resultColor, [c1, c2]] of Object.entries(
+              COLOR_MIXING_RULES
+            )) {
+              if (!colors.includes(resultColor)) continue;
+              if (resultColor === expectedColor) {
+                if (
+                  (c1 === otherColor && colors.includes(c2)) ||
+                  (c2 === otherColor && colors.includes(c1))
+                ) {
+                  deducedColor = c1 === otherColor ? c2 : c1;
                 }
               }
             }
           }
-
           if (deducedColor) {
             board[row][col].color = deducedColor;
             deductionsMade = true;
