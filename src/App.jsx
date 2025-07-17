@@ -266,7 +266,13 @@ const App = () => {
     console.log("Empty cells:", emptyCells);
 
     if (emptyCells.length === 0) {
-      alert("No empty cells left for a hint!");
+      // Check if the game is won when all cells are filled
+      if (checkWinCondition(board)) {
+        setIsGameWon(true);
+        triggerCelebration();
+      } else {
+        alert("No empty cells left for a hint!");
+      }
       return;
     }
 
