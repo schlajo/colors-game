@@ -239,17 +239,6 @@ body,
   padding-right: env(safe-area-inset-right);
 }
 
-@media (min-width: 375px) {
-  .cell {
-    width: 40px;
-    height: 40px;
-  }
-  .cell > div {
-    width: 36px;
-    height: 36px;
-  }
-}
-
 /* Incorrect X styling */
 .incorrect-x {
   filter: drop-shadow(1px 1px 1px rgba(255, 255, 255, 0.8));

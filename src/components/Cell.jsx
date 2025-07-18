@@ -1,26 +1,39 @@
 import React from "react";
 import { COLOR_LABELS, COLOR_CLASSES } from "../utils/colorUtils";
 
-const Cell = ({ cell, onClick, isSelected, glossAnimation }) => {
+const Cell = ({ cell, onClick, isSelected, glossAnimation, cellSize }) => {
   const handleClick = () => {
     if (cell.isHole || cell.isClue) return;
     onClick();
   };
 
+  const size = cellSize || 36;
+  const circleSize = Math.round(size * 0.8);
+
   return (
     <div
       onClick={handleClick}
       className={`cell border border-gray-300 flex items-center justify-center relative
-        ${cell.isHole ? "bg-black cursor-default" : cell.isClue ? "cursor-default" : "cursor-pointer"}
+        ${
+          cell.isHole
+            ? "bg-black cursor-default"
+            : cell.isClue
+            ? "cursor-default"
+            : "cursor-pointer"
+        }
         ${!cell.isHole ? (cell.isInfluencer ? "bg-gray-500" : "bg-white") : ""}
         ${isSelected ? "ring-4 ring-blue-600" : ""}
         ${glossAnimation ? "animate-gloss" : ""}
       `}
+      style={{ width: size, height: size, minWidth: size, minHeight: size }}
     >
       {cell.color && (
-        <div className="relative bg-gray-900 rounded-full w-[min(8vw,36px)] h-[min(8vw,36px)] flex items-center justify-center">
+        <div
+          className="relative bg-gray-900 rounded-full flex items-center justify-center"
+          style={{ width: circleSize, height: circleSize }}
+        >
           <div
-            className={`w-[min(8vw,36px)] h-[min(8vw,36px)] rounded-full flex items-center justify-center
+            className={`rounded-full flex items-center justify-center
             ${
               COLOR_CLASSES[cell.color] || "bg-gray-200"
             } border border-black thin-white-ring ring-offset-2
@@ -31,6 +44,7 @@ const Cell = ({ cell, onClick, isSelected, glossAnimation }) => {
                 ? "shine-effect"
                 : ""
             }`}
+            style={{ width: circleSize, height: circleSize }}
           >
             <span
               className={`font-bold pointer-events-none text-[12px]

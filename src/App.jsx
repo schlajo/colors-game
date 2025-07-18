@@ -35,6 +35,7 @@ const App = () => {
   const [timerShake, setTimerShake] = useState(false);
   const [difficulty, setDifficulty] = useState("Easy");
   const [showWelcomeOverlay, setShowWelcomeOverlay] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
 
   // Initialize Easy board on mount
   useEffect(() => {
@@ -52,6 +53,13 @@ const App = () => {
     }
     return () => clearInterval(timer);
   }, [startTime, isGameWon, isPaused]);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 640);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   const formatTime = (ms) => {
     const seconds = Math.floor((ms / 1000) % 60);
@@ -438,9 +446,20 @@ const App = () => {
 
   // Calculate board container size based on difficulty
   const config = getConfig(difficulty);
-  const boardContainerSize = difficulty
-    ? `${config.GRID_SIZE * 48}px`
-    : "240px";
+  const cellSizes = {
+    Easy: 80, // <--- Play with this number for Easy (desktop/tablet)
+    Medium: 56, // <--- Play with this number for Medium (desktop/tablet)
+    Difficult: 36, // <--- Play with this number for Difficult (desktop/tablet)
+  };
+  const cellSizesMobile = {
+    Easy: 44, // <--- Play with this number for Easy (mobile)
+    Medium: 32, // <--- Play with this number for Medium (mobile)
+    Difficult: 20, // <--- Play with this number for Difficult (mobile)
+  };
+  const cellSize = (isMobile ? cellSizesMobile : cellSizes)[difficulty] || 36;
+  const boardContainerSize = `${
+    config.GRID_SIZE * cellSize + (config.GRID_SIZE - 1) * 4
+  }px`;
 
   return (
     <>
@@ -566,6 +585,7 @@ const App = () => {
                   onCellClick={handleCellClick}
                   selectedCell={selectedCell}
                   lightAnimation={lightAnimation}
+                  cellSize={cellSize}
                 />
               ))}
             {showCongrats && (

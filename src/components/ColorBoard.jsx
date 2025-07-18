@@ -1,7 +1,13 @@
 import React from "react";
 import Cell from "./Cell";
 
-const ColorBoard = ({ board, onCellClick, selectedCell, lightAnimation }) => {
+const ColorBoard = ({
+  board,
+  onCellClick,
+  selectedCell,
+  lightAnimation,
+  cellSize,
+}) => {
   console.log("ColorBoard rendering with board:", board);
   if (!board || board.length === 0) {
     return <div>Loading board...</div>;
@@ -9,11 +15,9 @@ const ColorBoard = ({ board, onCellClick, selectedCell, lightAnimation }) => {
 
   return (
     <div
-      className={`grid gap-1 relative ${
-        lightAnimation ? "light-pass" : ""
-      }`}
+      className={`grid gap-1 relative ${lightAnimation ? "light-pass" : ""}`}
       style={{
-        gridTemplateColumns: `repeat(${board[0].length}, minmax(0, 1fr))`,
+        gridTemplateColumns: `repeat(${board[0].length}, ${cellSize}px)`,
       }}
     >
       {board.map((row, rowIndex) =>
@@ -27,6 +31,7 @@ const ColorBoard = ({ board, onCellClick, selectedCell, lightAnimation }) => {
               selectedCell[0] === rowIndex &&
               selectedCell[1] === colIndex
             }
+            cellSize={cellSize}
           />
         ))
       )}
