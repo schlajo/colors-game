@@ -22,7 +22,7 @@ export const COLOR_CLASSES = {
   green: "bg-green-600",
   blue: "bg-blue-600",
   cyan: "bg-cyan-400",
-  magenta: "bg-pink-600",
+  magenta: "bg-pink-500",
   yellow: "bg-yellow-400",
   purple: "bg-purple-600",
   orange: "bg-orange-500",
