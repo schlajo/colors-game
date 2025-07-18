@@ -1,9 +1,9 @@
-// Fixed gameLogicDifficult.js
 import { v4 as uuidv4 } from "uuid";
 
 export const DIFFICULTY_CONFIG_DIFFICULT = {
   GRID_SIZE: 9,
   CLUE_COUNT: 25,
+  MAX_CLUES: 35,
   COLORS: [
     "red",
     "green",
@@ -43,37 +43,33 @@ export const DIFFICULTY_CONFIG_DIFFICULT = {
   ],
 };
 
-// Correct color mixing rules - what colors mix TO create the result
+// Define primary colors explicitly
+const PRIMARY_COLORS = ["red", "green", "blue", "cyan", "magenta", "yellow"];
+
 const COLOR_MIXING_RULES_DIFFICULT = {
-  // Basic 2-color mixing rules
   magenta: ["red", "blue"],
   cyan: ["green", "blue"],
   yellow: ["red", "green"],
   orange: ["red", "yellow"],
   purple: ["blue", "magenta"],
   teal: ["green", "cyan"],
-
-  // Primary colors mixing rules
   red: ["magenta", "yellow"],
   green: ["cyan", "yellow"],
   blue: ["cyan", "magenta"],
-
-  // 3-color mixing rules
   white: ["red", "green", "blue"],
   black: ["cyan", "magenta", "yellow"],
 };
 
-// Valid 2-color combinations for influencers
 const VALID_INFLUENCER_COMBINATIONS = [
-  ["red", "blue"], // makes magenta
-  ["green", "blue"], // makes cyan
-  ["red", "green"], // makes yellow
-  ["red", "yellow"], // makes orange
-  ["blue", "magenta"], // makes purple
-  ["green", "cyan"], // makes teal
-  ["magenta", "yellow"], // makes red
-  ["cyan", "yellow"], // makes green
-  ["cyan", "magenta"], // makes blue
+  ["red", "blue"],
+  ["green", "blue"],
+  ["red", "green"],
+  ["red", "yellow"],
+  ["blue", "magenta"],
+  ["green", "cyan"],
+  ["magenta", "yellow"],
+  ["cyan", "yellow"],
+  ["cyan", "magenta"],
 ];
 
 export function createBoardDifficult() {
@@ -138,18 +134,15 @@ function getNeighborsDifficult(board, row, col) {
   });
 }
 
-// Correct color mixing logic
 function getInfluencedColorDifficult(neighborColors, colors, isThree = false) {
   const expectedCount = isThree ? 3 : 2;
 
-  // Must have exactly the expected number of neighbor colors
   if (neighborColors.length !== expectedCount) {
     return null;
   }
 
   const sorted = [...neighborColors].sort();
 
-  // Check mixing rules first
   for (const [result, mix] of Object.entries(COLOR_MIXING_RULES_DIFFICULT)) {
     if (colors.includes(result) && mix.length === sorted.length) {
       const sortedMix = [...mix].sort();
@@ -159,12 +152,10 @@ function getInfluencedColorDifficult(neighborColors, colors, isThree = false) {
     }
   }
 
-  // Same-color rule: all neighbors must be the same color
   if (new Set(sorted).size === 1 && colors.includes(sorted[0])) {
     return sorted[0];
   }
 
-  // If no mixing rule applies, return the first color that's not in neighbors
   const availableColors = colors.filter((c) => !neighborColors.includes(c));
   return availableColors.length > 0 ? availableColors[0] : null;
 }
@@ -176,7 +167,6 @@ function deduceColorsDifficult(board, colors) {
   while (changed && iterations++ < 100) {
     changed = false;
 
-    // Deduce influenced cells
     for (let i = 0; i < board.length; i++) {
       for (let j = 0; j < board[0].length; j++) {
         const cell = board[i][j];
@@ -208,7 +198,6 @@ function deduceColorsDifficult(board, colors) {
       }
     }
 
-    // FIXED: Added reverse deduction for influencer cells
     for (let i = 0; i < board.length; i++) {
       for (let j = 0; j < board[0].length; j++) {
         const cell = board[i][j];
@@ -219,7 +208,6 @@ function deduceColorsDifficult(board, colors) {
           cell.isInfluencer &&
           !cell.isClue
         ) {
-          // Try to deduce influencer color from influenced neighbors
           const influencedNeighbors = getInfluencedNeighbors(board, i, j);
 
           for (const neighbor of influencedNeighbors) {
@@ -266,7 +254,6 @@ function deduceColorsDifficult(board, colors) {
   return board;
 }
 
-// FIXED: Helper function to get influenced neighbors
 function getInfluencedNeighbors(board, row, col) {
   const directions = [
     [-1, 0],
@@ -292,14 +279,12 @@ function getInfluencedNeighbors(board, row, col) {
   });
 }
 
-// FIXED: Helper function to deduce influencer color
 function deduceInfluencerColor(targetColor, otherColors, isThree, colors) {
   const expectedCount = isThree ? 3 : 2;
 
   if (otherColors.length !== expectedCount - 1) return null;
 
-  // Try all possible colors for the missing influencer
-  for (const testColor of colors) {
+  for (const testColor of PRIMARY_COLORS) { // Restrict to primary colors
     const allColors = [...otherColors, testColor].sort();
     const result = getInfluencedColorDifficult(allColors, colors, isThree);
     if (result === targetColor) {
@@ -310,22 +295,162 @@ function deduceInfluencerColor(targetColor, otherColors, isThree, colors) {
   return null;
 }
 
-// FIXED: Complete rewrite of solution generation using proper constraint satisfaction
+function solvePuzzleLogically(puzzleBoard, solutionBoard, colors) {
+  const board = JSON.parse(JSON.stringify(puzzleBoard));
+  const deducedBoard = deduceColorsDifficult(board, colors);
+
+  let undeducibleCells = [];
+  for (let r = 0; r < board.length; r++) {
+    for (let c = 0; c < board[0].length; c++) {
+      const cell = deducedBoard[r][c];
+      const solutionCell = solutionBoard[r][c];
+      if (cell.isActive && !cell.isHole) {
+        if (!cell.color || cell.color !== solutionCell.color) {
+          undeducibleCells.push([r, c]);
+        }
+      }
+    }
+  }
+
+  return {
+    isFullyDeducible: undeducibleCells.length === 0,
+    undeducibleCells,
+    deducedBoard,
+  };
+}
+
+function hasUniqueSolution(puzzleBoard, solutionBoard, colors) {
+  const board = JSON.parse(JSON.stringify(puzzleBoard));
+  let alternativeSolutions = 0;
+  const MAX_CHECKS = 1000;
+
+  function tryColorCombinations(row, col, currentBoard, checks) {
+    if (alternativeSolutions > 1 || checks >= MAX_CHECKS) return checks;
+
+    if (row >= currentBoard.length) {
+      if (validateSolutionRelaxed(currentBoard, colors)) {
+        let differs = false;
+        for (let r = 0; r < currentBoard.length; r++) {
+          for (let c = 0; c < currentBoard[0].length; c++) {
+            if (
+              currentBoard[r][c].isActive &&
+              !currentBoard[r][c].isHole &&
+              currentBoard[r][c].color !== solutionBoard[r][c].color
+            ) {
+              differs = true;
+              break;
+            }
+          }
+          if (differs) break;
+        }
+        if (differs) alternativeSolutions++;
+        return checks;
+      }
+      return checks;
+    }
+
+    let nextRow = row;
+    let nextCol = col + 1;
+    if (nextCol >= currentBoard[0].length) {
+      nextRow++;
+      nextCol = 0;
+    }
+
+    if (
+      currentBoard[row][col].isActive &&
+      !currentBoard[row][col].isHole &&
+      !currentBoard[row][col].isClue
+    ) {
+      for (const color of colors) {
+        currentBoard[row][col].color = color;
+        let valid = true;
+        if (currentBoard[row][col].isInfluencer) {
+          const influenced = getInfluencedNeighbors(currentBoard, row, col);
+          for (const neighbor of influenced) {
+            const neighborCell = currentBoard[neighbor.row][neighbor.col];
+            if (neighborCell.color) {
+              const neighbors = getNeighborsDifficult(
+                currentBoard,
+                neighbor.row,
+                neighbor.col
+              );
+              const neighborColors = neighbors
+                .filter((n) => n.color)
+                .map((n) => n.color);
+              const expected = neighborCell.isThreeNeighbor ? 3 : 2;
+              if (
+                neighborColors.length === expected &&
+                getInfluencedColorDifficult(
+                  neighborColors,
+                  colors,
+                  neighborCell.isThreeNeighbor
+                ) !== neighborCell.color
+              ) {
+                valid = false;
+                break;
+              }
+            }
+          }
+        } else {
+          const neighbors = getNeighborsDifficult(currentBoard, row, col);
+          const neighborColors = neighbors
+            .filter((n) => n.color)
+            .map((n) => n.color);
+          const expected = currentBoard[row][col].isThreeNeighbor ? 3 : 2;
+          if (
+            neighborColors.length === expected &&
+            getInfluencedColorDifficult(
+              neighborColors,
+              colors,
+              currentBoard[row][col].isThreeNeighbor
+            ) !== color
+          ) {
+            valid = false;
+          }
+        }
+        if (valid) {
+          checks = tryColorCombinations(nextRow, nextCol, JSON.parse(JSON.stringify(currentBoard)), checks + 1);
+          if (checks >= MAX_CHECKS || alternativeSolutions > 1) return checks;
+        }
+      }
+      currentBoard[row][col].color = null;
+    } else {
+      checks = tryColorCombinations(nextRow, nextCol, currentBoard, checks + 1);
+    }
+    return checks;
+  }
+
+  tryColorCombinations(0, 0, JSON.parse(JSON.stringify(board)), 0);
+  return alternativeSolutions <= 1;
+}
+
 export function generateSolutionDifficult() {
   const { COLORS, THREE_NEIGHBOR_CELLS, GRID_SIZE } =
     DIFFICULTY_CONFIG_DIFFICULT;
-
-  console.log("Generating Difficult solution with proper 3-neighbor handling");
 
   const MAX_ATTEMPTS = 30;
 
   for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
     const board = createBoardDifficult();
 
-    // Start by assigning colors to 3-neighbor cells first
     if (assignThreeNeighborColors(board, THREE_NEIGHBOR_CELLS, COLORS)) {
-      console.log(`Solution found on attempt ${attempt + 1}`);
-      return board;
+      // Validate that no influencers have secondary colors
+      let isValid = true;
+      for (let row = 0; row < board.length; row++) {
+        for (let col = 0; col < board[0].length; col++) {
+          if (board[row][col].isInfluencer && board[row][col].color) {
+            if (!PRIMARY_COLORS.includes(board[row][col].color)) {
+              isValid = false;
+              break;
+            }
+          }
+        }
+        if (!isValid) break;
+      }
+      if (isValid) {
+        console.log(`Solution found on attempt ${attempt + 1}`);
+        return board;
+      }
     }
 
     console.log(`Attempt ${attempt + 1} failed, retrying...`);
@@ -336,7 +461,6 @@ export function generateSolutionDifficult() {
 }
 
 function assignThreeNeighborColors(board, threeNeighborCells, allColors) {
-  // Get all influencer cells
   const influencers = [];
   for (let row = 0; row < board.length; row++) {
     for (let col = 0; col < board[0].length; col++) {
@@ -350,12 +474,10 @@ function assignThreeNeighborColors(board, threeNeighborCells, allColors) {
     }
   }
 
-  // For each 3-neighbor cell, we need to assign 3 influencer colors that mix to white or black
   for (const [row, col] of threeNeighborCells) {
     const cell = board[row][col];
     if (cell.isHole) continue;
 
-    // Get the 3 influencer neighbors
     const neighbors = getNeighborsDifficult(board, row, col);
     if (neighbors.length !== 3) {
       console.log(
@@ -364,17 +486,14 @@ function assignThreeNeighborColors(board, threeNeighborCells, allColors) {
       return false;
     }
 
-    // Check if any of the neighbors already have colors assigned
     const assignedNeighbors = neighbors.filter(
       (n) => board[n.row][n.col].color
     );
     if (assignedNeighbors.length > 0) {
-      // Some neighbors already have colors, try to work with what we have
       const existingColors = assignedNeighbors.map(
         (n) => board[n.row][n.col].color
       );
 
-      // Check if we can make white or black with existing colors
       let targetColor = null;
       let remainingColors = [];
 
@@ -392,11 +511,9 @@ function assignThreeNeighborColors(board, threeNeighborCells, allColors) {
       }
 
       if (!targetColor) {
-        // Can't make white or black with existing colors, try a different approach
         return false;
       }
 
-      // Assign remaining colors to unassigned neighbors
       const unassignedNeighbors = neighbors.filter(
         (n) => !board[n.row][n.col].color
       );
@@ -411,36 +528,29 @@ function assignThreeNeighborColors(board, threeNeighborCells, allColors) {
 
       cell.color = targetColor;
     } else {
-      // No neighbors assigned yet, assign fresh colors
       const shouldBeWhite = Math.random() < 0.5;
       const targetColor = shouldBeWhite ? "white" : "black";
       const requiredColors = COLOR_MIXING_RULES_DIFFICULT[targetColor];
 
-      // Assign the required colors to the 3 neighbors
       for (let i = 0; i < 3; i++) {
         const neighborRow = neighbors[i].row;
         const neighborCol = neighbors[i].col;
         board[neighborRow][neighborCol].color = requiredColors[i];
       }
 
-      // Set the 3-neighbor cell color
       cell.color = targetColor;
     }
   }
 
-  // Now fill in the remaining influencer cells with colors that have valid mixing rules
-  const basicColors = ["red", "green", "blue", "cyan", "magenta", "yellow"];
+  const basicColors = PRIMARY_COLORS; // Use only primary colors for influencers
   for (const [row, col] of influencers) {
     if (!board[row][col].color) {
-      // Get all influenced neighbors of this influencer
       const influencedNeighbors = getInfluencedNeighbors(board, row, col);
-
-      // Find colors that would create valid combinations with existing neighbors
       const validColors = [];
+
       for (const color of basicColors) {
         let isValid = true;
 
-        // Check each influenced neighbor
         for (const neighbor of influencedNeighbors) {
           const allNeighbors = getNeighborsDifficult(
             board,
@@ -455,7 +565,6 @@ function assignThreeNeighborColors(board, threeNeighborCells, allColors) {
             .filter(Boolean);
 
           if (otherColors.length === 1) {
-            // This would be a 2-neighbor cell - check if this combination is valid
             const testColors = [...otherColors, color].sort();
             const isValidCombination = VALID_INFLUENCER_COMBINATIONS.some(
               (combination) => {
@@ -476,7 +585,6 @@ function assignThreeNeighborColors(board, threeNeighborCells, allColors) {
         }
       }
 
-      // Assign a valid color, or fallback to random if none found
       if (validColors.length > 0) {
         board[row][col].color =
           validColors[Math.floor(Math.random() * validColors.length)];
@@ -487,7 +595,6 @@ function assignThreeNeighborColors(board, threeNeighborCells, allColors) {
     }
   }
 
-  // Now deduce all the remaining influenced cells
   const influenced = [];
   for (let row = 0; row < board.length; row++) {
     for (let col = 0; col < board[0].length; col++) {
@@ -502,7 +609,6 @@ function assignThreeNeighborColors(board, threeNeighborCells, allColors) {
     }
   }
 
-  // Fill influenced cells based on their neighbors
   for (const [row, col] of influenced) {
     const cell = board[row][col];
     const neighbors = getNeighborsDifficult(board, row, col);
@@ -519,7 +625,6 @@ function assignThreeNeighborColors(board, threeNeighborCells, allColors) {
       if (result) {
         cell.color = result;
       } else {
-        // If no valid mixing rule, assign a compatible color
         const availableColors = allColors.filter(
           (c) => !neighborColors.includes(c)
         );
@@ -531,7 +636,6 @@ function assignThreeNeighborColors(board, threeNeighborCells, allColors) {
         }
       }
     } else if (neighborColors.length > 0) {
-      // Some neighbors but not enough - assign a compatible color
       const result = getInfluencedColorDifficult(
         neighborColors,
         allColors,
@@ -551,18 +655,15 @@ function assignThreeNeighborColors(board, threeNeighborCells, allColors) {
         }
       }
     } else {
-      // No neighbors - assign random color
       cell.color = allColors[Math.floor(Math.random() * allColors.length)];
     }
   }
 
-  // Run deduction to improve the solution
   const improvedBoard = deduceColorsDifficult(
     JSON.parse(JSON.stringify(board)),
     allColors
   );
 
-  // Validate the solution
   return validateSolutionRelaxed(improvedBoard, allColors);
 }
 
@@ -593,7 +694,6 @@ function validateSolutionRelaxed(board, colors) {
             validCells++;
           }
         } else {
-          // If not enough neighbors, consider it valid if color doesn't conflict
           if (!neighborColors.includes(cell.color)) {
             validCells++;
           }
@@ -602,7 +702,6 @@ function validateSolutionRelaxed(board, colors) {
     }
   }
 
-  // Consider solution valid if at least 70% of cells follow rules
   const validityRatio = totalCells > 0 ? validCells / totalCells : 0;
   console.log(
     `Solution validity: ${validCells}/${totalCells} (${(
@@ -614,66 +713,125 @@ function validateSolutionRelaxed(board, colors) {
 }
 
 export function createPuzzleDifficult(solutionBoard) {
-  if (!solutionBoard) return null;
+  if (!solutionBoard) {
+    console.error("No solution board provided");
+    return null;
+  }
 
-  const { GRID_SIZE, CLUE_COUNT } = DIFFICULTY_CONFIG_DIFFICULT;
-  const puzzleBoard = JSON.parse(JSON.stringify(solutionBoard));
+  const { GRID_SIZE, CLUE_COUNT, MAX_CLUES, COLORS } = DIFFICULTY_CONFIG_DIFFICULT;
+  const MAX_ATTEMPTS = 20;
+  let bestPuzzle = null;
+  let bestUndeducibleCount = Infinity;
 
-  // Collect all cells with colors
-  const coloredCells = [];
-  for (let r = 0; r < GRID_SIZE; r++) {
-    for (let c = 0; c < GRID_SIZE; c++) {
-      const cell = puzzleBoard[r][c];
-      if (!cell.isHole && solutionBoard[r][c].color) {
-        coloredCells.push([r, c]);
+  for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+    let puzzleBoard = JSON.parse(JSON.stringify(solutionBoard));
+    let clues = [];
+
+    const coloredCells = [];
+    for (let r = 0; r < GRID_SIZE; r++) {
+      for (let c = 0; c < GRID_SIZE; c++) {
+        const cell = puzzleBoard[r][c];
+        if (!cell.isHole && solutionBoard[r][c].color) {
+          coloredCells.push([r, c]);
+        }
       }
     }
-  }
 
-  // Select clues (prioritize 3-neighbor cells and influencers)
-  const clues = [];
-
-  // Always include 3-neighbor cells
-  for (const [r, c] of DIFFICULTY_CONFIG_DIFFICULT.THREE_NEIGHBOR_CELLS) {
-    if (solutionBoard[r][c].color) {
-      clues.push([r, c]);
-    }
-  }
-
-  // Add some influencers
-  const influencers = coloredCells.filter(
-    ([r, c]) =>
-      puzzleBoard[r][c].isInfluencer && !puzzleBoard[r][c].isThreeNeighbor
-  );
-  const influencerClues = influencers
-    .sort(() => Math.random() - 0.5)
-    .slice(0, Math.min(10, influencers.length));
-  clues.push(...influencerClues);
-
-  // Add some deduced cells
-  const deduced = coloredCells.filter(
-    ([r, c]) =>
-      !puzzleBoard[r][c].isInfluencer && !puzzleBoard[r][c].isThreeNeighbor
-  );
-  const deducedClues = deduced
-    .sort(() => Math.random() - 0.5)
-    .slice(0, Math.min(CLUE_COUNT - clues.length, deduced.length));
-  clues.push(...deducedClues);
-
-  // Limit to CLUE_COUNT
-  const finalClues = clues.slice(0, CLUE_COUNT);
-
-  // Apply clues to puzzle board
-  for (let r = 0; r < GRID_SIZE; r++) {
-    for (let c = 0; c < GRID_SIZE; c++) {
-      if (finalClues.some(([cr, cc]) => cr === r && cc === c)) {
-        puzzleBoard[r][c].isClue = true;
-        puzzleBoard[r][c].color = solutionBoard[r][c].color;
-      } else {
-        puzzleBoard[r][c].color = null;
+    for (const [r, c] of DIFFICULTY_CONFIG_DIFFICULT.THREE_NEIGHBOR_CELLS) {
+      if (solutionBoard[r][c].color) {
+        clues.push([r, c]);
       }
     }
+
+    const influencers = coloredCells
+      .filter(([r, c]) => puzzleBoard[r][c].isInfluencer && !puzzleBoard[r][c].isThreeNeighbor)
+      .map(([r, c]) => {
+        const influenceCount = getInfluencedNeighbors(puzzleBoard, r, c).length;
+        let minHoleDistance = Infinity;
+        for (const [hr, hc] of DIFFICULTY_CONFIG_DIFFICULT.FIXED_HOLES) {
+          const distance = Math.abs(r - hr) + Math.abs(c - hc);
+          minHoleDistance = Math.min(minHoleDistance, distance);
+        }
+        return { pos: [r, c], influenceCount, minHoleDistance };
+      })
+      .sort((a, b) => {
+        if (a.influenceCount !== b.influenceCount) {
+          return b.influenceCount - a.influenceCount;
+        }
+        return a.minHoleDistance - b.minHoleDistance;
+      });
+    clues.push(...influencers.slice(0, 12).map(i => i.pos));
+
+    const deduced = coloredCells.filter(
+      ([r, c]) =>
+        !puzzleBoard[r][c].isInfluencer && !puzzleBoard[r][c].isThreeNeighbor
+    );
+    clues.push(
+      ...deduced
+        .sort(() => Math.random() - 0.5)
+        .slice(0, Math.min(CLUE_COUNT - clues.length, deduced.length))
+    );
+
+    for (let r = 0; r < GRID_SIZE; r++) {
+      for (let c = 0; c < GRID_SIZE; c++) {
+        if (clues.some(([cr, cc]) => cr === r && cc === c)) {
+          puzzleBoard[r][c].isClue = true;
+          puzzleBoard[r][c].color = solutionBoard[r][c].color;
+        } else {
+          puzzleBoard[r][c].color = null;
+        }
+      }
+    }
+
+    let innerAttempt = 0;
+    const INNER_MAX_ATTEMPTS = 10;
+    while (innerAttempt++ < INNER_MAX_ATTEMPTS && clues.length <= MAX_CLUES) {
+      const { isFullyDeducible, undeducibleCells } = solvePuzzleLogically(
+        puzzleBoard,
+        solutionBoard,
+        COLORS
+      );
+
+      if (isFullyDeducible) {
+        if (hasUniqueSolution(puzzleBoard, solutionBoard, COLORS)) {
+          console.log(`Puzzle generated with ${clues.length} clues on attempt ${attempt + 1}`);
+          return { puzzleBoard, solutionBoard };
+        }
+      }
+
+      if (undeducibleCells.length < bestUndeducibleCount) {
+        bestUndeducibleCount = undeducibleCells.length;
+        bestPuzzle = { puzzleBoard: JSON.parse(JSON.stringify(puzzleBoard)), solutionBoard };
+      }
+
+      if (clues.length >= MAX_CLUES) break;
+
+      const undeducibleInfluencers = undeducibleCells.filter(
+        ([r, c]) => puzzleBoard[r][c].isInfluencer
+      );
+      const cellToAdd = undeducibleInfluencers.length > 0
+        ? undeducibleInfluencers[0]
+        : undeducibleCells[0];
+      if (cellToAdd && !clues.some(([cr, cc]) => cr === cellToAdd[0] && cc === cellToAdd[1])) {
+        clues.push(cellToAdd);
+        puzzleBoard[cellToAdd[0]][cellToAdd[1]].isClue = true;
+        puzzleBoard[cellToAdd[0]][cellToAdd[1]].color = solutionBoard[cellToAdd[0]][cellToAdd[1]].color;
+      }
+    }
+
+    console.log(
+      `Attempt ${attempt + 1} failed with ${clues.length} clues, undeducible cells: ${undeducibleCells.length}`
+    );
   }
 
-  return { puzzleBoard, solutionBoard };
+  if (bestPuzzle) {
+    console.warn(
+      `Could not create fully deducible puzzle after ${MAX_ATTEMPTS} attempts. ` +
+      `Returning best puzzle with ${bestUndeducibleCount} undeducible cells.`
+    );
+    return bestPuzzle;
+  }
+
+  console.error("Failed to generate any valid puzzle");
+  return null;
 }
