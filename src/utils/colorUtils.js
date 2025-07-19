@@ -13,6 +13,7 @@ export const COLOR_LABELS = {
   black: "K", // K for black (common convention in printing)
   white: "W",
   silver: "S",
+  gold: "Gd",
 };
 
 export const COLOR_CLASSES = {
@@ -28,5 +29,5 @@ export const COLOR_CLASSES = {
   black: "bg-black",
   white: "bg-white",
   silver: "bg-gray-400",
-  
+  gold: "bg-yellow-600",
 };

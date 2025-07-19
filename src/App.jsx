@@ -629,7 +629,8 @@ const App = () => {
                         (color) =>
                           color !== "black" &&
                           color !== "white" &&
-                          color !== "silver"
+                          color !== "silver" &&
+                          color !== "gold"
                       )
                     : config.COLORS
                   : []
@@ -681,7 +682,7 @@ const App = () => {
                 console.log("Check button clicked");
                 checkSolution();
               }}
-              className="px-2 h-8 bg-blue-500 text-white rounded hover:bg-yellow-600 text-sm flex-1 min-w-[60px] sm:min-w-[60px] max-w-[70px] sm:max-w-[80px]"
+              className="px-2 h-8 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm flex-1 min-w-[60px] sm:min-w-[60px] max-w-[70px] sm:max-w-[80px]"
               disabled={isGameWon || !gameStarted || isPaused}
             >
               Check

@@ -17,6 +17,7 @@ export const DIFFICULTY_CONFIG_DIFFICULT = {
     "purple",
     "teal",
     "silver",
+    "gold",
   ],
   THREE_NEIGHBOR_CELLS: [
     [1, 4],
@@ -60,6 +61,7 @@ const COLOR_MIXING_RULES_DIFFICULT = {
   white: ["red", "green", "blue"],
   black: ["cyan", "magenta", "yellow"],
   silver: ["cyan", "magenta", "blue"],
+  gold: ["red", "yellow", "magenta"],
 };
 
 const VALID_INFLUENCER_COMBINATIONS = [
@@ -73,6 +75,7 @@ const VALID_INFLUENCER_COMBINATIONS = [
   ["cyan", "yellow"],
   ["cyan", "magenta"],
   ["cyan", "magenta", "blue"], // For silver
+  ["red", "yellow", "magenta"], // For gold
 ];
 
 export function createBoardDifficult() {
@@ -539,12 +542,14 @@ function assignThreeNeighborColors(board, threeNeighborCells, allColors) {
     } else {
       const random = Math.random();
       let targetColor;
-      if (random < 0.33) {
+      if (random < 0.35) {
         targetColor = "white";
-      } else if (random < 0.66) {
+      } else if (random < 0.7) {
         targetColor = "black";
-      } else {
+      } else if (random < 0.9) {
         targetColor = "silver";
+      } else {
+        targetColor = "gold";
       }
       const requiredColors = COLOR_MIXING_RULES_DIFFICULT[targetColor];
 
