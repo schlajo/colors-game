@@ -3,7 +3,13 @@ import { COLOR_LABELS, COLOR_CLASSES } from "../utils/colorUtils";
 
 const ColorPalette = ({ onColorClick, colors }) => {
   return (
-    <div className="flex flex-nowrap justify-center gap-1 max-w-full">
+    <div
+      className="grid gap-1 justify-center mx-auto"
+      style={{
+        gridTemplateColumns: `repeat(auto-fit, minmax(36px, 1fr))`,
+        maxWidth: "320px", // You can adjust this value for palette width
+      }}
+    >
       {colors.map((color) => (
         <button
           key={color}
