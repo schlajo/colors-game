@@ -6,8 +6,8 @@ const ColorPalette = ({ onColorClick, colors }) => {
     <div
       className="grid gap-1 justify-center mx-auto"
       style={{
-        gridTemplateColumns: `repeat(auto-fit, minmax(36px, 1fr))`,
-        maxWidth: "320px", // You can adjust this value for palette width
+        gridTemplateColumns: `repeat(${colors.length}, 36px)`,
+        maxWidth: `${colors.length * 36 + (colors.length - 1) * 4}px`, // 36px per button + 4px gap
       }}
     >
       {colors.map((color) => (

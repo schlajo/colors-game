@@ -324,7 +324,7 @@ const App = () => {
 
     if (startTime) {
       setStartTime((prevStartTime) => {
-        const newStartTime = prevStartTime - 15000;
+        const newStartTime = prevStartTime - 20000;
         setElapsedTime(Date.now() - newStartTime);
         return newStartTime;
       });
@@ -447,14 +447,14 @@ const App = () => {
   // Calculate board container size based on difficulty
   const config = getConfig(difficulty);
   const cellSizes = {
-    Easy: 80, // <--- Play with this number for Easy (desktop/tablet)
-    Medium: 56, // <--- Play with this number for Medium (desktop/tablet)
-    Difficult: 36, // <--- Play with this number for Difficult (desktop/tablet)
+    Easy: 65, // <--- Play with this number for Easy (desktop/tablet)
+    Medium: 55, // <--- Play with this number for Medium (desktop/tablet)
+    Difficult: 45, // <--- Play with this number for Difficult (desktop/tablet)
   };
   const cellSizesMobile = {
-    Easy: 44, // <--- Play with this number for Easy (mobile)
-    Medium: 32, // <--- Play with this number for Medium (mobile)
-    Difficult: 20, // <--- Play with this number for Difficult (mobile)
+    Easy: 55, // <--- Play with this number for Easy (mobile)
+    Medium: 45, // <--- Play with this number for Medium (mobile)
+    Difficult: 35, // <--- Play with this number for Difficult (mobile)
   };
   const cellSize = (isMobile ? cellSizesMobile : cellSizes)[difficulty] || 36;
   const boardContainerSize = `${
@@ -531,7 +531,7 @@ const App = () => {
             </li>
             <li>
               The Hint button fills a random cell with the correct color, but
-              you are penalized 15 seconds for every usage.
+              you are penalized 20 seconds for every usage.
             </li>
             <li>The Check button places red X's on all the incorrect tiles.</li>
             <li>
@@ -598,9 +598,13 @@ const App = () => {
             )}
             {showWelcomeOverlay && !showCongrats && (
               <div className="overlay-message">
-                <div className="welcome-message">
+                <div
+                  className={`welcome-message ${
+                    difficulty === "Difficult" ? "difficult" : ""
+                  }`}
+                >
                   Welcome to Colors! Select difficulty level above and click
-                  Start Game below.
+                  Start below.
                 </div>
               </div>
             )}
@@ -618,7 +622,15 @@ const App = () => {
           >
             <ColorPalette
               onColorClick={handleColorButton}
-              colors={difficulty ? config.COLORS : []}
+              colors={
+                difficulty
+                  ? difficulty === "Difficult"
+                    ? config.COLORS.filter(
+                        (color) => color !== "black" && color !== "white"
+                      )
+                    : config.COLORS
+                  : []
+              }
             />
           </div>
 
@@ -631,7 +643,7 @@ const App = () => {
                 console.log("Hint button clicked");
                 getHint();
               }}
-              className="px-2 h-8 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm flex-1 min-w-[60px] max-w-[80px]"
+              className="px-2 h-8 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm flex-1 min-w-[60px] sm:min-w-[60px] max-w-[70px] sm:max-w-[80px]"
               disabled={isGameWon || !gameStarted || isPaused}
             >
               Hint
@@ -646,7 +658,7 @@ const App = () => {
                   initializeBoard();
                 }
               }}
-              className={`px-2 h-8 text-white rounded text-sm flex-1 min-w-[100px] max-w-[120px] ${
+              className={`px-2 h-8 text-white rounded text-sm flex-1 min-w-[75px] sm:min-w-[100px] max-w-[100px] sm:max-w-[120px] ${
                 gameStarted && !showCongrats
                   ? isPaused
                     ? "bg-green-500 hover:bg-green-600"
@@ -659,14 +671,14 @@ const App = () => {
                 ? isPaused
                   ? "Resume"
                   : "Pause"
-                : "Start Game"}
+                : "Start"}
             </button>
             <button
               onClick={() => {
                 console.log("Check button clicked");
                 checkSolution();
               }}
-              className="px-2 h-8 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm flex-1 min-w-[60px] max-w-[80px]"
+              className="px-2 h-8 bg-blue-500 text-white rounded hover:bg-yellow-600 text-sm flex-1 min-w-[60px] sm:min-w-[60px] max-w-[70px] sm:max-w-[80px]"
               disabled={isGameWon || !gameStarted || isPaused}
             >
               Check
@@ -681,7 +693,7 @@ const App = () => {
                 console.log("Delete button clicked");
                 deleteLast();
               }}
-              className="px-2 h-8 bg-purple-500 text-white rounded hover:bg-purple-600 text-sm flex-1 min-w-[60px] max-w-[80px]"
+              className="px-2 h-8 bg-purple-500 text-white rounded hover:bg-purple-600 text-sm flex-1 min-w-[60px] sm:min-w-[60px] max-w-[70px] sm:max-w-[80px]"
               disabled={isGameWon || !gameStarted || isPaused}
             >
               Delete
@@ -691,17 +703,17 @@ const App = () => {
                 console.log("End Game button clicked");
                 endGame();
               }}
-              className="px-2 h-8 bg-red-500 text-white rounded hover:bg-red-600 text-sm flex-1 min-w-[100px] max-w-[100px]"
+              className="px-2 h-8 bg-red-500 text-white rounded hover:bg-red-600 text-sm flex-1 min-w-[75px] sm:min-w-[100px] max-w-[90px] sm:max-w-[100px]"
               disabled={!gameStarted || showCongrats}
             >
-              End Game
+              End
             </button>
             <button
               onClick={() => {
                 console.log("Clear button clicked");
                 clearBoard();
               }}
-              className="px-2 h-8 bg-purple-500 text-white rounded hover:bg-purple-600 text-sm flex-1 min-w-[60px] max-w-[80px]"
+              className="px-2 h-8 bg-purple-500 text-white rounded hover:bg-purple-600 text-sm flex-1 min-w-[60px] sm:min-w-[60px] max-w-[70px] sm:max-w-[80px]"
               disabled={isGameWon || !gameStarted || isPaused}
             >
               Clear

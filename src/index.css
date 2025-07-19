@@ -192,12 +192,33 @@ body,
   align-items: center;
 }
 
+/* Smaller overlay for Difficult level to avoid overlapping with difficulty selector */
+.welcome-message.difficult {
+  width: 200px;
+  max-width: 200px;
+  height: 200px;
+  max-height: 200px;
+  font-size: 1.2rem;
+  padding: 1rem;
+  top: 50%;
+}
+
 @media (max-width: 640px) {
   .welcome-message {
     font-size: 1.2rem;
     padding: 1.5rem;
     width: 280px;
     height: 280px;
+  }
+
+  .welcome-message.difficult {
+    width: 220px;
+    max-width: 220px;
+    height: 220px;
+    max-height: 220px;
+    font-size: 1rem;
+    padding: 0.8rem;
+    top: 50%;
   }
 }
 

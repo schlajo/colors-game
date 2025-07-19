@@ -50,7 +50,7 @@ const Cell = ({ cell, onClick, isSelected, glossAnimation, cellSize }) => {
               className={`font-bold pointer-events-none flex items-center justify-center text-shadow-sm ${
                 cell.color === "white" ? "text-black" : "text-white"
               }`}
-              style={{ fontSize: Math.round(circleSize * 0.55) }}
+              style={{ fontSize: Math.round(circleSize * 0.4) }}
             >
               {COLOR_LABELS[cell.color]}
             </span>
