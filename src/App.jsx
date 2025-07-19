@@ -626,7 +626,10 @@ const App = () => {
                 difficulty
                   ? difficulty === "Difficult"
                     ? config.COLORS.filter(
-                        (color) => color !== "black" && color !== "white"
+                        (color) =>
+                          color !== "black" &&
+                          color !== "white" &&
+                          color !== "silver"
                       )
                     : config.COLORS
                   : []

@@ -49,6 +49,7 @@ const COLOR_MIXING_RULES_BY_DIFFICULTY = {
       "Cyan + Green = Teal",
       "Magenta + Blue = Purple",
       "Yellow + Red = Orange",
+      "Cyan + Magenta + Blue = Silver",
       "Two of Same Color = That Color",
     ],
   },

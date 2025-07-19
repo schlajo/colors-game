@@ -12,9 +12,7 @@ export const COLOR_LABELS = {
   yellow: "Y",
   black: "K", // K for black (common convention in printing)
   white: "W",
-  // gold: "Gld",
-  // silver: "S",
-  // bronze: "Brz",
+  silver: "S",
 };
 
 export const COLOR_CLASSES = {
@@ -29,7 +27,6 @@ export const COLOR_CLASSES = {
   teal: "bg-emerald-300",
   black: "bg-black",
   white: "bg-white",
-  // gold: "bg-yellow-600", // used as "gold"
-  // silver: "bg-gray-400",
-  // bronze: "bg-amber-700",
+  silver: "bg-gray-400",
+  
 };

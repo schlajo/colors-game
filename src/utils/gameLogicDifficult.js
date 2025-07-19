@@ -16,6 +16,7 @@ export const DIFFICULTY_CONFIG_DIFFICULT = {
     "orange",
     "purple",
     "teal",
+    "silver",
   ],
   THREE_NEIGHBOR_CELLS: [
     [1, 4],
@@ -58,6 +59,7 @@ const COLOR_MIXING_RULES_DIFFICULT = {
   blue: ["cyan", "magenta"],
   white: ["red", "green", "blue"],
   black: ["cyan", "magenta", "yellow"],
+  silver: ["cyan", "magenta", "blue"],
 };
 
 const VALID_INFLUENCER_COMBINATIONS = [
@@ -70,6 +72,7 @@ const VALID_INFLUENCER_COMBINATIONS = [
   ["magenta", "yellow"],
   ["cyan", "yellow"],
   ["cyan", "magenta"],
+  ["cyan", "magenta", "blue"], // For silver
 ];
 
 export function createBoardDifficult() {
@@ -284,7 +287,8 @@ function deduceInfluencerColor(targetColor, otherColors, isThree, colors) {
 
   if (otherColors.length !== expectedCount - 1) return null;
 
-  for (const testColor of PRIMARY_COLORS) { // Restrict to primary colors
+  for (const testColor of PRIMARY_COLORS) {
+    // Restrict to primary colors
     const allColors = [...otherColors, testColor].sort();
     const result = getInfluencedColorDifficult(allColors, colors, isThree);
     if (result === targetColor) {
@@ -409,7 +413,12 @@ function hasUniqueSolution(puzzleBoard, solutionBoard, colors) {
           }
         }
         if (valid) {
-          checks = tryColorCombinations(nextRow, nextCol, JSON.parse(JSON.stringify(currentBoard)), checks + 1);
+          checks = tryColorCombinations(
+            nextRow,
+            nextCol,
+            JSON.parse(JSON.stringify(currentBoard)),
+            checks + 1
+          );
           if (checks >= MAX_CHECKS || alternativeSolutions > 1) return checks;
         }
       }
@@ -528,8 +537,15 @@ function assignThreeNeighborColors(board, threeNeighborCells, allColors) {
 
       cell.color = targetColor;
     } else {
-      const shouldBeWhite = Math.random() < 0.5;
-      const targetColor = shouldBeWhite ? "white" : "black";
+      const random = Math.random();
+      let targetColor;
+      if (random < 0.33) {
+        targetColor = "white";
+      } else if (random < 0.66) {
+        targetColor = "black";
+      } else {
+        targetColor = "silver";
+      }
       const requiredColors = COLOR_MIXING_RULES_DIFFICULT[targetColor];
 
       for (let i = 0; i < 3; i++) {
@@ -718,7 +734,8 @@ export function createPuzzleDifficult(solutionBoard) {
     return null;
   }
 
-  const { GRID_SIZE, CLUE_COUNT, MAX_CLUES, COLORS } = DIFFICULTY_CONFIG_DIFFICULT;
+  const { GRID_SIZE, CLUE_COUNT, MAX_CLUES, COLORS } =
+    DIFFICULTY_CONFIG_DIFFICULT;
   const MAX_ATTEMPTS = 20;
   let bestPuzzle = null;
   let bestUndeducibleCount = Infinity;
@@ -744,7 +761,10 @@ export function createPuzzleDifficult(solutionBoard) {
     }
 
     const influencers = coloredCells
-      .filter(([r, c]) => puzzleBoard[r][c].isInfluencer && !puzzleBoard[r][c].isThreeNeighbor)
+      .filter(
+        ([r, c]) =>
+          puzzleBoard[r][c].isInfluencer && !puzzleBoard[r][c].isThreeNeighbor
+      )
       .map(([r, c]) => {
         const influenceCount = getInfluencedNeighbors(puzzleBoard, r, c).length;
         let minHoleDistance = Infinity;
@@ -760,7 +780,8 @@ export function createPuzzleDifficult(solutionBoard) {
         }
         return a.minHoleDistance - b.minHoleDistance;
       });
-    clues.push(...influencers.slice(0, 12).map(i => i.pos));
+    // Reduce the number of influencer clues to make puzzles more challenging
+    clues.push(...influencers.slice(0, 8).map((i) => i.pos));
 
     const deduced = coloredCells.filter(
       ([r, c]) =>
@@ -794,14 +815,21 @@ export function createPuzzleDifficult(solutionBoard) {
 
       if (isFullyDeducible) {
         if (hasUniqueSolution(puzzleBoard, solutionBoard, COLORS)) {
-          console.log(`Puzzle generated with ${clues.length} clues on attempt ${attempt + 1}`);
+          console.log(
+            `Puzzle generated with ${clues.length} clues on attempt ${
+              attempt + 1
+            }`
+          );
           return { puzzleBoard, solutionBoard };
         }
       }
 
       if (undeducibleCells.length < bestUndeducibleCount) {
         bestUndeducibleCount = undeducibleCells.length;
-        bestPuzzle = { puzzleBoard: JSON.parse(JSON.stringify(puzzleBoard)), solutionBoard };
+        bestPuzzle = {
+          puzzleBoard: JSON.parse(JSON.stringify(puzzleBoard)),
+          solutionBoard,
+        };
       }
 
       if (clues.length >= MAX_CLUES) break;
@@ -809,25 +837,32 @@ export function createPuzzleDifficult(solutionBoard) {
       const undeducibleInfluencers = undeducibleCells.filter(
         ([r, c]) => puzzleBoard[r][c].isInfluencer
       );
-      const cellToAdd = undeducibleInfluencers.length > 0
-        ? undeducibleInfluencers[0]
-        : undeducibleCells[0];
-      if (cellToAdd && !clues.some(([cr, cc]) => cr === cellToAdd[0] && cc === cellToAdd[1])) {
+      const cellToAdd =
+        undeducibleInfluencers.length > 0
+          ? undeducibleInfluencers[0]
+          : undeducibleCells[0];
+      if (
+        cellToAdd &&
+        !clues.some(([cr, cc]) => cr === cellToAdd[0] && cc === cellToAdd[1])
+      ) {
         clues.push(cellToAdd);
         puzzleBoard[cellToAdd[0]][cellToAdd[1]].isClue = true;
-        puzzleBoard[cellToAdd[0]][cellToAdd[1]].color = solutionBoard[cellToAdd[0]][cellToAdd[1]].color;
+        puzzleBoard[cellToAdd[0]][cellToAdd[1]].color =
+          solutionBoard[cellToAdd[0]][cellToAdd[1]].color;
       }
     }
 
     console.log(
-      `Attempt ${attempt + 1} failed with ${clues.length} clues, undeducible cells: ${undeducibleCells.length}`
+      `Attempt ${attempt + 1} failed with ${
+        clues.length
+      } clues, undeducible cells: ${undeducibleCells.length}`
     );
   }
 
   if (bestPuzzle) {
     console.warn(
       `Could not create fully deducible puzzle after ${MAX_ATTEMPTS} attempts. ` +
-      `Returning best puzzle with ${bestUndeducibleCount} undeducible cells.`
+        `Returning best puzzle with ${bestUndeducibleCount} undeducible cells.`
     );
     return bestPuzzle;
   }
