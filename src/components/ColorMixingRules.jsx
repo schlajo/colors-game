@@ -49,8 +49,8 @@ const COLOR_MIXING_RULES_BY_DIFFICULTY = {
       "Cyan + Green = Teal",
       "Magenta + Blue = Purple",
       "Yellow + Red = Orange",
-      "Cyan + Magenta + Blue = Silver",
-      "Red + Yellow + Magenta = Gold",
+      // "Cyan + Magenta + Blue = Silver",
+      // "Red + Yellow + Magenta = Gold",
       "Two of Same Color = That Color",
     ],
   },
@@ -95,10 +95,8 @@ const ColorMixingRules = ({ difficulty }) => {
           combine to make white.
           <br />
           <br />
-          But with subtractive color-mixing (CMY), we see light that has bounced
-          off of an object, with certain wavelengths absorbed by the pigments.
-          We start with white, like a sheet of paper, and subtract light through
-          pigments. A red apple appears red because it absorbs most wavelengths
+          But with subtractive color-mixing (CMY), we start with white, like a sheet of paper, and subtract light through
+          pigments.  We see light that has bounced off of an object, with certain wavelengths absorbed by the pigments.  A red apple appears red because it absorbs most wavelengths
           but reflects primarily red light back to our eyes.
           <br />
           <br />

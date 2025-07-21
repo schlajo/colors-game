@@ -142,13 +142,10 @@ function getNeighborsDifficult(board, row, col) {
 
 function getInfluencedColorDifficult(neighborColors, colors, isThree = false) {
   const expectedCount = isThree ? 3 : 2;
-
   if (neighborColors.length !== expectedCount) {
     return null;
   }
-
   const sorted = [...neighborColors].sort();
-
   for (const [result, mix] of Object.entries(COLOR_MIXING_RULES_DIFFICULT)) {
     if (colors.includes(result) && mix.length === sorted.length) {
       const sortedMix = [...mix].sort();
@@ -157,13 +154,8 @@ function getInfluencedColorDifficult(neighborColors, colors, isThree = false) {
       }
     }
   }
-
-  if (new Set(sorted).size === 1 && colors.includes(sorted[0])) {
-    return sorted[0];
-  }
-
-  const availableColors = colors.filter((c) => !neighborColors.includes(c));
-  return availableColors.length > 0 ? availableColors[0] : null;
+  // Only return a color if a valid rule exists. No fallback for invalid combinations.
+  return null;
 }
 
 function deduceColorsDifficult(board, colors) {
@@ -486,6 +478,7 @@ function assignThreeNeighborColors(board, threeNeighborCells, allColors) {
     }
   }
 
+  // First, assign all three-neighbor cells and their influencer colors
   for (const [row, col] of threeNeighborCells) {
     const cell = board[row][col];
     if (cell.isHole) continue;
@@ -512,7 +505,8 @@ function assignThreeNeighborColors(board, threeNeighborCells, allColors) {
       for (const [result, mix] of Object.entries(
         COLOR_MIXING_RULES_DIFFICULT
       )) {
-        if (result === "white" || result === "black") {
+        // Only allow black and white for now
+        if (["white", "black"].includes(result)) {
           const missingColors = mix.filter((c) => !existingColors.includes(c));
           if (missingColors.length <= 3 - existingColors.length) {
             targetColor = result;
@@ -542,14 +536,10 @@ function assignThreeNeighborColors(board, threeNeighborCells, allColors) {
     } else {
       const random = Math.random();
       let targetColor;
-      if (random < 0.35) {
+      if (random < 0.5) {
         targetColor = "white";
-      } else if (random < 0.7) {
-        targetColor = "black";
-      } else if (random < 0.9) {
-        targetColor = "silver";
       } else {
-        targetColor = "gold";
+        targetColor = "black";
       }
       const requiredColors = COLOR_MIXING_RULES_DIFFICULT[targetColor];
 
@@ -563,13 +553,13 @@ function assignThreeNeighborColors(board, threeNeighborCells, allColors) {
     }
   }
 
-  const basicColors = PRIMARY_COLORS; // Use only primary colors for influencers
+  // Now assign the rest of the influencer cells
   for (const [row, col] of influencers) {
     if (!board[row][col].color) {
       const influencedNeighbors = getInfluencedNeighbors(board, row, col);
       const validColors = [];
 
-      for (const color of basicColors) {
+      for (const color of PRIMARY_COLORS) {
         let isValid = true;
 
         for (const neighbor of influencedNeighbors) {
@@ -610,8 +600,8 @@ function assignThreeNeighborColors(board, threeNeighborCells, allColors) {
         board[row][col].color =
           validColors[Math.floor(Math.random() * validColors.length)];
       } else {
-        board[row][col].color =
-          basicColors[Math.floor(Math.random() * basicColors.length)];
+        // If no valid color, fail and trigger regeneration
+        return false;
       }
     }
   }
@@ -646,15 +636,8 @@ function assignThreeNeighborColors(board, threeNeighborCells, allColors) {
       if (result) {
         cell.color = result;
       } else {
-        const availableColors = allColors.filter(
-          (c) => !neighborColors.includes(c)
-        );
-        if (availableColors.length > 0) {
-          cell.color =
-            availableColors[Math.floor(Math.random() * availableColors.length)];
-        } else {
-          cell.color = allColors[Math.floor(Math.random() * allColors.length)];
-        }
+        // If no valid color, fail and trigger regeneration
+        return false;
       }
     } else if (neighborColors.length > 0) {
       const result = getInfluencedColorDifficult(
@@ -664,20 +647,8 @@ function assignThreeNeighborColors(board, threeNeighborCells, allColors) {
       );
       if (result) {
         cell.color = result;
-      } else {
-        const availableColors = allColors.filter(
-          (c) => !neighborColors.includes(c)
-        );
-        if (availableColors.length > 0) {
-          cell.color =
-            availableColors[Math.floor(Math.random() * availableColors.length)];
-        } else {
-          cell.color = allColors[Math.floor(Math.random() * allColors.length)];
-        }
-      }
-    } else {
-      cell.color = allColors[Math.floor(Math.random() * allColors.length)];
-    }
+      } // else do nothing, wait for more neighbors
+    } // else do nothing, wait for more neighbors
   }
 
   const improvedBoard = deduceColorsDifficult(
