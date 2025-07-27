@@ -20,6 +20,8 @@ import BC from "./assets/blue-cyan-example.png";
 import RG from "./assets/red-green-example.png";
 import Yellow from "./assets/yellow-example.png";
 import ColorMixingRules from "./components/ColorMixingRules";
+import GameCompletionModal from "./components/GameCompletionModal";
+import LeaderboardDisplay from "./components/LeaderboardDisplay";
 
 const App = () => {
   const [board, setBoard] = useState(null);
@@ -36,6 +38,8 @@ const App = () => {
   const [difficulty, setDifficulty] = useState("Easy");
   const [showWelcomeOverlay, setShowWelcomeOverlay] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
+  const [showCompletionModal, setShowCompletionModal] = useState(false);
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
 
   // Initialize Easy board on mount
   useEffect(() => {
@@ -219,6 +223,10 @@ const App = () => {
       setShowCongrats(true);
       setGameStarted(false);
       setIsPaused(false);
+      // Show completion modal after celebration (2 second delay)
+      setTimeout(() => {
+        setShowCompletionModal(true);
+      }, 2000);
     }, 1000);
   };
 
@@ -553,7 +561,7 @@ const App = () => {
           </div>
           <h1 className="text-2xl font-bold mb-3">Colors</h1>
 
-          <div className="mb-4">
+          <div className="mb-4 flex items-center gap-2">
             <select
               value={difficulty}
               onChange={handleDifficultyChange}
@@ -564,6 +572,16 @@ const App = () => {
               <option value="Medium">Medium</option>
               <option value="Difficult">Difficult</option>
             </select>
+            <button
+              onClick={() => {
+                console.log("Leaderboard button clicked");
+                setShowLeaderboard(true);
+              }}
+              className="px-3 py-2 bg-indigo-500 text-white rounded hover:bg-indigo-600 transition-colors"
+              title="View Leaderboard"
+            >
+              🏆
+            </button>
           </div>
           <div
             className="relative board-container"
@@ -729,6 +747,24 @@ const App = () => {
 
         <ColorMixingRules difficulty={difficulty} />
       </div>
+
+      {/* Game Completion Modal */}
+      <GameCompletionModal
+        isOpen={showCompletionModal}
+        onClose={() => setShowCompletionModal(false)}
+        elapsedTime={elapsedTime}
+        difficulty={difficulty}
+        onScoreSaved={(savedScore) => {
+          console.log("Score saved:", savedScore);
+          // You can add additional logic here if needed
+        }}
+      />
+
+      {/* Leaderboard Display */}
+      <LeaderboardDisplay
+        isOpen={showLeaderboard}
+        onClose={() => setShowLeaderboard(false)}
+      />
 
       <div className="w-full text-center text-white mt-8 py-4 bg-gray-900">
         © 2025 Schlajo. All Rights Reserved.
