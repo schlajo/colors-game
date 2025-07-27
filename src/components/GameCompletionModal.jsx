@@ -74,19 +74,20 @@ const GameCompletionModal = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+      <div className="bg-gray-800 bg-opacity-90 rounded-lg p-8 max-w-md w-full mx-4 border-2 border-gray-600 min-h-[500px]">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">
+          <h2 className="text-3xl mt-6 font-bold text-white mb-8">
             🎉 Puzzle Complete!
           </h2>
 
-          <div className="mb-6">
-            <p className="text-gray-600 mb-2">
-              Difficulty: <span className="font-semibold">{difficulty}</span>
+          <div className="mb-8">
+            <p className="text-gray-300 text-xl mb-4">
+              Difficulty:{" "}
+              <span className="text-xl font-semibold text-white">{difficulty}</span>
             </p>
-            <p className="text-gray-600 mb-4">
+            <p className="text-gray-300 text-xl mb-2">
               Time:{" "}
-              <span className="font-bold text-blue-600 text-xl">
+              <span className="font-bold text-blue-400 text-2xl">
                 {formatTime(elapsedTime)}
               </span>
             </p>
@@ -94,26 +95,26 @@ const GameCompletionModal = ({
 
           {submitStatus === "success" ? (
             <div className="mb-4">
-              <div className="text-green-600 text-lg font-semibold mb-2">
+              <div className="text-green-400 text-lg font-semibold mb-2">
                 ✅ Score saved successfully!
               </div>
-              <p className="text-gray-600">
+              <p className="text-gray-300">
                 Your time has been added to the leaderboard.
               </p>
             </div>
           ) : submitStatus === "error" ? (
             <div className="mb-4">
-              <div className="text-red-600 text-lg font-semibold mb-2">
+              <div className="text-red-400 text-lg font-semibold mb-2">
                 ❌ Error saving score
               </div>
-              <p className="text-gray-600">Please try again.</p>
+              <p className="text-gray-300">Please try again.</p>
             </div>
           ) : (
-            <form onSubmit={handleSubmit} className="mb-4">
+            <form onSubmit={handleSubmit} className="mb-8">
               <div className="mb-4">
                 <label
                   htmlFor="playerName"
-                  className="block text-gray-700 text-sm font-medium mb-2"
+                  className="block text-gray-300 text-md font-medium mb-3"
                 >
                   Enter your name for the leaderboard:
                 </label>
@@ -123,7 +124,7 @@ const GameCompletionModal = ({
                   value={playerName}
                   onChange={(e) => setPlayerName(e.target.value)}
                   placeholder="Your name"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-600 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-400"
                   maxLength={20}
                   required
                   disabled={isSubmitting}
@@ -134,7 +135,7 @@ const GameCompletionModal = ({
                 <button
                   type="submit"
                   disabled={!playerName.trim() || isSubmitting}
-                  className="flex-1 bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+                  className="flex-1 bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 disabled:bg-gray-600 disabled:cursor-not-allowed transition-colors"
                 >
                   {isSubmitting ? "Saving..." : "Save Score"}
                 </button>
@@ -142,7 +143,7 @@ const GameCompletionModal = ({
                   type="button"
                   onClick={handleClose}
                   disabled={isSubmitting}
-                  className="flex-1 bg-gray-300 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-400 disabled:bg-gray-200 disabled:cursor-not-allowed transition-colors"
+                  className="flex-1 bg-gray-600 text-white py-2 px-4 rounded-md hover:bg-gray-500 disabled:bg-gray-700 disabled:cursor-not-allowed transition-colors"
                 >
                   Skip
                 </button>
@@ -154,7 +155,7 @@ const GameCompletionModal = ({
             <button
               onClick={handleClose}
               disabled={isSubmitting}
-              className="text-gray-500 hover:text-gray-700 text-sm disabled:opacity-50"
+              className="text-gray-400 hover:text-gray-200 text-lg px-4 disabled:opacity-50"
             >
               Close
             </button>

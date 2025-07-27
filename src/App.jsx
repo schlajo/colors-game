@@ -223,10 +223,8 @@ const App = () => {
       setShowCongrats(true);
       setGameStarted(false);
       setIsPaused(false);
-      // Show completion modal after celebration (2 second delay)
-      setTimeout(() => {
-        setShowCompletionModal(true);
-      }, 2000);
+      // Show completion modal immediately after celebration
+      setShowCompletionModal(true);
     }, 1000);
   };
 
@@ -606,14 +604,7 @@ const App = () => {
                   cellSize={cellSize}
                 />
               ))}
-            {showCongrats && (
-              <div className="congratulations-message flex flex-col items-center">
-                <div className="whitespace-nowrap font-bold">You Win!</div>
-                <div className="text-xl mt-2">
-                  Time: {formatTime(elapsedTime)}
-                </div>
-              </div>
-            )}
+
             {showWelcomeOverlay && !showCongrats && (
               <div className="overlay-message">
                 <div
