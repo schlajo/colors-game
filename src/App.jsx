@@ -484,8 +484,8 @@ const App = () => {
           <div className="text-gray-300 mb-6">
             <p className="mb-3">
               This puzzle game combines two different color-mixing systems that
-              are the inverse of each other: <strong className="text-white">Additive (RGB) </strong>for <i>Light</i>, and 
-              <strong className="text-white"> Subtractive (CMY)</strong> for <i>Ink</i>. Players must logically deduce which
+              are the inverse of each other: <i><strong className="text-white">Additive (RGB) </strong></i>for <i><strong className="text-white">Light</strong></i>, and 
+              <i><strong className="text-white"> Subtractive (CMY)</strong></i> for <i><strong className="text-white">Ink</strong></i>. Players must logically deduce which
               colors belong in each cell using these complementary mixing
               systems, creating a unique puzzle experience that teaches real color
               theory.
@@ -742,22 +742,22 @@ const App = () => {
             <h3 className="text-xl font-bold text-white mb-3 text-center">
               Game Controls
             </h3>
-            <ul className="list-disc list-inside text-gray-300">
+            <ul className="list-none list-inside text-gray-300">
               <li className="mb-2">
-                <strong className="text-white">Hint</strong> fills a
-                random cell with the correct color, but you are penalized 20
+                <i><strong className="text-white">Hint</strong></i> fills a
+                random cell with the correct color, but penalizes you 20
                 seconds for every usage.
               </li>
               <li className="mb-2">
-                <strong className="text-white">Check</strong> places
+                <i><strong className="text-white">Check</strong></i> places
                 red X's on all incorrect tiles.
               </li>
               <li className="mb-2">
-                <strong className="text-white">Delete</strong> removes whatever is in the cell you've selected. You cannot
+                <i><strong className="text-white">Delete</strong></i> removes whatever is in the cell you've selected. You cannot
                 delete the tiles you were given to start.
               </li>
               <li className="mb-2">
-                <strong className="text-white">Clear</strong> removes
+                <i><strong className="text-white">Clear</strong></i> removes
                 all the tiles you've placed.
               </li>
             </ul>

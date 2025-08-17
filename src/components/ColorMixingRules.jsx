@@ -60,7 +60,7 @@ const ColorMixingRules = ({ difficulty }) => {
   return (
     <div className="instruction-panel lg:w-1/2 w-full text-center mt-2 lg:mt-4 bg-gray-800 p-4 rounded-lg">
       <h2 className="text-xl font-bold text-white mb-2">Color-Mixing Rules</h2>
-      <ul className="list-disc list-inside mb-4 text-gray-300">
+      <ul className="list-none list-inside mb-4 text-gray-300">
       <strong className="text-white">Additive Mixing (RGB) for Light</strong>
         {COLOR_MIXING_RULES_BY_DIFFICULTY[difficulty].additive.map(
           (rule, index) => (
@@ -68,7 +68,7 @@ const ColorMixingRules = ({ difficulty }) => {
           )
         )}
       </ul>
-      <ul className="list-disc list-inside mb-4 text-gray-300">
+      <ul className="list-none list-inside mb-4 text-gray-300">
       <strong className="text-white">Subtractive Mixing (CMY) for Ink</strong>
         {COLOR_MIXING_RULES_BY_DIFFICULTY[difficulty].subtractive.map(
           (rule, index) => (
@@ -76,7 +76,7 @@ const ColorMixingRules = ({ difficulty }) => {
           )
         )}
       </ul>
-      <ul className="list-disc list-inside mb-4 text-gray-300">
+      <ul className="list-none list-inside mb-4 text-gray-300">
       <strong className="text-white">Arbitrary Mixing</strong>
         {COLOR_MIXING_RULES_BY_DIFFICULTY[difficulty].arbitrary.map(
           (rule, index) => (
