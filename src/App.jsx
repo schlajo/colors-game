@@ -15,10 +15,10 @@ import {
 } from "./utils/gameLogicDifficult";
 import { v4 as uuidv4 } from "uuid";
 import Venns from "./assets/venn-words.png";
-import Magenta from "./assets/magenta-example.png";
-import BC from "./assets/blue-cyan-example.png";
+import Blue from "./assets/cyan-blue-magenta-example.png";
+import CB from "./assets/cyan-blue-example.png";
 import RG from "./assets/red-green-example.png";
-import Yellow from "./assets/yellow-example.png";
+import Yellow from "./assets/red-yellow-green-example.png";
 import ColorMixingRules from "./components/ColorMixingRules";
 import GameCompletionModal from "./components/GameCompletionModal";
 import LeaderboardDisplay from "./components/LeaderboardDisplay";
@@ -478,15 +478,29 @@ const App = () => {
       <div className="app-container flex flex-col lg:flex-row justify-center gap-4 p-4 w-full max-w-6xl mx-auto relative">
         {/* Left Panel: Instructions */}
         <div className="instruction-panel lg:w-1/2 w-full mt-4 lg:mb-0 bg-gray-800 p-4 rounded-lg">
-          <h2 className="text-xl font-bold text-white mb-2 text-center">
-            How to Play
+          <h2 className="text-xl font-bold text-white mb-4 text-center">
+            About the Game
           </h2>
+          <div className="text-gray-300 mb-6">
+            <p className="mb-3">
+              This puzzle game combines two different color-mixing systems that
+              are the inverse of each other: <strong className="text-white">Additive (RGB) </strong>for <i>Light</i>, and 
+              <strong className="text-white"> Subtractive (CMY)</strong> for <i>Ink</i>. Players must logically deduce which
+              colors belong in each cell using these complementary mixing
+              systems, creating a unique puzzle experience that teaches real color
+              theory.
+            </p>
+          </div>
+
+          <h3 className="text-xl font-bold text-white mb-2 text-center">
+            How to Play
+          </h3>
           <ul className="list-disc list-inside text-gray-300">
             <li>
-              The object of the game is to fill all the white and gray cells
+              The objective of the game is to fill all the white and gray cells
               with the correct colors.
             </li>
-            <li>Use the provided Color-Mixing Rules.</li>
+            <li>Use the provided <strong className="text-white">Color-Mixing Rules</strong>.</li>
             <li>
               Fill the white cells with the color that would result from the
               colors of the two surrounding gray cells; or fill the gray cells
@@ -497,28 +511,28 @@ const App = () => {
               So Red and Green...
               <img
                 src={RG}
-                alt="cyan and magenta surrounding and empty white cell"
+                alt="red and green surrounding and empty white cell"
                 className="max-w-[76] h-10 mx-auto"
               />
-              ......make Yellow.
+              ......make Yellow (using Additive Mixing Rules).
               <img
                 src={Yellow}
-                alt="example showing blue made by cyan and magenta"
+                alt="a yellow tile surrounded by a red tile and a green tile"
                 className="max-w-[76] h-10 mx-auto"
               />
             </li>
             <br></br>
             <li>
-              What and Cyan make Blue?
+              Cyan and what make Blue?
               <img
-                src={BC}
-                alt="cyan and magenta surrounding and empty white cell"
+                src={CB}
+                alt="a cyan tile on in agray cell with a blue tile next to it in a white cell"
                 className="max-w-[76] h-10 mx-auto"
               />
-              .......Magenta!
+              .......Magenta (using Subtractive Mixing Rules).
               <img
-                src={Magenta}
-                alt="example showing blue made by cyan and magenta"
+                src={Blue}
+                alt="a blue tile surrounded by a cyan tile and a magenta tile"
                 className="max-w-[76] h-10 mx-auto"
               />
             </li>
@@ -535,16 +549,6 @@ const App = () => {
             <li>
               To fill a cell, choose a color from the palette below the board.
             </li>
-            <li>
-              The Hint button fills a random cell with the correct color, but
-              you are penalized 20 seconds for every usage.
-            </li>
-            <li>The Check button places red X's on all the incorrect tiles.</li>
-            <li>
-              The Delete button deletes whatever is in the cell you've selected.
-              You cannot delete the tiles you were given to start.
-            </li>
-            <li>The Clear button clears all the tiles that you've placed.</li>
           </ul>
         </div>
 
@@ -731,6 +735,32 @@ const App = () => {
             >
               Clear
             </button>
+          </div>
+
+          {/* Game Controls - Bottom of Center Column */}
+          <div className="mt-4 bg-gray-800 p-4 rounded-lg w-full max-w-md">
+            <h3 className="text-xl font-bold text-white mb-3 text-center">
+              Game Controls
+            </h3>
+            <ul className="list-disc list-inside text-gray-300">
+              <li className="mb-2">
+                <strong className="text-white">Hint</strong> fills a
+                random cell with the correct color, but you are penalized 20
+                seconds for every usage.
+              </li>
+              <li className="mb-2">
+                <strong className="text-white">Check</strong> places
+                red X's on all incorrect tiles.
+              </li>
+              <li className="mb-2">
+                <strong className="text-white">Delete</strong> removes whatever is in the cell you've selected. You cannot
+                delete the tiles you were given to start.
+              </li>
+              <li className="mb-2">
+                <strong className="text-white">Clear</strong> removes
+                all the tiles you've placed.
+              </li>
+            </ul>
           </div>
         </div>
 

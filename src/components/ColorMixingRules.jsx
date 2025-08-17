@@ -61,7 +61,7 @@ const ColorMixingRules = ({ difficulty }) => {
     <div className="instruction-panel lg:w-1/2 w-full text-center mt-2 lg:mt-4 bg-gray-800 p-4 rounded-lg">
       <h2 className="text-xl font-bold text-white mb-2">Color-Mixing Rules</h2>
       <ul className="list-disc list-inside mb-4 text-gray-300">
-        Additive Mixing (RGB) for Light
+      <strong className="text-white">Additive Mixing (RGB) for Light</strong>
         {COLOR_MIXING_RULES_BY_DIFFICULTY[difficulty].additive.map(
           (rule, index) => (
             <li key={`additive-${index}`}>{rule}</li>
@@ -69,7 +69,7 @@ const ColorMixingRules = ({ difficulty }) => {
         )}
       </ul>
       <ul className="list-disc list-inside mb-4 text-gray-300">
-        Subtractive Mixing (CMY) for Ink
+      <strong className="text-white">Subtractive Mixing (CMY) for Ink</strong>
         {COLOR_MIXING_RULES_BY_DIFFICULTY[difficulty].subtractive.map(
           (rule, index) => (
             <li key={`subtractive-${index}`}>{rule}</li>
@@ -77,7 +77,7 @@ const ColorMixingRules = ({ difficulty }) => {
         )}
       </ul>
       <ul className="list-disc list-inside mb-4 text-gray-300">
-        Arbitrary Mixing
+      <strong className="text-white">Arbitrary Mixing</strong>
         {COLOR_MIXING_RULES_BY_DIFFICULTY[difficulty].arbitrary.map(
           (rule, index) => (
             <li key={`arbitrary-${index}`}>{rule}</li>
@@ -89,20 +89,21 @@ const ColorMixingRules = ({ difficulty }) => {
       </h3>
       <div className="text-gray-300 text-left">
         <span>
-          With additive color-mixing (RGB), we start with darkness (black) and
-          add colored light. We see light directly emitted from a source, like a
-          TV. This model's three primary colors (red, green, and blue) can
-          combine to make white.
+          You probably learned about subtractive color-mixing as a kid, with the
+          three primaries—red, blue, and yellow—and the secondaries they form:
+          purple, orange, and green. Printers later refined this system into CMY
+          (cyan, magenta, yellow), which more accurately represent the
+          primaries. That’s why ink cartridges are labeled CMYK, with “K” for
+          black ink, since CMY alone doesn’t produce a true black.
           <br />
           <br />
-          But with subtractive color-mixing (CMY), we start with white, like a sheet of paper, and subtract light through
-          pigments.  We see light that has bounced off of an object, with certain wavelengths absorbed by the pigments.  A red apple appears red because it absorbs most wavelengths
-          but reflects primarily red light back to our eyes.
-          <br />
-          <br />
-          On ink cartridges, the letters CMYK refer to cyan, magenta, yellow,
-          and black. Cartridges include black ink even though CMY's three
-          primary colors could combine to make black.
+          Subtractive mixing starts with white (like paper) and removes light through
+          pigments, reflecting only certain wavelengths. An apple appears red because it absorbs most wavelengths,
+          but reflects primarily red light back to our eyes.  In contrast, additive
+          mixing (RGB) starts with black and adds colored light, as with TVs and
+          screens. Red, green, and blue light can combine to form white, making
+          RGB the inverse of CMY.
+         
         </span>
       </div>
     </div>
