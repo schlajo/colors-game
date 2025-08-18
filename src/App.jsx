@@ -484,27 +484,43 @@ const App = () => {
           <div className="text-gray-300 mb-6">
             <p className="mb-3">
               This puzzle game combines two different color-mixing systems that
-              are the inverse of each other: <i><strong className="text-white">Additive (RGB) </strong></i>for <i><strong className="text-white">Light</strong></i>, and 
-              <i><strong className="text-white"> Subtractive (CMY)</strong></i> for <i><strong className="text-white">Ink</strong></i>. Players must logically deduce which
-              colors belong in each cell using these complementary mixing
-              systems, creating a unique puzzle experience that teaches real color
-              theory.
+              are inverse to each other.{" "}
+              <i>
+                <strong className="text-white">
+                  {" "}
+                  Subtractive Mixing (CMY){" "}
+                </strong>
+              </i>
+              will feel more intuitive for you, as it corresponds to the colors we
+              see reflected off of everyday objects. 
+              <i>
+                <strong className="text-white"> Additive Mixing (RGB)</strong>
+              </i>
+              , however, may seem foreign to you becasue it refers to the colors
+              of light before they are reflected off of an object.  Players must logically deduce which colors belong in each
+              cell using these complementary mixing systems, creating a unique
+              puzzle experience that teaches real color theory.
             </p>
           </div>
 
           <h3 className="text-xl font-bold text-white mb-2 text-center">
             How to Play
           </h3>
-          <ul className="list-disc list-inside text-gray-300">
+          <ul className="list-none list-inside text-gray-300">
             <li>
               The objective of the game is to fill all the white and gray cells
-              with the correct colors.
+              with the correct colors. Black cells are inactive, gray cells are
+              influencers, and white cells are influenced by surrounding gray
+              cells.
             </li>
-            <li>Use the provided <strong className="text-white">Color-Mixing Rules</strong>.</li>
+            <br></br>
+
             <li>
-              Fill the white cells with the color that would result from the
-              colors of the two surrounding gray cells; or fill the gray cells
-              with colors that will produce the color in the white cells.
+              Use the provided{" "}
+              <strong className="text-white">Color-Mixing Rules</strong> to fill
+              the white cells with the color that would result from the colors
+              of the two surrounding gray cells; or fill the gray cells with
+              colors that will produce the color in the white cells.
             </li>
             <br></br>
             <li>
@@ -514,7 +530,7 @@ const App = () => {
                 alt="red and green surrounding and empty white cell"
                 className="max-w-[76] h-10 mx-auto"
               />
-              ......make Yellow (using Additive Mixing Rules).
+              ......make Yellow (using Additive Mixing).
               <img
                 src={Yellow}
                 alt="a yellow tile surrounded by a red tile and a green tile"
@@ -529,7 +545,7 @@ const App = () => {
                 alt="a cyan tile on in agray cell with a blue tile next to it in a white cell"
                 className="max-w-[76] h-10 mx-auto"
               />
-              .......Magenta (using Subtractive Mixing Rules).
+              .......Magenta (using Subtractive Mixing).
               <img
                 src={Blue}
                 alt="a blue tile surrounded by a cyan tile and a magenta tile"
@@ -538,16 +554,9 @@ const App = () => {
             </li>
             <br></br>
             <li>
-              Black cells are inactive, gray cells are influencers, and white
-              cells are influenced by surrounding gray cells.
-            </li>
-            <li>Logic applies vertically and horizontally.</li>
-            <li>
-              Click a cell to select it, outlining it in blue. You can't select
-              pre-tiled cells.
-            </li>
-            <li>
-              To fill a cell, choose a color from the palette below the board.
+              Click a cell to select it, outlining it in blue. (You can't select
+              pre-tiled cells.) To fill a cell, choose a color from the palette
+              below the board. Logic applies vertically and horizontally.
             </li>
           </ul>
         </div>
@@ -738,27 +747,35 @@ const App = () => {
           </div>
 
           {/* Game Controls - Bottom of Center Column */}
-          <div className="mt-4 bg-gray-800 p-4 rounded-lg w-full max-w-md">
+          <div className="mt-8 bg-gray-800 p-4 rounded-lg w-full max-w-md">
             <h3 className="text-xl font-bold text-white mb-3 text-center">
               Game Controls
             </h3>
             <ul className="list-none list-inside text-gray-300">
               <li className="mb-2">
-                <i><strong className="text-white">Hint</strong></i> fills a
-                random cell with the correct color, but penalizes you 20
+                <i>
+                  <strong className="text-white">Hint</strong>
+                </i>{" "}
+                fills a random cell with the correct color, but penalizes you 20
                 seconds for every usage.
               </li>
               <li className="mb-2">
-                <i><strong className="text-white">Check</strong></i> places
-                red X's on all incorrect tiles.
+                <i>
+                  <strong className="text-white">Check</strong>
+                </i>{" "}
+                places red X's on all incorrect tiles.
               </li>
               <li className="mb-2">
-                <i><strong className="text-white">Delete</strong></i> removes whatever is in the cell you've selected. You cannot
-                delete the tiles you were given to start.
+                <i>
+                  <strong className="text-white">Delete</strong>
+                </i>{" "}
+                removes a tile you've placed in the selected square.  (You can't delete the tiles you were given to start.)
               </li>
               <li className="mb-2">
-                <i><strong className="text-white">Clear</strong></i> removes
-                all the tiles you've placed.
+                <i>
+                  <strong className="text-white">Clear</strong>
+                </i>{" "}
+                removes all the tiles you've placed.
               </li>
             </ul>
           </div>
