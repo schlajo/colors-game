@@ -124,7 +124,10 @@ const getInfluencedColor = (neighborColors, colors) => {
     return null;
   }
   // Same-color rule
-  if (neighborColors[0] === neighborColors[1] && colors.includes(neighborColors[0])) {
+  if (
+    neighborColors[0] === neighborColors[1] &&
+    colors.includes(neighborColors[0])
+  ) {
     return neighborColors[0];
   }
   // Different-color mixing rules
@@ -243,6 +246,12 @@ const checkCell = (board, row, col, colors) => {
 
   const neighbors = getNeighbors(board, row, col);
   const neighborColors = neighbors.filter((n) => n.color).map((n) => n.color);
+
+  // If we don't have exactly 2 neighbors with colors, the cell can't be validated yet
+  if (neighborColors.length !== 2) {
+    return false; // Not valid yet, but not incorrect either
+  }
+
   const expectedColor = getInfluencedColor(neighborColors, colors);
   return expectedColor === cell.color;
 };
@@ -347,9 +356,19 @@ const generateSolution = (difficulty = "Medium") => {
       const [rowA, colA] = a;
       const [rowB, colB] = b;
       const isEdgeA =
-        rowA === 0 || rowA === GRID_SIZE - 1 || colA === 0 || colA === GRID_SIZE - 1 ? 1 : 0;
+        rowA === 0 ||
+        rowA === GRID_SIZE - 1 ||
+        colA === 0 ||
+        colA === GRID_SIZE - 1
+          ? 1
+          : 0;
       const isEdgeB =
-        rowB === 0 || rowB === GRID_SIZE - 1 || colB === 0 || colB === GRID_SIZE - 1 ? 1 : 0;
+        rowB === 0 ||
+        rowB === GRID_SIZE - 1 ||
+        colB === 0 ||
+        colB === GRID_SIZE - 1
+          ? 1
+          : 0;
       const isNearHoleA = FIXED_HOLES.some(
         ([hr, hc]) => Math.abs(rowA - hr) <= 1 && Math.abs(colA - hc) <= 1
       )
@@ -717,6 +736,201 @@ const createPuzzle = (solutionBoard, difficulty = "Medium") => {
   return { puzzleBoard, solutionBoard };
 };
 
+// Helper function to determine direction from influenced to influencer cell
+const getDirection = (
+  influencedRow,
+  influencedCol,
+  influencerRow,
+  influencerCol
+) => {
+  const deltaRow = influencerRow - influencedRow;
+  const deltaCol = influencerCol - influencedCol;
+
+  if (deltaRow === -1) return "top";
+  if (deltaRow === 1) return "bottom";
+  if (deltaCol === -1) return "left";
+  if (deltaCol === 1) return "right";
+  return "unknown";
+};
+
+// Detect new valid connections created by a color placement
+const getNewValidConnections = (oldBoard, newBoard, colors) => {
+  const newValidConnections = [];
+  console.log("Checking for new valid connections...");
+
+  let influencedCellsFound = 0;
+  let influencedCellsWithColors = 0;
+
+  // Check all influenced cells to see if any became newly valid
+  for (let row = 0; row < newBoard.length; row++) {
+    for (let col = 0; col < newBoard[0].length; col++) {
+      const cell = newBoard[row][col];
+
+      // Count influenced cells
+      if (!cell.isInfluencer && cell.isActive && !cell.isHole) {
+        influencedCellsFound++;
+        if (cell.color) {
+          influencedCellsWithColors++;
+        }
+      }
+
+      // Only check influenced cells that have colors
+      if (!cell.isInfluencer && cell.isActive && cell.color && !cell.isClue) {
+        const wasValid = checkCell(oldBoard, row, col, colors);
+        const isNowValid = checkCell(newBoard, row, col, colors);
+
+        const oldNeighbors = getNeighbors(oldBoard, row, col);
+        const newNeighbors = getNeighbors(newBoard, row, col);
+        const oldNeighborColors = oldNeighbors
+          .filter((n) => n.color)
+          .map((n) => n.color);
+        const newNeighborColors = newNeighbors
+          .filter((n) => n.color)
+          .map((n) => n.color);
+
+        console.log(`Cell [${row},${col}] with color ${cell.color}:`);
+        console.log(`  - wasValid=${wasValid}, isNowValid=${isNowValid}`);
+        console.log(
+          `  - oldNeighborColors=[${oldNeighborColors.join(
+            ","
+          )}], newNeighborColors=[${newNeighborColors.join(",")}]`
+        );
+
+        // Check if this placement just completed a connection for this cell
+        const wasJustPlaced =
+          !oldBoard[row][col].color && newBoard[row][col].color;
+
+        // If this cell became newly valid OR was just placed and is valid, add it to the list
+        if ((!wasValid && isNowValid) || (wasJustPlaced && isNowValid)) {
+          const neighbors = getNeighbors(newBoard, row, col);
+          console.log(
+            `🎉 Found valid connection at [${row},${col}]! (wasJustPlaced=${wasJustPlaced})`
+          );
+
+          // Calculate mixing directions for animation
+          const mixingInfo = {
+            influenced: { row, col, color: cell.color },
+            influencers: neighbors.map((n) => ({
+              row: n.row,
+              col: n.col,
+              color: n.color,
+              direction: getDirection(row, col, n.row, n.col),
+            })),
+            mixingType: neighbors.length === 2 ? "two-color" : "same-color",
+            colors: neighbors.map((n) => n.color).sort(),
+          };
+
+          newValidConnections.push(mixingInfo);
+        }
+      }
+    }
+  }
+
+  // Also check if placing an influencer color created new valid connections for nearby influenced cells
+  for (let row = 0; row < newBoard.length; row++) {
+    for (let col = 0; col < newBoard[0].length; col++) {
+      const cell = newBoard[row][col];
+
+      // Check if this influencer cell was just given a color
+      if (
+        cell.isInfluencer &&
+        cell.isActive &&
+        !cell.isClue &&
+        !oldBoard[row][col].color &&
+        newBoard[row][col].color
+      ) {
+        console.log(
+          `Influencer cell [${row},${col}] was just placed with ${cell.color}`
+        );
+
+        // Find nearby influenced cells that might now be valid
+        const directions = [
+          [-1, 0],
+          [1, 0],
+          [0, -1],
+          [0, 1],
+        ];
+        for (const [dr, dc] of directions) {
+          const r = row + dr;
+          const c = col + dc;
+          if (
+            r >= 0 &&
+            r < newBoard.length &&
+            c >= 0 &&
+            c < newBoard[0].length
+          ) {
+            const nearbyCell = newBoard[r][c];
+            if (
+              !nearbyCell.isInfluencer &&
+              nearbyCell.isActive &&
+              nearbyCell.color &&
+              !nearbyCell.isClue
+            ) {
+              const wasValid = checkCell(oldBoard, r, c, colors);
+              const isNowValid = checkCell(newBoard, r, c, colors);
+
+              if (!wasValid && isNowValid) {
+                const neighbors = getNeighbors(newBoard, r, c);
+                console.log(
+                  `🎉 Influencer placement enabled valid connection at [${r},${c}]!`
+                );
+
+                // Calculate mixing directions for animation
+                const mixingInfo = {
+                  influenced: { row: r, col: c, color: nearbyCell.color },
+                  influencers: neighbors.map((n) => ({
+                    row: n.row,
+                    col: n.col,
+                    color: n.color,
+                    direction: getDirection(r, c, n.row, n.col),
+                  })),
+                  mixingType:
+                    neighbors.length === 2 ? "two-color" : "same-color",
+                  colors: neighbors.map((n) => n.color).sort(),
+                };
+
+                newValidConnections.push(mixingInfo);
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  console.log(
+    `Board analysis: ${influencedCellsFound} influenced cells, ${influencedCellsWithColors} with colors`
+  );
+
+  // Show cells that could potentially create animations
+  console.log("🎯 Cells that could trigger animations:");
+  for (let row = 0; row < newBoard.length; row++) {
+    for (let col = 0; col < newBoard[0].length; col++) {
+      const cell = newBoard[row][col];
+      if (
+        !cell.isInfluencer &&
+        cell.isActive &&
+        !cell.isHole &&
+        !cell.isClue &&
+        !cell.color
+      ) {
+        const neighbors = getNeighbors(newBoard, row, col);
+        const neighborColors = neighbors
+          .filter((n) => n.color)
+          .map((n) => n.color);
+        if (neighborColors.length === 1) {
+          console.log(
+            `  - Cell [${row},${col}] has 1 neighbor (${neighborColors[0]}) - placing its second neighbor could trigger animation!`
+          );
+        }
+      }
+    }
+  }
+
+  console.log(`Found ${newValidConnections.length} new valid connections`);
+  return newValidConnections;
+};
+
 export {
   createBoard,
   getNeighbors,
@@ -726,4 +940,5 @@ export {
   canSolvePuzzle,
   DIFFICULTY_CONFIG,
   deduceColors,
+  getNewValidConnections,
 };

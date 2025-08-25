@@ -846,3 +846,165 @@ export function createPuzzleDifficult(solutionBoard) {
   console.error("Failed to generate any valid puzzle");
   return null;
 }
+
+// Check if an individual cell is valid in difficult mode
+const checkCellDifficult = (board, row, col, colors) => {
+  const cell = board[row][col];
+  if (!cell.isActive || cell.isInfluencer || !cell.color || cell.isClue) {
+    return true;
+  }
+
+  const neighbors = getNeighborsDifficult(board, row, col);
+  const neighborColors = neighbors.filter((n) => n.color).map((n) => n.color);
+
+  const expected = cell.isThreeNeighbor ? 3 : 2;
+
+  if (neighborColors.length === expected) {
+    const expectedColor = getInfluencedColorDifficult(
+      neighborColors,
+      colors,
+      cell.isThreeNeighbor
+    );
+    return expectedColor === cell.color;
+  } else {
+    // If not all neighbors are filled, the cell can't be validated yet
+    return false;
+  }
+};
+
+// Helper function to get direction from influenced cell to influencer
+const getDirectionDifficult = (influencedRow, influencedCol, influencerRow, influencerCol) => {
+  const rowDiff = influencerRow - influencedRow;
+  const colDiff = influencerCol - influencedCol;
+  
+  if (rowDiff === -1 && colDiff === 0) return "top";
+  if (rowDiff === 1 && colDiff === 0) return "bottom";
+  if (rowDiff === 0 && colDiff === -1) return "left";
+  if (rowDiff === 0 && colDiff === 1) return "right";
+  
+  // For diagonal cases (if any)
+  if (rowDiff === -1 && colDiff === -1) return "top-left";
+  if (rowDiff === -1 && colDiff === 1) return "top-right";
+  if (rowDiff === 1 && colDiff === -1) return "bottom-left";
+  if (rowDiff === 1 && colDiff === 1) return "bottom-right";
+  
+  return "unknown";
+};
+
+// Detect new valid connections created by a color placement
+export const getNewValidConnectionsDifficult = (oldBoard, newBoard, colors) => {
+  const newValidConnections = [];
+
+  // Check all influenced cells to see if any became newly valid
+  for (let row = 0; row < newBoard.length; row++) {
+    for (let col = 0; col < newBoard[0].length; col++) {
+      const cell = newBoard[row][col];
+
+      // Only check influenced cells that have colors
+      if (!cell.isInfluencer && cell.isActive && cell.color && !cell.isClue) {
+        const wasValid = checkCellDifficult(oldBoard, row, col, colors);
+        const isNowValid = checkCellDifficult(newBoard, row, col, colors);
+
+        // Check if this placement just completed a connection for this cell
+        const wasJustPlaced =
+          !oldBoard[row][col].color && newBoard[row][col].color;
+
+        // If this cell became newly valid OR was just placed and is valid, add it to the list
+        if ((!wasValid && isNowValid) || (wasJustPlaced && isNowValid)) {
+          const neighbors = getNeighborsDifficult(newBoard, row, col);
+          console.log(
+            `🎉 Found valid connection at [${row},${col}]! (wasJustPlaced=${wasJustPlaced})`
+          );
+
+          // Calculate mixing directions for animation
+          const mixingInfo = {
+            influenced: { row, col, color: cell.color },
+            influencers: neighbors.map((n) => ({
+              row: n.row,
+              col: n.col,
+              color: n.color,
+              direction: getDirectionDifficult(row, col, n.row, n.col),
+            })),
+            mixingType: neighbors.length === 2 ? "two-color" : "three-color",
+            colors: neighbors.map((n) => n.color).sort(),
+          };
+
+          newValidConnections.push(mixingInfo);
+        }
+      }
+    }
+  }
+
+  // Also check if placing an influencer color created new valid connections for nearby influenced cells
+  for (let row = 0; row < newBoard.length; row++) {
+    for (let col = 0; col < newBoard[0].length; col++) {
+      const cell = newBoard[row][col];
+
+      // Check if this influencer cell was just given a color
+      if (
+        cell.isInfluencer &&
+        cell.isActive &&
+        !cell.isClue &&
+        !oldBoard[row][col].color &&
+        newBoard[row][col].color
+      ) {
+        console.log(
+          `Influencer cell [${row},${col}] was just placed with ${cell.color}`
+        );
+
+        // Find nearby influenced cells that might now be valid
+        const directions = [
+          [-1, 0],
+          [1, 0],
+          [0, -1],
+          [0, 1],
+        ];
+        for (const [dr, dc] of directions) {
+          const r = row + dr;
+          const c = col + dc;
+          if (
+            r >= 0 &&
+            r < newBoard.length &&
+            c >= 0 &&
+            c < newBoard[0].length
+          ) {
+            const nearbyCell = newBoard[r][c];
+            if (
+              !nearbyCell.isInfluencer &&
+              nearbyCell.isActive &&
+              nearbyCell.color &&
+              !nearbyCell.isClue
+            ) {
+              const wasValid = checkCellDifficult(oldBoard, r, c, colors);
+              const isNowValid = checkCellDifficult(newBoard, r, c, colors);
+
+              if (!wasValid && isNowValid) {
+                const neighbors = getNeighborsDifficult(newBoard, r, c);
+                console.log(
+                  `🎉 Influencer placement enabled valid connection at [${r},${c}]!`
+                );
+
+                // Calculate mixing directions for animation
+                const mixingInfo = {
+                  influenced: { row: r, col: c, color: nearbyCell.color },
+                  influencers: neighbors.map((n) => ({
+                    row: n.row,
+                    col: n.col,
+                    color: n.color,
+                    direction: getDirectionDifficult(r, c, n.row, n.col),
+                  })),
+                  mixingType: neighbors.length === 2 ? "two-color" : "three-color",
+                  colors: neighbors.map((n) => n.color).sort(),
+                };
+
+                newValidConnections.push(mixingInfo);
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  return newValidConnections;
+};

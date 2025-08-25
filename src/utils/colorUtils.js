@@ -31,3 +31,20 @@ export const COLOR_CLASSES = {
   silver: "bg-gray-400",
   gold: "bg-yellow-600",
 };
+
+// CSS color values for mixing animations
+export const COLOR_VALUES = {
+  red: "#dc2626",
+  green: "#16a34a",
+  blue: "#2563eb",
+  cyan: "#22d3ee",
+  magenta: "#ec4899",
+  yellow: "#facc15",
+  purple: "#9333ea",
+  orange: "#f97316",
+  teal: "#6ee7b7",
+  black: "#000000",
+  white: "#ffffff",
+  silver: "#9ca3af",
+  gold: "#ca8a04",
+};

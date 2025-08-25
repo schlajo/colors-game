@@ -6,12 +6,14 @@ import {
   createPuzzle,
   createBoard,
   DIFFICULTY_CONFIG,
+  getNewValidConnections,
 } from "./utils/gameLogic";
 import {
   generateSolutionDifficult,
   createPuzzleDifficult,
   createBoardDifficult,
   DIFFICULTY_CONFIG_DIFFICULT,
+  getNewValidConnectionsDifficult,
 } from "./utils/gameLogicDifficult";
 import { v4 as uuidv4 } from "uuid";
 import Venns from "./assets/venn-words.png";
@@ -40,6 +42,11 @@ const App = () => {
   const [isMobile, setIsMobile] = useState(false);
   const [showCompletionModal, setShowCompletionModal] = useState(false);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
+  const [newValidConnections, setNewValidConnections] = useState([]);
+  const [connectionAnimationActive, setConnectionAnimationActive] =
+    useState(false);
+  const [provenCorrectCells, setProvenCorrectCells] = useState(new Set());
+  const [provenMixingInfo, setProvenMixingInfo] = useState(new Map());
 
   // Initialize Easy board on mount
   useEffect(() => {
@@ -186,6 +193,8 @@ const App = () => {
     setGameStarted(false);
     setIsPaused(false);
     setShowWelcomeOverlay(true);
+    setProvenCorrectCells(new Set());
+    setProvenMixingInfo(new Map());
   };
 
   const checkSolution = () => {
@@ -226,6 +235,32 @@ const App = () => {
       // Show completion modal immediately after celebration
       setShowCompletionModal(true);
     }, 1000);
+  };
+
+  const animateNewConnections = (connections) => {
+    if (connections.length === 0) return;
+
+    console.log("Starting animation for connections:", connections);
+    setNewValidConnections(connections);
+    setConnectionAnimationActive(true);
+
+    // Add these cells to the proven correct set and store their mixing info
+    const newProvenCells = new Set(provenCorrectCells);
+    const newMixingInfo = new Map(provenMixingInfo);
+    connections.forEach((connection) => {
+      const cellKey = `${connection.influenced.row}-${connection.influenced.col}`;
+      newProvenCells.add(cellKey);
+      newMixingInfo.set(cellKey, connection);
+    });
+    setProvenCorrectCells(newProvenCells);
+    setProvenMixingInfo(newMixingInfo);
+
+    // Clear animation after 2 seconds, but keep the cells marked as proven
+    setTimeout(() => {
+      console.log("Clearing animation");
+      setConnectionAnimationActive(false);
+      setNewValidConnections([]);
+    }, 2000);
   };
 
   const checkWinCondition = (updatedBoard) => {
@@ -412,8 +447,28 @@ const App = () => {
       if (board[row][col].color !== color) {
         newBoard[row][col].color = color;
         newBoard[row][col].isIncorrect = false;
+
+        // Check for new valid connections created by this placement
+        const config = getConfig(difficulty);
+
+        const newConnections =
+          difficulty === "Difficult"
+            ? getNewValidConnectionsDifficult(board, newBoard, config.COLORS)
+            : getNewValidConnections(board, newBoard, config.COLORS);
+
         setBoard(newBoard);
         console.log(`Cell [${row},${col}] updated to color: ${color}`);
+
+        // Animate new valid connections if any were created
+        if (newConnections.length > 0) {
+          console.log(
+            `Created ${newConnections.length} new valid connections:`,
+            newConnections
+          );
+          animateNewConnections(newConnections);
+        } else {
+          console.log("No new valid connections created by this placement");
+        }
 
         // Check win condition
         console.log("Checking win condition after color placement...");
@@ -491,15 +546,16 @@ const App = () => {
                   Subtractive Mixing (CMY){" "}
                 </strong>
               </i>
-              will feel more intuitive for you, as it corresponds to the colors we
-              see reflected off of everyday objects. 
+              will feel more intuitive for you, as it corresponds to the colors
+              we see reflected off of everyday objects.
               <i>
                 <strong className="text-white"> Additive Mixing (RGB)</strong>
               </i>
               , however, may seem foreign to you becasue it refers to the colors
-              of light before they are reflected off of an object.  Players must logically deduce which colors belong in each
-              cell using these complementary mixing systems, creating a unique
-              puzzle experience that teaches real color theory.
+              of light before they are reflected off of an object. Players must
+              logically deduce which colors belong in each cell using these
+              complementary mixing systems, creating a unique puzzle experience
+              that teaches real color theory.
             </p>
           </div>
 
@@ -615,6 +671,10 @@ const App = () => {
                   selectedCell={selectedCell}
                   lightAnimation={lightAnimation}
                   cellSize={cellSize}
+                  newValidConnections={newValidConnections}
+                  connectionAnimationActive={connectionAnimationActive}
+                  provenCorrectCells={provenCorrectCells}
+                  provenMixingInfo={provenMixingInfo}
                 />
               ))}
 
@@ -769,7 +829,8 @@ const App = () => {
                 <i>
                   <strong className="text-white">Delete</strong>
                 </i>{" "}
-                removes a tile you've placed in the selected square.  (You can't delete the tiles you were given to start.)
+                removes a tile you've placed in the selected square. (You can't
+                delete the tiles you were given to start.)
               </li>
               <li className="mb-2">
                 <i>
