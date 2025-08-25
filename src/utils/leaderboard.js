@@ -52,7 +52,7 @@ export const addLeaderboardEntry = async (
       .insert([
         {
           player_name: playerName,
-          difficulty: difficulty,
+          difficulty: difficulty.toLowerCase(),
           time_taken: timeTaken,
           created_at: new Date().toISOString(),
         },
@@ -84,7 +84,7 @@ export const getLeaderboard = async (difficulty, limit = 20) => {
     const { data, error } = await supabase
       .from("leaderboard")
       .select("*")
-      .eq("difficulty", difficulty)
+      .eq("difficulty", difficulty.toLowerCase())
       .order("time_taken", { ascending: true })
       .limit(limit);
 
