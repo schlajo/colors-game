@@ -941,4 +941,6 @@ export {
   DIFFICULTY_CONFIG,
   deduceColors,
   getNewValidConnections,
+  getInfluencedColor,
+  getDirection,
 };

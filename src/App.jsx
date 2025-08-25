@@ -7,6 +7,9 @@ import {
   createBoard,
   DIFFICULTY_CONFIG,
   getNewValidConnections,
+  getNeighbors,
+  getInfluencedColor,
+  getDirection,
 } from "./utils/gameLogic";
 import {
   generateSolutionDifficult,
@@ -14,6 +17,9 @@ import {
   createBoardDifficult,
   DIFFICULTY_CONFIG_DIFFICULT,
   getNewValidConnectionsDifficult,
+  getNeighborsDifficult,
+  getInfluencedColorDifficult,
+  getDirectionDifficult,
 } from "./utils/gameLogicDifficult";
 import { v4 as uuidv4 } from "uuid";
 import Venns from "./assets/venn-words.png";
@@ -71,6 +77,13 @@ const App = () => {
     window.addEventListener("resize", checkMobile);
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
+
+  // Check for all valid connections whenever the board changes
+  useEffect(() => {
+    if (board) {
+      updateAllValidConnections();
+    }
+  }, [board, difficulty]);
 
   const formatTime = (ms) => {
     const seconds = Math.floor((ms / 1000) % 60);
@@ -144,6 +157,8 @@ const App = () => {
     setIsGameWon(false);
     setLightAnimation(false);
     setShowCongrats(false);
+    setProvenCorrectCells(new Set());
+    setProvenMixingInfo(new Map());
   };
 
   const togglePause = () => {
@@ -235,6 +250,125 @@ const App = () => {
       // Show completion modal immediately after celebration
       setShowCompletionModal(true);
     }, 1000);
+  };
+
+  // Check for all valid connections on the board and show permanent mixing state
+  const updateAllValidConnections = () => {
+    const config = getConfig(difficulty);
+    const newProvenCells = new Set();
+    const newMixingInfo = new Map();
+
+    console.log(`Checking all valid connections for ${difficulty} mode`);
+
+    if (difficulty === "Difficult") {
+      // Handle Difficult mode with 3-neighbor cells
+      for (let row = 0; row < config.GRID_SIZE; row++) {
+        for (let col = 0; col < config.GRID_SIZE; col++) {
+          const cell = board[row][col];
+
+          // Only check influenced cells that have colors (including clues)
+          if (!cell.isInfluencer && cell.isActive && cell.color) {
+            const neighbors = getNeighborsDifficult(board, row, col);
+            const neighborColors = neighbors
+              .filter((n) => n.color)
+              .map((n) => n.color);
+
+            const expected = cell.isThreeNeighbor ? 3 : 2;
+
+            // Check if this cell has all its neighbors filled and is valid
+            if (neighborColors.length === expected) {
+              const expectedColor = getInfluencedColorDifficult(
+                neighborColors,
+                config.COLORS,
+                cell.isThreeNeighbor
+              );
+              if (expectedColor === cell.color) {
+                // Check if this is a 2-neighbor cell adjacent to a 3-neighbor cell
+                const isAdjacentToThreeNeighbor =
+                  !cell.isThreeNeighbor && neighbors.length === 2;
+                const logPrefix = isAdjacentToThreeNeighbor
+                  ? "🔍 SUSPECT"
+                  : "✅ Found valid";
+
+                console.log(
+                  `${logPrefix} cell at [${row},${col}]: ${cell.color} = ${expectedColor} (${neighbors.length} neighbors, isThreeNeighbor: ${cell.isThreeNeighbor})`
+                );
+                // This is a valid connection - add to permanent display
+                const cellKey = `${row}-${col}`;
+                newProvenCells.add(cellKey);
+
+                const mixingInfo = {
+                  influenced: { row, col, color: cell.color },
+                  influencers: neighbors.map((n) => ({
+                    row: n.row,
+                    col: n.col,
+                    color: n.color,
+                    direction: getDirectionDifficult(row, col, n.row, n.col),
+                  })),
+                  mixingType:
+                    neighbors.length === 2 ? "two-color" : "three-color",
+                  colors: neighborColors.sort(),
+                };
+                newMixingInfo.set(cellKey, mixingInfo);
+              } else {
+                console.log(
+                  `❌ Invalid cell at [${row},${col}]: ${cell.color} ≠ ${expectedColor} (${neighbors.length} neighbors, isThreeNeighbor: ${cell.isThreeNeighbor})`
+                );
+              }
+            } else if (cell.color) {
+              console.log(
+                `⚠️ Cell at [${row},${col}] has ${neighborColors.length}/${expected} neighbors filled`
+              );
+            }
+          }
+        }
+      }
+    } else {
+      // Handle Easy/Medium mode with 2-neighbor cells
+      for (let row = 0; row < config.GRID_SIZE; row++) {
+        for (let col = 0; col < config.GRID_SIZE; col++) {
+          const cell = board[row][col];
+
+          // Only check influenced cells that have colors (including clues)
+          if (!cell.isInfluencer && cell.isActive && cell.color) {
+            const neighbors = getNeighbors(board, row, col);
+            const neighborColors = neighbors
+              .filter((n) => n.color)
+              .map((n) => n.color);
+
+            // Check if this cell has both neighbors filled and is valid
+            if (neighborColors.length === 2) {
+              const expectedColor = getInfluencedColor(
+                neighborColors,
+                config.COLORS
+              );
+              if (expectedColor === cell.color) {
+                // This is a valid connection - add to permanent display
+                const cellKey = `${row}-${col}`;
+                newProvenCells.add(cellKey);
+
+                const mixingInfo = {
+                  influenced: { row, col, color: cell.color },
+                  influencers: neighbors.map((n) => ({
+                    row: n.row,
+                    col: n.col,
+                    color: n.color,
+                    direction: getDirection(row, col, n.row, n.col),
+                  })),
+                  mixingType: "two-color",
+                  colors: neighborColors.sort(),
+                };
+                newMixingInfo.set(cellKey, mixingInfo);
+              }
+            }
+          }
+        }
+      }
+    }
+
+    console.log(`Found ${newProvenCells.size} valid connections total`);
+    setProvenCorrectCells(newProvenCells);
+    setProvenMixingInfo(newMixingInfo);
   };
 
   const animateNewConnections = (connections) => {
@@ -503,6 +637,8 @@ const App = () => {
     setStartTime(null);
     setElapsedTime(0);
     setShowWelcomeOverlay(false);
+    setProvenCorrectCells(new Set());
+    setProvenMixingInfo(new Map());
   };
 
   // Calculate board container size based on difficulty

@@ -873,21 +873,26 @@ const checkCellDifficult = (board, row, col, colors) => {
 };
 
 // Helper function to get direction from influenced cell to influencer
-const getDirectionDifficult = (influencedRow, influencedCol, influencerRow, influencerCol) => {
+const getDirectionDifficult = (
+  influencedRow,
+  influencedCol,
+  influencerRow,
+  influencerCol
+) => {
   const rowDiff = influencerRow - influencedRow;
   const colDiff = influencerCol - influencedCol;
-  
+
   if (rowDiff === -1 && colDiff === 0) return "top";
   if (rowDiff === 1 && colDiff === 0) return "bottom";
   if (rowDiff === 0 && colDiff === -1) return "left";
   if (rowDiff === 0 && colDiff === 1) return "right";
-  
+
   // For diagonal cases (if any)
   if (rowDiff === -1 && colDiff === -1) return "top-left";
   if (rowDiff === -1 && colDiff === 1) return "top-right";
   if (rowDiff === 1 && colDiff === -1) return "bottom-left";
   if (rowDiff === 1 && colDiff === 1) return "bottom-right";
-  
+
   return "unknown";
 };
 
@@ -993,7 +998,8 @@ export const getNewValidConnectionsDifficult = (oldBoard, newBoard, colors) => {
                     color: n.color,
                     direction: getDirectionDifficult(r, c, n.row, n.col),
                   })),
-                  mixingType: neighbors.length === 2 ? "two-color" : "three-color",
+                  mixingType:
+                    neighbors.length === 2 ? "two-color" : "three-color",
                   colors: neighbors.map((n) => n.color).sort(),
                 };
 
@@ -1007,4 +1013,11 @@ export const getNewValidConnectionsDifficult = (oldBoard, newBoard, colors) => {
   }
 
   return newValidConnections;
+};
+
+// Export additional functions needed for the always-show-mixing feature
+export {
+  getNeighborsDifficult,
+  getInfluencedColorDifficult,
+  getDirectionDifficult,
 };
