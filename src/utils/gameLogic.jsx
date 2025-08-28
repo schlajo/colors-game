@@ -753,6 +753,32 @@ const getDirection = (
   return "unknown";
 };
 
+// Helper function to get influenced neighbors of an influencer cell (for Easy/Medium)
+const getInfluencedNeighborsEasy = (board, row, col) => {
+  const directions = [
+    [-1, 0],
+    [1, 0],
+    [0, -1],
+    [0, 1],
+  ];
+  return directions.flatMap(([dr, dc]) => {
+    const r = row + dr;
+    const c = col + dc;
+    if (
+      r >= 0 &&
+      r < board.length &&
+      c >= 0 &&
+      c < board[0].length &&
+      board[r][c].isActive &&
+      !board[r][c].isInfluencer &&
+      !board[r][c].isHole
+    ) {
+      return [{ row: r, col: c, color: board[r][c].color }];
+    }
+    return [];
+  });
+};
+
 // Detect new valid connections created by a color placement
 const getNewValidConnections = (oldBoard, newBoard, colors) => {
   const newValidConnections = [];
@@ -943,4 +969,5 @@ export {
   getNewValidConnections,
   getInfluencedColor,
   getDirection,
+  getInfluencedNeighborsEasy,
 };

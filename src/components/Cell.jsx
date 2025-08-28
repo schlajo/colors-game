@@ -26,8 +26,20 @@ const Cell = ({
   const getMixingInfo = () => {
     // For animation, use the current mixingInfo
     if (mixingInfo && connectionAnimationActive) {
-      const { influencers, influenced } = mixingInfo;
+      const { influencers, influenced, isCorrect } = mixingInfo;
       const resultColor = COLOR_VALUES[influenced.color];
+
+      // Handle incorrect attempts with shake animation
+      if (isCorrect === false) {
+        return {
+          "--color1": COLOR_VALUES[influenced.color],
+          "--color2": COLOR_VALUES[influenced.color],
+          "--result-color": COLOR_VALUES[influenced.color],
+          animationType: "incorrect",
+          isAnimating: true,
+          isIncorrect: true,
+        };
+      }
 
       if (influencers.length === 2) {
         // Standard 2-color mixing animation
@@ -174,7 +186,9 @@ const Cell = ({
         ${glossAnimation ? "animate-gloss" : ""}
         ${
           mixingData.isAnimating && mixingData.animationType
-            ? `animate-color-mixing ${mixingData.animationType}`
+            ? mixingData.isIncorrect
+              ? `animate-color-mixing incorrect cell-error`
+              : `animate-color-mixing ${mixingData.animationType}`
             : mixingData.isPermanent && mixingData.animationType
             ? `mixed-color-cell ${mixingData.animationType}`
             : isInNewConnection && connectionAnimationActive

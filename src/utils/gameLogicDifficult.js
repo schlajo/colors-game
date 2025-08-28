@@ -1020,4 +1020,5 @@ export {
   getNeighborsDifficult,
   getInfluencedColorDifficult,
   getDirectionDifficult,
+  getInfluencedNeighbors,
 };

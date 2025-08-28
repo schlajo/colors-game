@@ -10,6 +10,7 @@ import {
   getNeighbors,
   getInfluencedColor,
   getDirection,
+  getInfluencedNeighborsEasy,
 } from "./utils/gameLogic";
 import {
   generateSolutionDifficult,
@@ -20,6 +21,7 @@ import {
   getNeighborsDifficult,
   getInfluencedColorDifficult,
   getDirectionDifficult,
+  getInfluencedNeighbors,
 } from "./utils/gameLogicDifficult";
 import { v4 as uuidv4 } from "uuid";
 import Venns from "./assets/venn-words.png";
@@ -30,6 +32,13 @@ import Yellow from "./assets/red-yellow-green-example.png";
 import ColorMixingRules from "./components/ColorMixingRules";
 import GameCompletionModal from "./components/GameCompletionModal";
 import LeaderboardDisplay from "./components/LeaderboardDisplay";
+import {
+  playErrorSound,
+  playSuccessSound,
+  toggleSound,
+  isSoundEnabled,
+  initAudioContext,
+} from "./utils/soundEffects";
 
 const App = () => {
   const [board, setBoard] = useState(null);
@@ -53,6 +62,7 @@ const App = () => {
     useState(false);
   const [provenCorrectCells, setProvenCorrectCells] = useState(new Set());
   const [provenMixingInfo, setProvenMixingInfo] = useState(new Map());
+  const [skipAutoUpdate, setSkipAutoUpdate] = useState(false);
 
   // Initialize Easy board on mount
   useEffect(() => {
@@ -80,10 +90,10 @@ const App = () => {
 
   // Check for all valid connections whenever the board changes
   useEffect(() => {
-    if (board) {
+    if (board && !skipAutoUpdate) {
       updateAllValidConnections();
     }
-  }, [board, difficulty]);
+  }, [board, difficulty, skipAutoUpdate]);
 
   const formatTime = (ms) => {
     const seconds = Math.floor((ms / 1000) % 60);
@@ -378,6 +388,9 @@ const App = () => {
     setNewValidConnections(connections);
     setConnectionAnimationActive(true);
 
+    // Play success sound for correct mixing
+    playSuccessSound();
+
     // Add these cells to the proven correct set and store their mixing info
     const newProvenCells = new Set(provenCorrectCells);
     const newMixingInfo = new Map(provenMixingInfo);
@@ -389,12 +402,35 @@ const App = () => {
     setProvenCorrectCells(newProvenCells);
     setProvenMixingInfo(newMixingInfo);
 
-    // Clear animation after 2 seconds, but keep the cells marked as proven
+    // Clear animation after 3 seconds (slower), but keep the cells marked as proven
     setTimeout(() => {
       console.log("Clearing animation");
       setConnectionAnimationActive(false);
       setNewValidConnections([]);
-    }, 2000);
+      // Re-enable auto-update after animation completes
+      setSkipAutoUpdate(false);
+    }, 3000);
+  };
+
+  const animateAttempt = (attemptInfo) => {
+    console.log("Starting animation for attempt:", attemptInfo);
+    setNewValidConnections([attemptInfo]);
+    setConnectionAnimationActive(true);
+
+    // Play appropriate sound
+    if (attemptInfo.isCorrect) {
+      playSuccessSound();
+    } else {
+      playErrorSound();
+    }
+
+    // Clear animation after 3 seconds for correct, 2 seconds for incorrect
+    const duration = attemptInfo.isCorrect ? 3000 : 2000;
+    setTimeout(() => {
+      console.log("Clearing attempt animation");
+      setConnectionAnimationActive(false);
+      setNewValidConnections([]);
+    }, duration);
   };
 
   const checkWinCondition = (updatedBoard) => {
@@ -593,15 +629,120 @@ const App = () => {
         setBoard(newBoard);
         console.log(`Cell [${row},${col}] updated to color: ${color}`);
 
-        // Animate new valid connections if any were created
+        // Always animate the attempt, whether correct or incorrect
         if (newConnections.length > 0) {
           console.log(
             `Created ${newConnections.length} new valid connections:`,
-            newConnections
+            newConnections,
+            `Placed ${
+              newBoard[row][col].isInfluencer ? "gray" : "white"
+            } cell [${row},${col}] with color ${color}`
           );
+          // Prevent auto-update during animation to ensure proper mixing animation
+          setSkipAutoUpdate(true);
           animateNewConnections(newConnections);
         } else {
-          console.log("No new valid connections created by this placement");
+          // Check for incorrect attempts in both influenced and influencer cells
+          let attemptInfo = null;
+
+          // For both white and gray cells, animate the cell that was just placed
+          // This provides clearer feedback about which placement was wrong
+
+          if (!newBoard[row][col].isInfluencer) {
+            // This is an influenced cell (white cell) - check if the placement is incorrect
+            const neighbors =
+              difficulty === "Difficult"
+                ? getNeighborsDifficult(newBoard, row, col)
+                : getNeighbors(newBoard, row, col);
+            if (neighbors.length >= 2) {
+              const neighborColors = neighbors
+                .filter((n) => n.color)
+                .map((n) => n.color);
+
+              if (neighborColors.length >= 2) {
+                // Check if this placement creates an invalid result
+                const expectedColor =
+                  difficulty === "Difficult"
+                    ? getInfluencedColorDifficult(
+                        neighborColors,
+                        config.COLORS,
+                        newBoard[row][col].isThreeNeighbor
+                      )
+                    : getInfluencedColor(neighborColors, config.COLORS);
+
+                if (expectedColor !== color) {
+                  // Animate the cell that was just placed (more intuitive)
+                  attemptInfo = {
+                    influenced: { row, col, color: color },
+                    influencers: neighbors.map((n) => ({
+                      row: n.row,
+                      col: n.col,
+                      color: n.color,
+                      direction:
+                        difficulty === "Difficult"
+                          ? getDirectionDifficult(row, col, n.row, n.col)
+                          : getDirection(row, col, n.row, n.col),
+                    })),
+                    mixingType:
+                      neighbors.length === 2 ? "two-color" : "three-color",
+                    colors: neighborColors.sort(),
+                    isCorrect: false, // This is an incorrect attempt
+                  };
+                }
+              }
+            }
+          } else {
+            // This is an influencer cell (gray cell) - check if it creates invalid trios
+            const influencedNeighbors =
+              difficulty === "Difficult"
+                ? getInfluencedNeighbors(newBoard, row, col)
+                : getInfluencedNeighborsEasy(newBoard, row, col);
+
+            for (const influenced of influencedNeighbors) {
+              if (influenced.color) {
+                const allNeighbors =
+                  difficulty === "Difficult"
+                    ? getNeighborsDifficult(
+                        newBoard,
+                        influenced.row,
+                        influenced.col
+                      )
+                    : getNeighbors(newBoard, influenced.row, influenced.col);
+                const neighborColors = allNeighbors
+                  .filter((n) => n.color)
+                  .map((n) => n.color);
+
+                if (neighborColors.length >= 2) {
+                  // Check if this creates an invalid trio
+                  const expectedColor =
+                    difficulty === "Difficult"
+                      ? getInfluencedColorDifficult(
+                          neighborColors,
+                          config.COLORS,
+                          newBoard[influenced.row][influenced.col]
+                            .isThreeNeighbor
+                        )
+                      : getInfluencedColor(neighborColors, config.COLORS);
+
+                  if (expectedColor !== influenced.color) {
+                    // Animate the cell that was just placed (the gray cell causing the error)
+                    attemptInfo = {
+                      influenced: { row, col, color: color }, // The cell just placed
+                      influencers: [], // No need for influencers for error animation
+                      mixingType: "error",
+                      colors: [],
+                      isCorrect: false, // This is an incorrect attempt
+                    };
+                    break;
+                  }
+                }
+              }
+            }
+          }
+
+          if (attemptInfo) {
+            animateAttempt(attemptInfo);
+          }
         }
 
         // Check win condition
@@ -784,6 +925,24 @@ const App = () => {
               title="View Leaderboard"
             >
               🏆
+            </button>
+            <button
+              onClick={() => {
+                const newSoundState = toggleSound();
+                console.log("Sound toggled:", newSoundState ? "ON" : "OFF");
+                // Initialize audio context on first user interaction
+                if (newSoundState) {
+                  initAudioContext();
+                }
+              }}
+              className={`px-3 py-2 text-white rounded transition-colors ${
+                isSoundEnabled()
+                  ? "bg-green-500 hover:bg-green-600"
+                  : "bg-gray-500 hover:bg-gray-600"
+              }`}
+              title={isSoundEnabled() ? "Sound: ON" : "Sound: OFF"}
+            >
+              {isSoundEnabled() ? "🔊" : "🔇"}
             </button>
           </div>
           <div
