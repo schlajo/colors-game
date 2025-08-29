@@ -159,12 +159,166 @@ const toggleSound = () => {
   return soundEnabled;
 };
 
+// Positive start button sound
+const playStartSound = () => {
+  if (!soundEnabled) return;
+
+  try {
+    const ctx = initAudioContext();
+
+    // Create an uplifting sound - rising chord progression
+    const osc1 = ctx.createOscillator();
+    const osc2 = ctx.createOscillator();
+    const osc3 = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    // Connect nodes
+    osc1.connect(gain);
+    osc2.connect(gain);
+    osc3.connect(gain);
+    gain.connect(ctx.destination);
+
+    // Set up positive, uplifting chord
+    osc1.type = "sine";
+    osc2.type = "sine";
+    osc3.type = "sine";
+
+    // Rising major chord progression
+    osc1.frequency.setValueAtTime(262, ctx.currentTime); // C4
+    osc2.frequency.setValueAtTime(330, ctx.currentTime); // E4
+    osc3.frequency.setValueAtTime(392, ctx.currentTime); // G4
+
+    // Volume envelope - positive and encouraging
+    gain.gain.setValueAtTime(0, ctx.currentTime);
+    gain.gain.linearRampToValueAtTime(0.2, ctx.currentTime + 0.1);
+    gain.gain.linearRampToValueAtTime(0.15, ctx.currentTime + 0.3);
+    gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.6);
+
+    // Play the sound
+    osc1.start(ctx.currentTime);
+    osc2.start(ctx.currentTime);
+    osc3.start(ctx.currentTime);
+    osc1.stop(ctx.currentTime + 0.6);
+    osc2.stop(ctx.currentTime + 0.6);
+    osc3.stop(ctx.currentTime + 0.6);
+  } catch (error) {
+    console.log("Audio not supported or failed:", error);
+  }
+};
+
+// Celebratory completion sound - multiple futuristic sounds followed by ding
+const playCelebrationSound = () => {
+  if (!soundEnabled) return;
+
+  try {
+    const ctx = initAudioContext();
+
+    // === PART 1: Multiple Futuristic Swooshes ===
+    for (let i = 0; i < 3; i++) {
+      const delay = i * 0.4;
+
+      const swooshOsc = ctx.createOscillator();
+      const swooshFilter = ctx.createBiquadFilter();
+      const swooshGain = ctx.createGain();
+
+      // Connect swoosh nodes
+      swooshOsc.connect(swooshFilter);
+      swooshFilter.connect(swooshGain);
+      swooshGain.connect(ctx.destination);
+
+      // Set up the futuristic swoosh
+      swooshOsc.type = "sine";
+      swooshOsc.frequency.setValueAtTime(100 + i * 50, ctx.currentTime + delay);
+      swooshOsc.frequency.exponentialRampToValueAtTime(
+        800 + i * 200,
+        ctx.currentTime + delay + 0.3
+      );
+
+      // Filter for futuristic effect
+      swooshFilter.type = "lowpass";
+      swooshFilter.frequency.setValueAtTime(600, ctx.currentTime + delay);
+      swooshFilter.frequency.exponentialRampToValueAtTime(
+        2000,
+        ctx.currentTime + delay + 0.3
+      );
+      swooshFilter.Q.setValueAtTime(3, ctx.currentTime + delay);
+
+      // Swoosh volume envelope
+      swooshGain.gain.setValueAtTime(0, ctx.currentTime + delay);
+      swooshGain.gain.linearRampToValueAtTime(
+        0.1,
+        ctx.currentTime + delay + 0.05
+      );
+      swooshGain.gain.linearRampToValueAtTime(
+        0,
+        ctx.currentTime + delay + 0.35
+      );
+
+      // Play the swoosh
+      swooshOsc.start(ctx.currentTime + delay);
+      swooshOsc.stop(ctx.currentTime + delay + 0.35);
+    }
+
+    // === PART 2: Grand Finale Ding ===
+    const finalDelay = 1.5;
+    const dingOsc1 = ctx.createOscillator();
+    const dingOsc2 = ctx.createOscillator();
+    const dingOsc3 = ctx.createOscillator();
+    const dingOsc4 = ctx.createOscillator();
+    const dingGain = ctx.createGain();
+
+    // Connect ding nodes
+    dingOsc1.connect(dingGain);
+    dingOsc2.connect(dingGain);
+    dingOsc3.connect(dingGain);
+    dingOsc4.connect(dingGain);
+    dingGain.connect(ctx.destination);
+
+    // Set up the grand finale ding - big major chord
+    dingOsc1.type = "sine";
+    dingOsc2.type = "sine";
+    dingOsc3.type = "sine";
+    dingOsc4.type = "sine";
+
+    // Rich major chord (C major with octave)
+    dingOsc1.frequency.setValueAtTime(523, ctx.currentTime + finalDelay); // C5
+    dingOsc2.frequency.setValueAtTime(659, ctx.currentTime + finalDelay); // E5
+    dingOsc3.frequency.setValueAtTime(784, ctx.currentTime + finalDelay); // G5
+    dingOsc4.frequency.setValueAtTime(1047, ctx.currentTime + finalDelay); // C6
+
+    // Grand finale volume envelope - bright and triumphant
+    dingGain.gain.setValueAtTime(0, ctx.currentTime + finalDelay);
+    dingGain.gain.linearRampToValueAtTime(
+      0.4,
+      ctx.currentTime + finalDelay + 0.02
+    );
+    dingGain.gain.exponentialRampToValueAtTime(
+      0.01,
+      ctx.currentTime + finalDelay + 2.0
+    );
+
+    // Play the grand finale
+    dingOsc1.start(ctx.currentTime + finalDelay);
+    dingOsc2.start(ctx.currentTime + finalDelay);
+    dingOsc3.start(ctx.currentTime + finalDelay);
+    dingOsc4.start(ctx.currentTime + finalDelay);
+    dingOsc1.stop(ctx.currentTime + finalDelay + 2.0);
+    dingOsc2.stop(ctx.currentTime + finalDelay + 2.0);
+    dingOsc3.stop(ctx.currentTime + finalDelay + 2.0);
+    dingOsc4.stop(ctx.currentTime + finalDelay + 2.0);
+  } catch (error) {
+    console.log("Audio not supported or failed:", error);
+  }
+};
+
 // Get current sound state
 const isSoundEnabled = () => soundEnabled;
 
 export {
   playErrorSound,
   playSuccessSound,
+  playStartSound,
+  playCelebrationSound,
   toggleSound,
   isSoundEnabled,
   initAudioContext,

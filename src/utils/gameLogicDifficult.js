@@ -900,28 +900,56 @@ const getDirectionDifficult = (
 export const getNewValidConnectionsDifficult = (oldBoard, newBoard, colors) => {
   const newValidConnections = [];
 
+  // Detect placed influencer (gray) this turn
+  let placedInfluencer = null;
+  for (let r = 0; r < newBoard.length; r++) {
+    for (let c = 0; c < newBoard[0].length; c++) {
+      const before = oldBoard[r][c];
+      const after = newBoard[r][c];
+      if ((before.color || after.color) && before.color !== after.color) {
+        if (after.isInfluencer) placedInfluencer = { row: r, col: c };
+      }
+    }
+  }
+
+  const isAdjacentTo = (r, c, t) => {
+    if (!t) return false;
+    const dr = Math.abs(r - t.row);
+    const dc = Math.abs(c - t.col);
+    return (dr === 1 && dc === 0) || (dr === 0 && dc === 1);
+  };
+
+  // Dedupe and limit to a single connection per gray placement
+  const added = new Set();
+  let emittedForGray = false;
+  const pushConn = (mix) => {
+    const k = `${mix.influenced.row},${mix.influenced.col}`;
+    if (added.has(k)) return;
+    if (placedInfluencer && emittedForGray) return;
+    added.add(k);
+    newValidConnections.push(mix);
+    if (placedInfluencer) emittedForGray = true;
+  };
+
   // Check all influenced cells to see if any became newly valid
   for (let row = 0; row < newBoard.length; row++) {
     for (let col = 0; col < newBoard[0].length; col++) {
       const cell = newBoard[row][col];
 
-      // Only check influenced cells that have colors
-      if (!cell.isInfluencer && cell.isActive && cell.color && !cell.isClue) {
+      // Only check influenced cells that have colors (include clue cells)
+      if (!cell.isInfluencer && cell.isActive && cell.color) {
+        // If gray was placed, only consider cells adjacent to it
+        if (placedInfluencer && !isAdjacentTo(row, col, placedInfluencer)) {
+          continue;
+        }
         const wasValid = checkCellDifficult(oldBoard, row, col, colors);
         const isNowValid = checkCellDifficult(newBoard, row, col, colors);
 
-        // Check if this placement just completed a connection for this cell
         const wasJustPlaced =
           !oldBoard[row][col].color && newBoard[row][col].color;
 
-        // If this cell became newly valid OR was just placed and is valid, add it to the list
         if ((!wasValid && isNowValid) || (wasJustPlaced && isNowValid)) {
           const neighbors = getNeighborsDifficult(newBoard, row, col);
-          console.log(
-            `🎉 Found valid connection at [${row},${col}]! (wasJustPlaced=${wasJustPlaced})`
-          );
-
-          // Calculate mixing directions for animation
           const mixingInfo = {
             influenced: { row, col, color: cell.color },
             influencers: neighbors.map((n) => ({
@@ -930,11 +958,10 @@ export const getNewValidConnectionsDifficult = (oldBoard, newBoard, colors) => {
               color: n.color,
               direction: getDirectionDifficult(row, col, n.row, n.col),
             })),
-            mixingType: neighbors.length === 2 ? "two-color" : "three-color",
+            mixingType: neighbors.length === 3 ? "three-color" : "two-color",
             colors: neighbors.map((n) => n.color).sort(),
           };
-
-          newValidConnections.push(mixingInfo);
+          pushConn(mixingInfo);
         }
       }
     }
@@ -945,7 +972,6 @@ export const getNewValidConnectionsDifficult = (oldBoard, newBoard, colors) => {
     for (let col = 0; col < newBoard[0].length; col++) {
       const cell = newBoard[row][col];
 
-      // Check if this influencer cell was just given a color
       if (
         cell.isInfluencer &&
         cell.isActive &&
@@ -954,10 +980,9 @@ export const getNewValidConnectionsDifficult = (oldBoard, newBoard, colors) => {
         newBoard[row][col].color
       ) {
         console.log(
-          `Influencer cell [${row},${col}] was just placed with ${cell.color}`
+          `🔍 DIFFICULT DEBUG: Influencer cell [${row},${col}] was just placed with ${newBoard[row][col].color}`
         );
-
-        // Find nearby influenced cells that might now be valid
+        // Only adjacent influenced cells are candidates
         const directions = [
           [-1, 0],
           [1, 0],
@@ -974,36 +999,126 @@ export const getNewValidConnectionsDifficult = (oldBoard, newBoard, colors) => {
             c < newBoard[0].length
           ) {
             const nearbyCell = newBoard[r][c];
+            console.log(
+              `🔍 DIFFICULT DEBUG: Checking adjacent cell [${r},${c}] - isInfluencer:${nearbyCell.isInfluencer}, isActive:${nearbyCell.isActive}, color:${nearbyCell.color}, isThreeNeighbor:${nearbyCell.isThreeNeighbor}`
+            );
+
+            // Case 1: colored influenced cell that just became valid
             if (
               !nearbyCell.isInfluencer &&
               nearbyCell.isActive &&
-              nearbyCell.color &&
-              !nearbyCell.isClue
+              nearbyCell.color
             ) {
-              const wasValid = checkCellDifficult(oldBoard, r, c, colors);
-              const isNowValid = checkCellDifficult(newBoard, r, c, colors);
+              // For three-neighbor cells, check if the neighbor count changed
+              if (nearbyCell.isThreeNeighbor) {
+                const oldNeighbors = getNeighborsDifficult(oldBoard, r, c);
+                const newNeighbors = getNeighborsDifficult(newBoard, r, c);
+                const oldColoredCount = oldNeighbors.filter(
+                  (n) => n.color
+                ).length;
+                const newColoredCount = newNeighbors.filter(
+                  (n) => n.color
+                ).length;
+                const becameCompleteThisTurn =
+                  oldColoredCount === 2 && newColoredCount === 3;
 
-              if (!wasValid && isNowValid) {
-                const neighbors = getNeighborsDifficult(newBoard, r, c);
                 console.log(
-                  `🎉 Influencer placement enabled valid connection at [${r},${c}]!`
+                  `🔍 DIFFICULT DEBUG: Case 1 - three-neighbor cell [${r},${c}] oldColoredCount:${oldColoredCount}, newColoredCount:${newColoredCount}, becameCompleteThisTurn:${becameCompleteThisTurn}`
                 );
 
-                // Calculate mixing directions for animation
-                const mixingInfo = {
-                  influenced: { row: r, col: c, color: nearbyCell.color },
-                  influencers: neighbors.map((n) => ({
-                    row: n.row,
-                    col: n.col,
-                    color: n.color,
-                    direction: getDirectionDifficult(r, c, n.row, n.col),
-                  })),
-                  mixingType:
-                    neighbors.length === 2 ? "two-color" : "three-color",
-                  colors: neighbors.map((n) => n.color).sort(),
-                };
+                if (becameCompleteThisTurn) {
+                  const neighbors = getNeighborsDifficult(newBoard, r, c);
+                  const mixingInfo = {
+                    influenced: { row: r, col: c, color: nearbyCell.color },
+                    influencers: neighbors.map((n) => ({
+                      row: n.row,
+                      col: n.col,
+                      color: n.color,
+                      direction: getDirectionDifficult(r, c, n.row, n.col),
+                    })),
+                    mixingType: "three-color",
+                    colors: neighbors.map((n) => n.color).sort(),
+                  };
+                  pushConn(mixingInfo);
+                }
+              } else {
+                // For two-neighbor cells, check if the neighbor count changed from 1 to 2
+                const oldNeighbors = getNeighborsDifficult(oldBoard, r, c);
+                const newNeighbors = getNeighborsDifficult(newBoard, r, c);
+                const oldColoredCount = oldNeighbors.filter(
+                  (n) => n.color
+                ).length;
+                const newColoredCount = newNeighbors.filter(
+                  (n) => n.color
+                ).length;
+                const becameCompleteThisTurn =
+                  oldColoredCount === 1 && newColoredCount === 2;
 
-                newValidConnections.push(mixingInfo);
+                console.log(
+                  `🔍 DIFFICULT DEBUG: Case 1 - two-neighbor cell [${r},${c}] oldColoredCount:${oldColoredCount}, newColoredCount:${newColoredCount}, becameCompleteThisTurn:${becameCompleteThisTurn}`
+                );
+
+                if (becameCompleteThisTurn) {
+                  const neighbors = getNeighborsDifficult(newBoard, r, c);
+                  const mixingInfo = {
+                    influenced: { row: r, col: c, color: nearbyCell.color },
+                    influencers: neighbors.map((n) => ({
+                      row: n.row,
+                      col: n.col,
+                      color: n.color,
+                      direction: getDirectionDifficult(r, c, n.row, n.col),
+                    })),
+                    mixingType: "two-color",
+                    colors: neighbors.map((n) => n.color).sort(),
+                  };
+                  pushConn(mixingInfo);
+                }
+              }
+              // Case 2: three-neighbor empty cell that now has 3 colored influencers
+            } else if (
+              !nearbyCell.isInfluencer &&
+              nearbyCell.isActive &&
+              !nearbyCell.color &&
+              nearbyCell.isThreeNeighbor
+            ) {
+              const oldNeighbors = getNeighborsDifficult(oldBoard, r, c);
+              const newNeighbors = getNeighborsDifficult(newBoard, r, c);
+              const oldColors = oldNeighbors
+                .filter((n) => n.color)
+                .map((n) => n.color);
+              const newColors = newNeighbors
+                .filter((n) => n.color)
+                .map((n) => n.color);
+              const includesPlaced = newNeighbors.some(
+                (n) => n.row === row && n.col === col && !!n.color
+              );
+              console.log(
+                `🔍 DIFFICULT DEBUG: Case 2 - empty three-neighbor cell [${r},${c}] oldColors:${oldColors.length}, newColors:${newColors.length}, includesPlaced:${includesPlaced}`
+              );
+              if (
+                oldColors.length === 2 &&
+                newColors.length === 3 &&
+                includesPlaced
+              ) {
+                const result = getInfluencedColorDifficult(
+                  newColors,
+                  colors,
+                  true
+                );
+                if (result) {
+                  const mixingInfo = {
+                    influenced: { row: r, col: c, color: result },
+                    influencers: newNeighbors.map((n) => ({
+                      row: n.row,
+                      col: n.col,
+                      color: n.color,
+                      direction: getDirectionDifficult(r, c, n.row, n.col),
+                    })),
+                    mixingType: "three-color",
+                    colors: newColors.slice().sort(),
+                  };
+                  pushConn(mixingInfo);
+                }
               }
             }
           }

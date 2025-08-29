@@ -35,6 +35,8 @@ import LeaderboardDisplay from "./components/LeaderboardDisplay";
 import {
   playErrorSound,
   playSuccessSound,
+  playStartSound,
+  playCelebrationSound,
   toggleSound,
   isSoundEnabled,
   initAudioContext,
@@ -252,6 +254,7 @@ const App = () => {
 
   const triggerCelebration = () => {
     setLightAnimation(true);
+    playCelebrationSound();
     setTimeout(() => {
       setLightAnimation(false);
       setShowCongrats(true);
@@ -684,7 +687,9 @@ const App = () => {
                       )
                     : getInfluencedColor(neighborColors, config.COLORS);
 
-                if (expectedColor !== color) {
+                // Only trigger error animation if the placement is actually wrong (doesn't match solution)
+                const solutionColor = solutionBoard[row]?.[col]?.color;
+                if (expectedColor !== color && solutionColor !== color) {
                   // Animate the cell that was just placed (more intuitive)
                   attemptInfo = {
                     influenced: { row, col, color: color },
@@ -738,7 +743,12 @@ const App = () => {
                         )
                       : getInfluencedColor(neighborColors, config.COLORS);
 
-                  if (expectedColor !== influenced.color) {
+                  // Only trigger error animation if the placement is actually wrong (doesn't match solution)
+                  const solutionColor = solutionBoard[row]?.[col]?.color;
+                  if (
+                    expectedColor !== influenced.color &&
+                    solutionColor !== color
+                  ) {
                     // Animate the cell that was just placed (the gray cell causing the error)
                     attemptInfo = {
                       influenced: { row, col, color: color }, // The cell just placed
@@ -925,6 +935,24 @@ const App = () => {
           <h1 className="text-2xl font-bold mb-3">Colors</h1>
 
           <div className="mb-4 flex items-center gap-2">
+            <button
+              onClick={() => {
+                const newSoundState = toggleSound();
+                console.log("Sound toggled:", newSoundState ? "ON" : "OFF");
+                // Initialize audio context on first user interaction
+                if (newSoundState) {
+                  initAudioContext();
+                }
+              }}
+              className={`px-3 py-2 text-white rounded transition-colors ${
+                isSoundEnabled()
+                  ? "bg-green-500 hover:bg-green-600"
+                  : "bg-gray-500 hover:bg-gray-600"
+              }`}
+              title={isSoundEnabled() ? "Sound: ON" : "Sound: OFF"}
+            >
+              {isSoundEnabled() ? "🔊" : "🔇"}
+            </button>
             <select
               value={difficulty}
               onChange={handleDifficultyChange}
@@ -944,24 +972,6 @@ const App = () => {
               title="View Leaderboard"
             >
               🏆
-            </button>
-            <button
-              onClick={() => {
-                const newSoundState = toggleSound();
-                console.log("Sound toggled:", newSoundState ? "ON" : "OFF");
-                // Initialize audio context on first user interaction
-                if (newSoundState) {
-                  initAudioContext();
-                }
-              }}
-              className={`px-3 py-2 text-white rounded transition-colors ${
-                isSoundEnabled()
-                  ? "bg-green-500 hover:bg-green-600"
-                  : "bg-gray-500 hover:bg-gray-600"
-              }`}
-              title={isSoundEnabled() ? "Sound: ON" : "Sound: OFF"}
-            >
-              {isSoundEnabled() ? "🔊" : "🔇"}
             </button>
           </div>
           <div
@@ -1055,6 +1065,7 @@ const App = () => {
                   togglePause();
                 } else {
                   console.log("Start Game button clicked");
+                  playStartSound();
                   initializeBoard();
                 }
               }}
