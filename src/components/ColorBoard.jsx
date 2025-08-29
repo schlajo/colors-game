@@ -12,7 +12,6 @@ const ColorBoard = ({
   provenCorrectCells,
   provenMixingInfo,
 }) => {
-  console.log("ColorBoard rendering with board:", board);
   if (!board || board.length === 0) {
     return <div>Loading board...</div>;
   }

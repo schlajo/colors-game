@@ -86,19 +86,9 @@ const Cell = ({
       const resultColor = COLOR_VALUES[influenced.color];
 
       if (influencers.length === 2) {
-        console.log(
-          `Cell [${influenced.row},${influenced.col}] using 2-color mixing`
-        );
         // Standard 2-color mixing
         const directions = influencers.map((inf) => inf.direction);
         const colors = influencers.map((inf) => COLOR_VALUES[inf.color]);
-
-        console.log(
-          `Cell [${influenced.row},${influenced.col}] directions:`,
-          directions,
-          "colors:",
-          colors
-        );
 
         // Determine animation direction for permanent display
         let animationType = "diagonal-mix";
@@ -120,15 +110,8 @@ const Cell = ({
           isPermanent: true,
         };
 
-        console.log(
-          `Cell [${influenced.row},${influenced.col}] returning CSS:`,
-          result
-        );
         return result;
       } else if (influencers.length === 3) {
-        console.log(
-          `Cell [${influenced.row},${influenced.col}] using 3-color mixing`
-        );
         // Difficult mode 3-color mixing - create a triangular gradient
         const colors = influencers.map((inf) => COLOR_VALUES[inf.color]);
         return {

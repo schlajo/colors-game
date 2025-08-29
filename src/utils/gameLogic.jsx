@@ -787,6 +787,17 @@ const getNewValidConnections = (oldBoard, newBoard, colors) => {
   let influencedCellsFound = 0;
   let influencedCellsWithColors = 0;
 
+  // Helper: validate influenced cell ignoring isClue short-circuit
+  const isCellValidForConnections = (board, row, col) => {
+    const cell = board[row][col];
+    if (!cell.isActive || cell.isInfluencer || !cell.color) return false;
+    const neighbors = getNeighbors(board, row, col);
+    const neighborColors = neighbors.filter((n) => n.color).map((n) => n.color);
+    if (neighborColors.length !== 2) return false;
+    const expectedColor = getInfluencedColor(neighborColors, colors);
+    return expectedColor === cell.color;
+  };
+
   // Check all influenced cells to see if any became newly valid
   for (let row = 0; row < newBoard.length; row++) {
     for (let col = 0; col < newBoard[0].length; col++) {
@@ -801,9 +812,9 @@ const getNewValidConnections = (oldBoard, newBoard, colors) => {
       }
 
       // Only check influenced cells that have colors
-      if (!cell.isInfluencer && cell.isActive && cell.color && !cell.isClue) {
-        const wasValid = checkCell(oldBoard, row, col, colors);
-        const isNowValid = checkCell(newBoard, row, col, colors);
+      if (!cell.isInfluencer && cell.isActive && cell.color) {
+        const wasValid = isCellValidForConnections(oldBoard, row, col);
+        const isNowValid = isCellValidForConnections(newBoard, row, col);
 
         const oldNeighbors = getNeighbors(oldBoard, row, col);
         const newNeighbors = getNeighbors(newBoard, row, col);
@@ -862,8 +873,8 @@ const getNewValidConnections = (oldBoard, newBoard, colors) => {
         cell.isInfluencer &&
         cell.isActive &&
         !cell.isClue &&
-        !oldBoard[row][col].color &&
-        newBoard[row][col].color
+        newBoard[row][col].color &&
+        oldBoard[row][col].color !== newBoard[row][col].color
       ) {
         console.log(
           `Influencer cell [${row},${col}] was just placed with ${cell.color}`
@@ -889,11 +900,10 @@ const getNewValidConnections = (oldBoard, newBoard, colors) => {
             if (
               !nearbyCell.isInfluencer &&
               nearbyCell.isActive &&
-              nearbyCell.color &&
-              !nearbyCell.isClue
+              nearbyCell.color
             ) {
-              const wasValid = checkCell(oldBoard, r, c, colors);
-              const isNowValid = checkCell(newBoard, r, c, colors);
+              const wasValid = isCellValidForConnections(oldBoard, r, c);
+              const isNowValid = isCellValidForConnections(newBoard, r, c);
 
               if (!wasValid && isNowValid) {
                 const neighbors = getNeighbors(newBoard, r, c);
@@ -916,6 +926,49 @@ const getNewValidConnections = (oldBoard, newBoard, colors) => {
                 };
 
                 newValidConnections.push(mixingInfo);
+              }
+            } else if (
+              !nearbyCell.isInfluencer &&
+              nearbyCell.isActive &&
+              !nearbyCell.color
+            ) {
+              // Empty influenced cell: only animate if this gray placement
+              // transitions it from 1 to 2 colored neighbors, and the placed gray
+              // is one of the two.
+              const oldNeighbors = getNeighbors(oldBoard, r, c);
+              const newNeighbors = getNeighbors(newBoard, r, c);
+              const oldNeighborColors = oldNeighbors
+                .filter((n) => n.color)
+                .map((n) => n.color);
+              const newNeighborColors = newNeighbors
+                .filter((n) => n.color)
+                .map((n) => n.color);
+              const includesPlacedInfluencer = newNeighbors.some(
+                (n) => n.row === row && n.col === col && !!n.color
+              );
+              if (
+                oldNeighborColors.length === 1 &&
+                newNeighborColors.length === 2 &&
+                includesPlacedInfluencer
+              ) {
+                const expectedColor = getInfluencedColor(
+                  newNeighborColors,
+                  colors
+                );
+                if (expectedColor) {
+                  const mixingInfo = {
+                    influenced: { row: r, col: c, color: expectedColor },
+                    influencers: newNeighbors.map((n) => ({
+                      row: n.row,
+                      col: n.col,
+                      color: n.color,
+                      direction: getDirection(r, c, n.row, n.col),
+                    })),
+                    mixingType: "two-color",
+                    colors: newNeighborColors.slice().sort(),
+                  };
+                  newValidConnections.push(mixingInfo);
+                }
               }
             }
           }

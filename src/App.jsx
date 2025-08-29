@@ -628,11 +628,25 @@ const App = () => {
 
         setBoard(newBoard);
         console.log(`Cell [${row},${col}] updated to color: ${color}`);
+        console.log(
+          `🔍 PLACEMENT DEBUG: Found ${newConnections.length} new connections:`,
+          newConnections
+        );
+        console.log(
+          `🔍 PLACEMENT DEBUG: Cell is ${
+            newBoard[row][col].isInfluencer
+              ? "GRAY (influencer)"
+              : "WHITE (influenced)"
+          }`
+        );
+        console.log(
+          `🔍 PLACEMENT DEBUG: connectionAnimationActive = ${connectionAnimationActive}`
+        );
 
         // Always animate the attempt, whether correct or incorrect
         if (newConnections.length > 0) {
           console.log(
-            `Created ${newConnections.length} new valid connections:`,
+            `🎉 SUCCESS ANIMATION TRIGGERED: Created ${newConnections.length} new valid connections:`,
             newConnections,
             `Placed ${
               newBoard[row][col].isInfluencer ? "gray" : "white"
@@ -741,6 +755,11 @@ const App = () => {
           }
 
           if (attemptInfo) {
+            console.log(
+              `❌ ERROR ANIMATION TRIGGERED: Incorrect placement in ${
+                newBoard[row][col].isInfluencer ? "gray" : "white"
+              } cell [${row},${col}] with color ${color}`
+            );
             animateAttempt(attemptInfo);
           }
         }
