@@ -25,10 +25,10 @@ import {
 } from "./utils/gameLogicDifficult";
 import { v4 as uuidv4 } from "uuid";
 import Venns from "./assets/venn-words.png";
-import Blue from "./assets/cyan-blue-magenta-example.png";
-import CB from "./assets/cyan-blue-example.png";
-import RG from "./assets/red-green-example.png";
-import Yellow from "./assets/red-yellow-green-example.png";
+import Blue from "./assets/magenta-blue-cyan.png";
+import CB from "./assets/blue-cyan.png";
+import RG from "./assets/red-green.png";
+import Yellow from "./assets/red-yellow-green.png";
 import ColorMixingRules from "./components/ColorMixingRules";
 import GameCompletionModal from "./components/GameCompletionModal";
 import LeaderboardDisplay from "./components/LeaderboardDisplay";
@@ -880,9 +880,8 @@ const App = () => {
             <li>
               Use the provided{" "}
               <strong className="text-white">Color-Mixing Rules</strong> to fill
-              the white cells with the color that would result from the colors
-              of the two surrounding gray cells; or fill the gray cells with
-              colors that will produce the color in the white cells.
+              all the white cells with colors that would result from the surrounding gray cells.  Fill all the gray cells with
+              colors that will mix to produce the colors in the white cells.
             </li>
             <br></br>
             <li>
@@ -901,7 +900,7 @@ const App = () => {
             </li>
             <br></br>
             <li>
-              Cyan and what make Blue?
+              What and Cyan make Blue?
               <img
                 src={CB}
                 alt="a cyan tile on in agray cell with a blue tile next to it in a white cell"
@@ -1155,7 +1154,7 @@ const App = () => {
                   <strong className="text-white">Delete</strong>
                 </i>{" "}
                 removes a tile you've placed in the selected square. (You can't
-                delete the tiles you were given to start.)
+                delete the given starting tiles.)
               </li>
               <li className="mb-2">
                 <i>

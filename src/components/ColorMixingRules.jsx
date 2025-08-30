@@ -130,9 +130,14 @@ const ColorMixingRules = ({ difficulty }) => {
           through pigments, reflecting only certain wavelengths. An apple
           appears red because it absorbs most wavelengths, but reflects
           primarily red light back to our eyes. In contrast, additive mixing
-          (RGB) starts with black and adds colored light, as with TVs and
-          screens. Red, green, and blue light can combine to form white, making
+          (RGB) starts with black and adds colored light, as with TVs, monitors,
+and smartphones. Red, green, and blue light can combine to form white, making
           RGB the inverse of CMY.
+          <br />
+          <br />
+          The contrast between the two systems shows how our perception of color depends on context. The same red looks different on a glowing screen vs. printed on paper, since one comes from emitted light and the other from reflected light. {difficulty === "Easy" && (
+            <>  That’s why colors don’t always translate perfectly between digital displays and print.</>
+          )}
         </span>
       </div>
     </div>
