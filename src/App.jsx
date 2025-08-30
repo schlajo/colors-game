@@ -44,6 +44,12 @@ import {
 
 const App = () => {
   const [board, setBoard] = useState(null);
+  const [soundEnabled, setSoundEnabled] = useState(true);
+
+  // Initialize sound state on component mount
+  useEffect(() => {
+    setSoundEnabled(isSoundEnabled());
+  }, []);
   const [solutionBoard, setSolutionBoard] = useState([]);
   const [selectedCell, setSelectedCell] = useState(null);
   const [isGameWon, setIsGameWon] = useState(false);
@@ -880,8 +886,9 @@ const App = () => {
             <li>
               Use the provided{" "}
               <strong className="text-white">Color-Mixing Rules</strong> to fill
-              all the white cells with colors that would result from the surrounding gray cells.  Fill all the gray cells with
-              colors that will mix to produce the colors in the white cells.
+              all the white cells with colors that would result from the
+              surrounding gray cells. Fill all the gray cells with colors that
+              will mix to produce the colors in the white cells.
             </li>
             <br></br>
             <li>
@@ -937,6 +944,7 @@ const App = () => {
             <button
               onClick={() => {
                 const newSoundState = toggleSound();
+                setSoundEnabled(newSoundState);
                 console.log("Sound toggled:", newSoundState ? "ON" : "OFF");
                 // Initialize audio context on first user interaction
                 if (newSoundState) {
@@ -944,13 +952,13 @@ const App = () => {
                 }
               }}
               className={`px-3 py-2 text-white rounded transition-colors ${
-                isSoundEnabled()
-                  ? "bg-green-500 hover:bg-green-600"
+                soundEnabled
+                  ? "bg-green-700 hover:bg-green-800"
                   : "bg-gray-500 hover:bg-gray-600"
               }`}
-              title={isSoundEnabled() ? "Sound: ON" : "Sound: OFF"}
+              title={soundEnabled ? "Sound: ON" : "Sound: OFF"}
             >
-              {isSoundEnabled() ? "🔊" : "🔇"}
+              {soundEnabled ? "🔊" : "🔇"}
             </button>
             <select
               value={difficulty}
@@ -967,7 +975,7 @@ const App = () => {
                 console.log("Leaderboard button clicked");
                 setShowLeaderboard(true);
               }}
-              className="px-3 py-2 bg-indigo-500 text-white rounded hover:bg-indigo-600 transition-colors"
+              className="px-3 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition-colors"
               title="View Leaderboard"
             >
               🏆
