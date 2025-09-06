@@ -540,7 +540,35 @@ const App = () => {
 
     newBoard[row][col].color = hintColor;
     newBoard[row][col].isIncorrect = false;
+
+    // Check for new valid connections created by this hint placement
+    const newConnections =
+      difficulty === "Difficult"
+        ? getNewValidConnectionsDifficult(board, newBoard, config.COLORS)
+        : getNewValidConnections(board, newBoard, config.COLORS);
+
     setBoard(newBoard);
+    console.log(
+      `Hint provided: Cell [${row},${col}] set to ${newBoard[row][col].color}`
+    );
+    console.log(
+      `🔍 HINT DEBUG: Found ${newConnections.length} new connections:`,
+      newConnections
+    );
+
+    // Play success sound and animate if hint created valid connections
+    if (newConnections.length > 0) {
+      console.log(
+        `🎉 HINT SUCCESS ANIMATION TRIGGERED: Created ${newConnections.length} new valid connections:`,
+        newConnections,
+        `Hint placed ${
+          newBoard[row][col].isInfluencer ? "gray" : "white"
+        } cell [${row},${col}] with color ${hintColor}`
+      );
+      // Prevent auto-update during animation to ensure proper mixing animation
+      setSkipAutoUpdate(true);
+      animateNewConnections(newConnections);
+    }
 
     if (startTime) {
       setStartTime((prevStartTime) => {
@@ -552,9 +580,6 @@ const App = () => {
       setTimeout(() => setTimerShake(false), 500);
     }
 
-    console.log(
-      `Hint provided: Cell [${row},${col}] set to ${newBoard[row][col].color}`
-    );
     if (checkWinCondition(newBoard)) {
       setIsGameWon(true);
       triggerCelebration();

@@ -63,14 +63,14 @@ const playErrorSound = () => {
   }
 };
 
-// Liquid swoosh sound followed by cha-ching for successful mixing
+// Liquid swoosh sound for successful mixing
 const playSuccessSound = () => {
   if (!soundEnabled) return;
 
   try {
     const ctx = initAudioContext();
 
-    // === PART 1: Liquid Swoosh ===
+    // === Liquid Swoosh ===
     const swooshOsc = ctx.createOscillator();
     const swooshFilter = ctx.createBiquadFilter();
     const swooshGain = ctx.createGain();
@@ -111,43 +111,9 @@ const playSuccessSound = () => {
     swooshGain.gain.linearRampToValueAtTime(0.1, ctx.currentTime + 0.5);
     swooshGain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.8);
 
-    // === PART 2: Cha-Ching Sound ===
-    const chingOsc1 = ctx.createOscillator();
-    const chingOsc2 = ctx.createOscillator();
-    const chingOsc3 = ctx.createOscillator();
-    const chingGain = ctx.createGain();
-
-    // Connect cha-ching nodes
-    chingOsc1.connect(chingGain);
-    chingOsc2.connect(chingGain);
-    chingOsc3.connect(chingGain);
-    chingGain.connect(ctx.destination);
-
-    // Set up the cha-ching - harmonic chord
-    chingOsc1.type = "sine";
-    chingOsc2.type = "sine";
-    chingOsc3.type = "sine";
-
-    // Musical chord frequencies (C major)
-    chingOsc1.frequency.setValueAtTime(523, ctx.currentTime + 0.7); // C5
-    chingOsc2.frequency.setValueAtTime(659, ctx.currentTime + 0.7); // E5
-    chingOsc3.frequency.setValueAtTime(784, ctx.currentTime + 0.7); // G5
-
-    // Cha-ching volume envelope - bright chime
-    chingGain.gain.setValueAtTime(0, ctx.currentTime + 0.7);
-    chingGain.gain.linearRampToValueAtTime(0.3, ctx.currentTime + 0.72);
-    chingGain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 1.5);
-
-    // Play both parts
+    // Play the swoosh
     swooshOsc.start(ctx.currentTime);
     swooshOsc.stop(ctx.currentTime + 0.8);
-
-    chingOsc1.start(ctx.currentTime + 0.7);
-    chingOsc2.start(ctx.currentTime + 0.7);
-    chingOsc3.start(ctx.currentTime + 0.7);
-    chingOsc1.stop(ctx.currentTime + 1.5);
-    chingOsc2.stop(ctx.currentTime + 1.5);
-    chingOsc3.stop(ctx.currentTime + 1.5);
   } catch (error) {
     console.log("Audio not supported or failed:", error);
   }
@@ -206,14 +172,14 @@ const playStartSound = () => {
   }
 };
 
-// Celebratory completion sound - multiple futuristic sounds followed by ding
+// Celebratory completion sound - multiple futuristic swooshes
 const playCelebrationSound = () => {
   if (!soundEnabled) return;
 
   try {
     const ctx = initAudioContext();
 
-    // === PART 1: Multiple Futuristic Swooshes ===
+    // === Multiple Futuristic Swooshes ===
     for (let i = 0; i < 3; i++) {
       const delay = i * 0.4;
 
@@ -258,54 +224,6 @@ const playCelebrationSound = () => {
       swooshOsc.start(ctx.currentTime + delay);
       swooshOsc.stop(ctx.currentTime + delay + 0.35);
     }
-
-    // === PART 2: Grand Finale Ding ===
-    const finalDelay = 1.5;
-    const dingOsc1 = ctx.createOscillator();
-    const dingOsc2 = ctx.createOscillator();
-    const dingOsc3 = ctx.createOscillator();
-    const dingOsc4 = ctx.createOscillator();
-    const dingGain = ctx.createGain();
-
-    // Connect ding nodes
-    dingOsc1.connect(dingGain);
-    dingOsc2.connect(dingGain);
-    dingOsc3.connect(dingGain);
-    dingOsc4.connect(dingGain);
-    dingGain.connect(ctx.destination);
-
-    // Set up the grand finale ding - big major chord
-    dingOsc1.type = "sine";
-    dingOsc2.type = "sine";
-    dingOsc3.type = "sine";
-    dingOsc4.type = "sine";
-
-    // Rich major chord (C major with octave)
-    dingOsc1.frequency.setValueAtTime(523, ctx.currentTime + finalDelay); // C5
-    dingOsc2.frequency.setValueAtTime(659, ctx.currentTime + finalDelay); // E5
-    dingOsc3.frequency.setValueAtTime(784, ctx.currentTime + finalDelay); // G5
-    dingOsc4.frequency.setValueAtTime(1047, ctx.currentTime + finalDelay); // C6
-
-    // Grand finale volume envelope - bright and triumphant
-    dingGain.gain.setValueAtTime(0, ctx.currentTime + finalDelay);
-    dingGain.gain.linearRampToValueAtTime(
-      0.4,
-      ctx.currentTime + finalDelay + 0.02
-    );
-    dingGain.gain.exponentialRampToValueAtTime(
-      0.01,
-      ctx.currentTime + finalDelay + 2.0
-    );
-
-    // Play the grand finale
-    dingOsc1.start(ctx.currentTime + finalDelay);
-    dingOsc2.start(ctx.currentTime + finalDelay);
-    dingOsc3.start(ctx.currentTime + finalDelay);
-    dingOsc4.start(ctx.currentTime + finalDelay);
-    dingOsc1.stop(ctx.currentTime + finalDelay + 2.0);
-    dingOsc2.stop(ctx.currentTime + finalDelay + 2.0);
-    dingOsc3.stop(ctx.currentTime + finalDelay + 2.0);
-    dingOsc4.stop(ctx.currentTime + finalDelay + 2.0);
   } catch (error) {
     console.log("Audio not supported or failed:", error);
   }
