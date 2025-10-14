@@ -158,6 +158,11 @@ const Cell = ({
       onClick={handleClick}
       className={`cell border border-gray-300 flex items-center justify-center relative
         ${
+          !cell.isHole
+            ? "transition-all duration-200 hover:transform hover:scale-105 hover:shadow-lg hover:z-10"
+            : ""
+        }
+        ${
           cell.isHole
             ? "bg-black cursor-default"
             : cell.isClue
