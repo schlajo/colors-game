@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import ColorBoard from "./components/ColorBoard";
+import BranchingBoard from "./components/BranchingBoard";
 import ColorPalette from "./components/ColorPalette";
 import {
   generateSolution,
@@ -23,6 +24,12 @@ import {
   getDirectionDifficult,
   getInfluencedNeighbors,
 } from "./utils/gameLogicDifficult";
+import {
+  createSimpleBranchingPuzzle,
+  branchingToBoard,
+  checkBranchingSolution,
+  validateBranchingPlacement,
+} from "./utils/branchingLogic";
 import { v4 as uuidv4 } from "uuid";
 import Venns from "./assets/venn-words.png";
 import Blue from "./assets/magenta-blue-cyan.png";
@@ -44,6 +51,7 @@ import {
 
 const App = () => {
   const [board, setBoard] = useState(null);
+  const [branchingData, setBranchingData] = useState(null);
   const [soundEnabled, setSoundEnabled] = useState(true);
 
   // Initialize sound state on component mount
@@ -61,6 +69,7 @@ const App = () => {
   const [isPaused, setIsPaused] = useState(false);
   const [timerShake, setTimerShake] = useState(false);
   const [difficulty, setDifficulty] = useState("Easy");
+  const [gameMode, setGameMode] = useState("Grid");
   const [showWelcomeOverlay, setShowWelcomeOverlay] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
   const [showCompletionModal, setShowCompletionModal] = useState(false);
@@ -98,10 +107,10 @@ const App = () => {
 
   // Check for all valid connections whenever the board changes
   useEffect(() => {
-    if (board && !skipAutoUpdate) {
+    if (board && !skipAutoUpdate && gameMode !== "Branching") {
       updateAllValidConnections();
     }
-  }, [board, difficulty, skipAutoUpdate]);
+  }, [board, difficulty, skipAutoUpdate, gameMode]);
 
   const formatTime = (ms) => {
     const seconds = Math.floor((ms / 1000) % 60);
@@ -113,8 +122,42 @@ const App = () => {
 
   const initializeBoard = () => {
     if (!difficulty) return;
-    console.log("initializeBoard called with difficulty:", difficulty);
+    console.log(
+      "initializeBoard called with difficulty:",
+      difficulty,
+      "mode:",
+      gameMode
+    );
 
+    if (gameMode === "Branching") {
+      // Initialize branching puzzle
+      console.log("Initializing branching puzzle...");
+      const branchingPuzzle = createSimpleBranchingPuzzle();
+      console.log("Branching puzzle created:", branchingPuzzle);
+      setBranchingData(branchingPuzzle);
+
+      // Convert to board format for compatibility with existing systems
+      const compatBoard = branchingToBoard(branchingPuzzle);
+      console.log("Compat board created:", compatBoard);
+      setBoard(compatBoard);
+      setSolutionBoard(compatBoard); // For now, use the same board
+
+      setStartTime(Date.now());
+      setElapsedTime(0);
+      setGameStarted(true);
+      setIsPaused(false);
+      setShowWelcomeOverlay(false);
+      setSelectedCell(null);
+      setIsGameWon(false);
+      setLightAnimation(false);
+      setShowCongrats(false);
+      setProvenCorrectCells(new Set());
+      setProvenMixingInfo(new Map());
+      console.log("Branching puzzle initialization complete");
+      return;
+    }
+
+    // Original grid puzzle logic
     let solution, puzzleObj;
 
     if (difficulty === "Difficult") {
@@ -627,6 +670,33 @@ const App = () => {
 
   const handleCellClick = (row, col) => {
     if (isGameWon || isPaused) return;
+
+    if (gameMode === "Branching") {
+      // Find the cell in branching data
+      const cellId = Object.keys(branchingData.cells).find(
+        (id) =>
+          branchingData.cells[id].row === row &&
+          branchingData.cells[id].col === col
+      );
+
+      if (!cellId) return;
+
+      const cell = branchingData.cells[cellId];
+      console.log(
+        `Branching cell clicked: [${row},${col}], isClue=${cell.isClue}, hasColor=${cell.color}`
+      );
+
+      if (cell.isClue) {
+        console.log(`Cell [${row},${col}] is a clue, cannot interact`);
+        return;
+      }
+
+      setSelectedCell([row, col]);
+      console.log(`Branching cell [${row},${col}] highlighted`);
+      return;
+    }
+
+    // Original grid logic
     console.log(
       `Cell clicked: [${row},${col}], isHole=${board[row][col].isHole}, isClue=${board[row][col].isClue}, hasColor=${board[row][col].color}`
     );
@@ -646,6 +716,36 @@ const App = () => {
       return;
     }
     const [row, col] = selectedCell;
+
+    if (gameMode === "Branching") {
+      // Handle branching puzzle color placement
+      const cellId = Object.keys(branchingData.cells).find(
+        (id) =>
+          branchingData.cells[id].row === row &&
+          branchingData.cells[id].col === col
+      );
+
+      if (!cellId || branchingData.cells[cellId].isClue) {
+        alert("Cannot modify this cell!");
+        return;
+      }
+
+      // Update the branching data
+      const newBranchingData = JSON.parse(JSON.stringify(branchingData));
+      newBranchingData.cells[cellId].color = color;
+      setBranchingData(newBranchingData);
+
+      console.log(`Branching cell [${row},${col}] updated to color: ${color}`);
+
+      // Check if puzzle is solved
+      if (checkBranchingSolution(newBranchingData)) {
+        console.log("Branching puzzle solved!");
+        setIsGameWon(true);
+        triggerCelebration();
+      }
+
+      return;
+    }
     if (!board[row][col].isHole && !board[row][col].isClue) {
       const newBoard = JSON.parse(JSON.stringify(board));
       if (board[row][col].color !== color) {
@@ -867,95 +967,108 @@ const App = () => {
         --inner-size: ${38 - config.GRID_SIZE}px;
       }`}
       </style>
-      <div className="app-container flex flex-col lg:flex-row justify-center gap-4 p-4 w-full max-w-6xl mx-auto relative">
-        {/* Left Panel: Instructions */}
-        <div className="instruction-panel lg:w-1/2 w-full mt-4 lg:mb-0 bg-gray-800 p-4 rounded-lg">
-          <h2 className="text-xl font-bold text-white mb-4 text-center">
-            About the Game
-          </h2>
-          <div className="text-gray-300 mb-6">
-            <p className="mb-3">
-              This puzzle game combines two different color-mixing systems that
-              are inverse to each other.{" "}
-              <i>
-                <strong className="text-white">
-                  {" "}
-                  Subtractive Mixing (CMY){" "}
-                </strong>
-              </i>
-              will feel more intuitive for you, as it corresponds to the colors
-              we see reflected off of everyday objects.
-              <i>
-                <strong className="text-white"> Additive Mixing (RGB)</strong>
-              </i>
-              , however, may seem foreign to you becasue it refers to the colors
-              of light before they are reflected off of an object. Players must
-              logically deduce which colors belong in each cell using these
-              complementary mixing systems, creating a unique puzzle experience
-              that teaches real color theory.
-            </p>
+      <div
+        className={`app-container flex flex-col ${
+          gameMode === "Branching" ? "" : "lg:flex-row"
+        } justify-center gap-4 p-4 w-full ${
+          gameMode === "Branching" ? "max-w-full" : "max-w-6xl"
+        } mx-auto relative`}
+      >
+        {/* Left Panel: Instructions - Hidden in Branching mode */}
+        {gameMode !== "Branching" && (
+          <div className="instruction-panel lg:w-1/2 w-full mt-4 lg:mb-0 bg-gray-800 p-4 rounded-lg">
+            <h2 className="text-xl font-bold text-white mb-4 text-center">
+              About the Game
+            </h2>
+            <div className="text-gray-300 mb-6">
+              <p className="mb-3">
+                This puzzle game combines two different color-mixing systems
+                that are inverse to each other.{" "}
+                <i>
+                  <strong className="text-white">
+                    {" "}
+                    Subtractive Mixing (CMY){" "}
+                  </strong>
+                </i>
+                will feel more intuitive for you, as it corresponds to the
+                colors we see reflected off of everyday objects.
+                <i>
+                  <strong className="text-white"> Additive Mixing (RGB)</strong>
+                </i>
+                , however, may seem foreign to you becasue it refers to the
+                colors of light before they are reflected off of an object.
+                Players must logically deduce which colors belong in each cell
+                using these complementary mixing systems, creating a unique
+                puzzle experience that teaches real color theory.
+              </p>
+            </div>
+
+            <h3 className="text-xl font-bold text-white mb-2 text-center">
+              How to Play
+            </h3>
+            <ul className="list-none list-inside text-gray-300">
+              <li>
+                The objective of the game is to fill all the white and gray
+                cells with the correct colors. Black cells are inactive, gray
+                cells are influencers, and white cells are influenced by
+                surrounding gray cells.
+              </li>
+              <br></br>
+
+              <li>
+                Use the provided{" "}
+                <strong className="text-white">Color-Mixing Rules</strong> to
+                fill all the white cells with colors that would result from the
+                surrounding gray cells. Fill all the gray cells with colors that
+                will mix to produce the colors in the white cells.
+              </li>
+              <br></br>
+              <li>
+                So Red and Green...
+                <img
+                  src={RG}
+                  alt="red and green surrounding and empty white cell"
+                  className="max-w-[76] h-10 mx-auto"
+                />
+                ......make Yellow (using Additive Mixing).
+                <img
+                  src={Yellow}
+                  alt="a yellow tile surrounded by a red tile and a green tile"
+                  className="max-w-[76] h-10 mx-auto"
+                />
+              </li>
+              <br></br>
+              <li>
+                What and Cyan make Blue?
+                <img
+                  src={CB}
+                  alt="a cyan tile on in agray cell with a blue tile next to it in a white cell"
+                  className="max-w-[76] h-10 mx-auto"
+                />
+                .......Magenta (using Subtractive Mixing).
+                <img
+                  src={Blue}
+                  alt="a blue tile surrounded by a cyan tile and a magenta tile"
+                  className="max-w-[76] h-10 mx-auto"
+                />
+              </li>
+              <br></br>
+              <li>
+                Click a cell to select it, outlining it in blue. (You can't
+                select pre-tiled cells.) To fill a cell, choose a color from the
+                palette below the board. Logic applies vertically and
+                horizontally.
+              </li>
+            </ul>
           </div>
-
-          <h3 className="text-xl font-bold text-white mb-2 text-center">
-            How to Play
-          </h3>
-          <ul className="list-none list-inside text-gray-300">
-            <li>
-              The objective of the game is to fill all the white and gray cells
-              with the correct colors. Black cells are inactive, gray cells are
-              influencers, and white cells are influenced by surrounding gray
-              cells.
-            </li>
-            <br></br>
-
-            <li>
-              Use the provided{" "}
-              <strong className="text-white">Color-Mixing Rules</strong> to fill
-              all the white cells with colors that would result from the
-              surrounding gray cells. Fill all the gray cells with colors that
-              will mix to produce the colors in the white cells.
-            </li>
-            <br></br>
-            <li>
-              So Red and Green...
-              <img
-                src={RG}
-                alt="red and green surrounding and empty white cell"
-                className="max-w-[76] h-10 mx-auto"
-              />
-              ......make Yellow (using Additive Mixing).
-              <img
-                src={Yellow}
-                alt="a yellow tile surrounded by a red tile and a green tile"
-                className="max-w-[76] h-10 mx-auto"
-              />
-            </li>
-            <br></br>
-            <li>
-              What and Cyan make Blue?
-              <img
-                src={CB}
-                alt="a cyan tile on in agray cell with a blue tile next to it in a white cell"
-                className="max-w-[76] h-10 mx-auto"
-              />
-              .......Magenta (using Subtractive Mixing).
-              <img
-                src={Blue}
-                alt="a blue tile surrounded by a cyan tile and a magenta tile"
-                className="max-w-[76] h-10 mx-auto"
-              />
-            </li>
-            <br></br>
-            <li>
-              Click a cell to select it, outlining it in blue. (You can't select
-              pre-tiled cells.) To fill a cell, choose a color from the palette
-              below the board. Logic applies vertically and horizontally.
-            </li>
-          </ul>
-        </div>
+        )}
 
         {/* Center: Game Board and Controls */}
-        <div className="flex flex-col items-center w-full lg:w-2/4 relative">
+        <div
+          className={`flex flex-col items-center w-full ${
+            gameMode === "Branching" ? "" : "lg:w-2/4"
+          } relative`}
+        >
           <div className="flex justify-center mb-2 mt-5">
             <img
               src={Venns}
@@ -965,7 +1078,7 @@ const App = () => {
           </div>
           <h1 className="text-2xl font-bold mb-3">Colors</h1>
 
-          <div className="mb-4 flex items-center gap-2">
+          <div className="mb-4 flex items-center gap-2 flex-wrap">
             <button
               onClick={() => {
                 const newSoundState = toggleSound();
@@ -985,6 +1098,15 @@ const App = () => {
             >
               {soundEnabled ? "🔊" : "🔇"}
             </button>
+            <select
+              value={gameMode}
+              onChange={(e) => setGameMode(e.target.value)}
+              className="px-4 py-2 bg-gray-800 text-white rounded z-20"
+              disabled={gameStarted && !showCongrats && !isPaused}
+            >
+              <option value="Grid">Grid Puzzle</option>
+              <option value="Branching">Branching Puzzle</option>
+            </select>
             <select
               value={difficulty}
               onChange={handleDifficultyChange}
@@ -1008,10 +1130,18 @@ const App = () => {
           </div>
           <div
             className="relative board-container"
-            style={{
-              minHeight: boardContainerSize,
-              maxWidth: boardContainerSize,
-            }}
+            style={
+              gameMode === "Branching"
+                ? {
+                    minHeight: "400px",
+                    width: "100%",
+                    maxWidth: "800px",
+                  }
+                : {
+                    minHeight: boardContainerSize,
+                    maxWidth: boardContainerSize,
+                  }
+            }
           >
             {board &&
               (isPaused ? (
@@ -1020,6 +1150,19 @@ const App = () => {
                     Paused
                   </div>
                 </div>
+              ) : gameMode === "Branching" ? (
+                <>
+                  <div className="text-white mb-2">
+                    Rendering Branching Board
+                  </div>
+                  <BranchingBoard
+                    branchingData={branchingData}
+                    onCellClick={handleCellClick}
+                    selectedCell={selectedCell}
+                    lightAnimation={lightAnimation}
+                    cellSize={cellSize}
+                  />
+                </>
               ) : (
                 <ColorBoard
                   board={board}
@@ -1041,8 +1184,8 @@ const App = () => {
                     difficulty === "Difficult" ? "difficult" : ""
                   }`}
                 >
-                  Welcome to Colors! Select difficulty level above and click
-                  Start below.
+                  Welcome to Colors! Select game mode and difficulty level
+                  above, then click Start below.
                 </div>
               </div>
             )}
@@ -1199,9 +1342,10 @@ const App = () => {
           </div>
         </div>
 
-        {/* Right Panel: Color-Mixing Rules */}
-
-        <ColorMixingRules difficulty={difficulty} />
+        {/* Right Panel: Color-Mixing Rules - Hidden in Branching mode */}
+        {gameMode !== "Branching" && (
+          <ColorMixingRules difficulty={difficulty} />
+        )}
       </div>
 
       {/* Game Completion Modal */}
