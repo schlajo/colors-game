@@ -71,6 +71,8 @@ const App = () => {
   const [provenCorrectCells, setProvenCorrectCells] = useState(new Set());
   const [provenMixingInfo, setProvenMixingInfo] = useState(new Map());
   const [skipAutoUpdate, setSkipAutoUpdate] = useState(false);
+  const [showHowToPlay, setShowHowToPlay] = useState(false);
+  const [showColorRules, setShowColorRules] = useState(false);
 
   // Initialize Easy board on mount
   useEffect(() => {
@@ -859,6 +861,127 @@ const App = () => {
     config.GRID_SIZE * cellSize + (config.GRID_SIZE - 1) * 4
   }px`;
 
+  // Content for How to Play section (reusable)
+  const HowToPlayContent = ({ includeGameControls = false }) => (
+    <>
+      <h2 className="text-xl font-bold text-white mb-4 text-center">
+        About the Game
+      </h2>
+      <div className="text-gray-300 mb-6">
+        <p className="mb-3">
+          This puzzle game combines two different color-mixing systems that are
+          inverse to each other.{" "}
+          <i>
+            <strong className="text-white"> Subtractive Mixing (CMY) </strong>
+          </i>
+          will feel more intuitive for you, as it corresponds to the colors we
+          see reflected off of everyday objects.
+          <i>
+            <strong className="text-white"> Additive Mixing (RGB)</strong>
+          </i>
+          , however, may seem foreign to you becasue it refers to the colors of
+          light before they are reflected off of an object. Players must
+          logically deduce which colors belong in each cell using these
+          complementary mixing systems, creating a unique puzzle experience that
+          teaches real color theory.
+        </p>
+      </div>
+
+      <h3 className="text-xl font-bold text-white mb-2 text-center">
+        How to Play
+      </h3>
+      <ul className="list-none list-inside text-gray-300">
+        <li>
+          The objective of the game is to fill all the white and gray cells with
+          the correct colors. Black cells are inactive, gray cells are
+          influencers, and white cells are influenced by surrounding gray cells.
+        </li>
+        <br></br>
+
+        <li>
+          Use the provided{" "}
+          <strong className="text-white">Color-Mixing Rules</strong> to fill all
+          the white cells with colors that would result from the surrounding
+          gray cells. Fill all the gray cells with colors that will mix to
+          produce the colors in the white cells.
+        </li>
+        <br></br>
+        <li>
+          So Red and Green...
+          <img
+            src={RG}
+            alt="red and green surrounding and empty white cell"
+            className="max-w-[76] h-10 mx-auto"
+          />
+          ......make Yellow (using Additive Mixing).
+          <img
+            src={Yellow}
+            alt="a yellow tile surrounded by a red tile and a green tile"
+            className="max-w-[76] h-10 mx-auto"
+          />
+        </li>
+        <br></br>
+        <li>
+          What and Cyan make Blue?
+          <img
+            src={CB}
+            alt="a cyan tile on in agray cell with a blue tile next to it in a white cell"
+            className="max-w-[76] h-10 mx-auto"
+          />
+          .......Magenta (using Subtractive Mixing).
+          <img
+            src={Blue}
+            alt="a blue tile surrounded by a cyan tile and a magenta tile"
+            className="max-w-[76] h-10 mx-auto"
+          />
+        </li>
+        <br></br>
+        <li>
+          Click a cell to select it, outlining it in blue. (You can't select
+          pre-tiled cells.) To fill a cell, choose a color from the palette
+          below the board. Logic applies vertically and horizontally.
+        </li>
+      </ul>
+
+      {/* Game Controls - Only show on mobile */}
+      {includeGameControls && (
+        <>
+          <h3 className="text-xl font-bold text-white mb-3 text-center mt-6">
+            Game Controls
+          </h3>
+          <ul className="list-none list-inside text-gray-300">
+            <li className="mb-2">
+              <i>
+                <strong className="text-white">Hint</strong>
+              </i>{" "}
+              fills a random cell with the correct color, but penalizes you 20
+              seconds for every usage.
+            </li>
+            <li className="mb-2">
+              <i>
+                <strong className="text-white">Check</strong>
+              </i>{" "}
+              places red X's on all incorrect tiles.
+            </li>
+            <li className="mb-2">
+              <i>
+                <strong className="text-white">Delete</strong>
+              </i>{" "}
+              removes a tile you've placed in the selected square. (You can't
+              delete the given starting tiles.)
+            </li>
+            <li className="mb-2">
+              <i>
+                <strong className="text-white">Clear</strong>
+              </i>{" "}
+              removes all the tiles you've placed.
+            </li>
+          </ul>
+        </>
+      )}
+    </>
+  );
+
   return (
     <>
       <style>
@@ -868,94 +991,13 @@ const App = () => {
       }`}
       </style>
       <div className="app-container flex flex-col lg:flex-row justify-center gap-4 p-4 w-full max-w-6xl mx-auto relative">
-        {/* Left Panel: Instructions */}
-        <div className="instruction-panel lg:w-1/2 w-full mt-4 lg:mb-0 bg-gray-800 p-4 rounded-lg">
-          <h2 className="text-xl font-bold text-white mb-4 text-center">
-            About the Game
-          </h2>
-          <div className="text-gray-300 mb-6">
-            <p className="mb-3">
-              This puzzle game combines two different color-mixing systems that
-              are inverse to each other.{" "}
-              <i>
-                <strong className="text-white">
-                  {" "}
-                  Subtractive Mixing (CMY){" "}
-                </strong>
-              </i>
-              will feel more intuitive for you, as it corresponds to the colors
-              we see reflected off of everyday objects.
-              <i>
-                <strong className="text-white"> Additive Mixing (RGB)</strong>
-              </i>
-              , however, may seem foreign to you becasue it refers to the colors
-              of light before they are reflected off of an object. Players must
-              logically deduce which colors belong in each cell using these
-              complementary mixing systems, creating a unique puzzle experience
-              that teaches real color theory.
-            </p>
-          </div>
-
-          <h3 className="text-xl font-bold text-white mb-2 text-center">
-            How to Play
-          </h3>
-          <ul className="list-none list-inside text-gray-300">
-            <li>
-              The objective of the game is to fill all the white and gray cells
-              with the correct colors. Black cells are inactive, gray cells are
-              influencers, and white cells are influenced by surrounding gray
-              cells.
-            </li>
-            <br></br>
-
-            <li>
-              Use the provided{" "}
-              <strong className="text-white">Color-Mixing Rules</strong> to fill
-              all the white cells with colors that would result from the
-              surrounding gray cells. Fill all the gray cells with colors that
-              will mix to produce the colors in the white cells.
-            </li>
-            <br></br>
-            <li>
-              So Red and Green...
-              <img
-                src={RG}
-                alt="red and green surrounding and empty white cell"
-                className="max-w-[76] h-10 mx-auto"
-              />
-              ......make Yellow (using Additive Mixing).
-              <img
-                src={Yellow}
-                alt="a yellow tile surrounded by a red tile and a green tile"
-                className="max-w-[76] h-10 mx-auto"
-              />
-            </li>
-            <br></br>
-            <li>
-              What and Cyan make Blue?
-              <img
-                src={CB}
-                alt="a cyan tile on in agray cell with a blue tile next to it in a white cell"
-                className="max-w-[76] h-10 mx-auto"
-              />
-              .......Magenta (using Subtractive Mixing).
-              <img
-                src={Blue}
-                alt="a blue tile surrounded by a cyan tile and a magenta tile"
-                className="max-w-[76] h-10 mx-auto"
-              />
-            </li>
-            <br></br>
-            <li>
-              Click a cell to select it, outlining it in blue. (You can't select
-              pre-tiled cells.) To fill a cell, choose a color from the palette
-              below the board. Logic applies vertically and horizontally.
-            </li>
-          </ul>
+        {/* Left Panel: Instructions - Hidden on mobile */}
+        <div className="instruction-panel lg:w-1/2 w-full mt-4 lg:mb-0 bg-gray-800 p-4 rounded-lg hidden lg:block">
+          <HowToPlayContent includeGameControls={false} />
         </div>
 
         {/* Center: Game Board and Controls */}
-        <div className="flex flex-col items-center w-full lg:w-2/4 relative">
+        <div className="flex flex-col items-center w-full lg:w-2/4 relative order-first lg:order-none">
           <div className="flex justify-center mb-2 mt-5">
             <img
               src={Venns}
@@ -1163,8 +1205,8 @@ const App = () => {
             </button>
           </div>
 
-          {/* Game Controls - Bottom of Center Column */}
-          <div className="mt-8 bg-gray-800 p-4 rounded-lg w-full max-w-md">
+          {/* Game Controls - Bottom of Center Column - Hidden on mobile */}
+          <div className="mt-8 bg-gray-800 p-4 rounded-lg w-full max-w-md hidden lg:block">
             <h3 className="text-xl font-bold text-white mb-3 text-center">
               Game Controls
             </h3>
@@ -1199,9 +1241,57 @@ const App = () => {
           </div>
         </div>
 
-        {/* Right Panel: Color-Mixing Rules */}
+        {/* Right Panel: Color-Mixing Rules - Hidden on mobile */}
+        <div className="hidden lg:block">
+          <ColorMixingRules difficulty={difficulty} />
+        </div>
 
-        <ColorMixingRules difficulty={difficulty} />
+        {/* Mobile Collapsible Sections */}
+        <div className="lg:hidden w-full flex flex-col gap-4 mt-4 mb-8">
+          {/* How to Play Collapsible */}
+          <div className="bg-gray-700 rounded-lg overflow-hidden border-2 border-blue-500">
+            <button
+              onClick={() => setShowHowToPlay(!showHowToPlay)}
+              className="w-full px-4 py-3 flex justify-between items-center text-blue-300 font-bold text-lg hover:bg-gray-600 transition-colors"
+            >
+              <span>📖 How to Play</span>
+              <span
+                className={`transform transition-transform text-blue-300 ${
+                  showHowToPlay ? "rotate-180" : ""
+                }`}
+              >
+                ▼
+              </span>
+            </button>
+            {showHowToPlay && (
+              <div className="p-4 border-t-2 border-blue-500 bg-gray-800">
+                <HowToPlayContent includeGameControls={true} />
+              </div>
+            )}
+          </div>
+
+          {/* Color-Mixing Rules Collapsible */}
+          <div className="bg-gray-700 rounded-lg overflow-hidden border-2 border-blue-500">
+            <button
+              onClick={() => setShowColorRules(!showColorRules)}
+              className="w-full px-4 py-3 flex justify-between items-center text-blue-300 font-bold text-lg hover:bg-gray-600 transition-colors"
+            >
+              <span>🎨 Color-Mixing Rules</span>
+              <span
+                className={`transform transition-transform text-blue-300 ${
+                  showColorRules ? "rotate-180" : ""
+                }`}
+              >
+                ▼
+              </span>
+            </button>
+            {showColorRules && (
+              <div className="p-4 border-t-2 border-blue-500 bg-gray-800">
+                <ColorMixingRules difficulty={difficulty} />
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Game Completion Modal */}
