@@ -1242,11 +1242,11 @@ const App = () => {
           <div className="bg-gray-600 rounded-lg overflow-hidden border-2 border-gray-500">
             <button
               onClick={() => setShowHowToPlay(!showHowToPlay)}
-              className="w-full px-4 py-3 flex justify-between items-center text-blue-300 font-bold text-lg hover:bg-gray-500 transition-colors"
+              className="w-full px-4 py-3 flex justify-between items-center text-blue-500 font-bold text-lg hover:bg-gray-500 transition-colors"
             >
               <span>📖 How to Play</span>
               <span
-                className={`transform transition-transform text-blue-300 ${
+                className={`transform transition-transform text-blue-500 ${
                   showHowToPlay ? "rotate-180" : ""
                 }`}
               >
@@ -1254,7 +1254,7 @@ const App = () => {
               </span>
             </button>
             {showHowToPlay && (
-              <div className="p-4 border-t-2 border-gray-500 bg-gray-800">
+              <div className="p-4 border-t-2 border-gray-500 bg-gray-700">
                 <HowToPlayContent includeGameControls={true} />
               </div>
             )}
@@ -1264,11 +1264,11 @@ const App = () => {
           <div className="bg-gray-600 rounded-lg overflow-hidden border-2 border-gray-500">
             <button
               onClick={() => setShowColorRules(!showColorRules)}
-              className="w-full px-4 py-3 flex justify-between items-center text-blue-300 font-bold text-lg hover:bg-gray-500 transition-colors"
+              className="w-full px-4 py-3 flex justify-between items-center text-blue-500 font-bold text-lg hover:bg-gray-500 transition-colors"
             >
               <span>🎨 Color-Mixing Rules</span>
               <span
-                className={`transform transition-transform text-blue-300 ${
+                className={`transform transition-transform text-blue-500 ${
                   showColorRules ? "rotate-180" : ""
                 }`}
               >
@@ -1276,7 +1276,7 @@ const App = () => {
               </span>
             </button>
             {showColorRules && (
-              <div className="p-4 border-t-2 border-gray-500 bg-gray-800">
+              <div className="p-4 border-t-2 border-gray-500 bg-gray-700">
                 <ColorMixingRules difficulty={difficulty} />
               </div>
             )}
