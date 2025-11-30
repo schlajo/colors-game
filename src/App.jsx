@@ -990,9 +990,9 @@ const App = () => {
         --inner-size: ${38 - config.GRID_SIZE}px;
       }`}
       </style>
-      <div className="app-container flex flex-col lg:flex-row lg:justify-center gap-4 p-4 w-full mx-auto relative">
+      <div className="app-container flex flex-col lg:flex-row lg:justify-center lg:items-stretch gap-4 p-4 w-full mx-auto relative">
         {/* Left Panel: Instructions - Hidden on mobile */}
-        <div className="instruction-panel flex-1 lg:flex-none lg:w-1/4 w-full mt-4 lg:mb-0 bg-gray-800 p-4 rounded-lg hidden lg:block">
+        <div className="instruction-panel flex-1 lg:flex-none lg:w-[27%] w-full mt-4 lg:mb-0 bg-gray-800 p-4 rounded-lg hidden lg:block">
           <HowToPlayContent includeGameControls={false} />
         </div>
 
@@ -1232,7 +1232,7 @@ const App = () => {
         </div>
 
         {/* Right Panel: Color-Mixing Rules - Hidden on mobile */}
-        <div className="hidden lg:block lg:w-1/4">
+        <div className="hidden lg:flex lg:flex-col lg:flex-none lg:w-[27%]">
           <ColorMixingRules difficulty={difficulty} />
         </div>
 
