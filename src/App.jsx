@@ -990,14 +990,14 @@ const App = () => {
         --inner-size: ${38 - config.GRID_SIZE}px;
       }`}
       </style>
-      <div className="app-container flex flex-col lg:flex-row justify-center gap-4 p-4 w-full max-w-6xl mx-auto relative">
+      <div className="app-container flex flex-col lg:flex-row lg:justify-center gap-4 p-4 w-full mx-auto relative">
         {/* Left Panel: Instructions - Hidden on mobile */}
-        <div className="instruction-panel lg:w-1/2 w-full mt-4 lg:mb-0 bg-gray-800 p-4 rounded-lg hidden lg:block">
+        <div className="instruction-panel flex-1 lg:flex-none lg:w-1/4 w-full mt-4 lg:mb-0 bg-gray-800 p-4 rounded-lg hidden lg:block">
           <HowToPlayContent includeGameControls={false} />
         </div>
 
         {/* Center: Game Board and Controls */}
-        <div className="flex flex-col items-center w-full lg:w-2/4 relative order-first lg:order-none">
+        <div className="flex flex-col items-center flex-1 lg:flex-none lg:w-[40%] lg:relative order-first lg:order-none">
           <div className="flex justify-center mb-2 mt-5">
             <img
               src={Venns}
@@ -1052,7 +1052,6 @@ const App = () => {
             className="relative board-container"
             style={{
               minHeight: boardContainerSize,
-              maxWidth: boardContainerSize,
             }}
           >
             {board &&
@@ -1096,10 +1095,7 @@ const App = () => {
           >
             Time: {formatTime(elapsedTime)}
           </div>
-          <div
-            className="w-full lg:w-2/4 max-w-md flex flex-wrap justify-center gap-1 mt-2"
-            style={{ maxWidth: "680px" }}
-          >
+          <div className="w-full lg:w-full flex flex-wrap justify-center gap-1 mt-2">
             <ColorPalette
               onColorClick={handleColorButton}
               colors={
@@ -1118,10 +1114,7 @@ const App = () => {
             />
           </div>
 
-          <div
-            className="mt-4 flex flex-wrap justify-center gap-2"
-            style={{ maxWidth: boardContainerSize }}
-          >
+          <div className="mt-4 flex flex-wrap justify-center gap-2">
             <button
               onClick={() => {
                 console.log("Hint button clicked");
@@ -1169,10 +1162,7 @@ const App = () => {
               Check
             </button>
           </div>
-          <div
-            className="mt-4 flex flex-wrap justify-center gap-2"
-            style={{ maxWidth: boardContainerSize }}
-          >
+          <div className="mt-4 flex flex-wrap justify-center gap-2">
             <button
               onClick={() => {
                 console.log("Delete button clicked");
@@ -1206,7 +1196,7 @@ const App = () => {
           </div>
 
           {/* Game Controls - Bottom of Center Column - Hidden on mobile */}
-          <div className="mt-8 bg-gray-800 p-4 rounded-lg w-full max-w-md hidden lg:block">
+          <div className="mt-8 bg-gray-800 p-4 rounded-lg w-full hidden lg:block">
             <h3 className="text-xl font-bold text-white mb-3 text-center">
               Game Controls
             </h3>
@@ -1242,7 +1232,7 @@ const App = () => {
         </div>
 
         {/* Right Panel: Color-Mixing Rules - Hidden on mobile */}
-        <div className="hidden lg:block">
+        <div className="hidden lg:block lg:w-1/4">
           <ColorMixingRules difficulty={difficulty} />
         </div>
 
