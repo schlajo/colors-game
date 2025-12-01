@@ -998,14 +998,14 @@ const App = () => {
 
         {/* Center: Game Board and Controls */}
         <div className="flex flex-col items-center flex-1 lg:flex-none lg:w-[40%] lg:relative order-first lg:order-none">
-          <div className="flex justify-center mb-1 mt-3 sm:mb-2 sm:mt-5">
+          <div className="flex justify-center mb-1 sm:mb-2 sm:mt-5">
             <img
               src={Venns}
               alt="Color Venn Diagrams"
               className="max-w-[55] sm:max-w-[76] h-auto mx-auto"
             />
           </div>
-          <h1 className="text-2xl font-bold mb-3">Colors</h1>
+          <h1 className="text-2xl font-bold mb-1 mt-1">Colors</h1>
 
           <div className="mb-4 flex items-center gap-2">
             <button
@@ -1237,7 +1237,7 @@ const App = () => {
         </div>
 
         {/* Mobile Collapsible Sections */}
-        <div className="lg:hidden w-full flex flex-col gap-4 mt-2 mb-8">
+        <div className="lg:hidden w-full flex flex-col gap-4 mt-1 mb-1">
           {/* How to Play Collapsible */}
           <div className="bg-gray-600 rounded-lg overflow-hidden border-2 border-gray-500">
             <button
