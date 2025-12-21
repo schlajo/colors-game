@@ -523,3 +523,231 @@ body,
   border: 2px solid #ff0000 !important;
   animation: shake 0.5s ease-in-out;
 }
+
+/* ========================================
+   ANIMATED SPLASH SCREEN
+   ======================================== */
+
+.splash-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #000000;
+  z-index: 9999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  transition: opacity 0.5s ease-out;
+}
+
+.splash-screen.fade-out {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Venn animation container */
+.venn-animation {
+  position: relative;
+  width: 280px;
+  height: 280px;
+  isolation: isolate;
+}
+
+/* Primary circles with additive blending */
+.venn-circle {
+  position: absolute;
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  mix-blend-mode: screen;
+  transition: all 1.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.venn-circle.red {
+  background: #ff0000;
+  top: -200px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.venn-circle.green {
+  background: #00ff00;
+  bottom: -200px;
+  left: -50px;
+}
+
+.venn-circle.blue {
+  background: #0000ff;
+  bottom: -200px;
+  right: -50px;
+}
+
+/* Phase 1: Moving toward Venn position */
+.venn-circle.red.move-in {
+  top: 20px;
+}
+
+.venn-circle.green.move-in {
+  bottom: 20px;
+  left: 20px;
+}
+
+.venn-circle.blue.move-in {
+  bottom: 20px;
+  right: 20px;
+}
+
+/* Phase 2: Full Venn position */
+.venn-circle.red.venn-position {
+  top: 0;
+}
+
+.venn-circle.green.venn-position {
+  bottom: 0;
+  left: 0;
+}
+
+.venn-circle.blue.venn-position {
+  bottom: 0;
+  right: 0;
+}
+
+/* Phase 3: Fully merged into one white orb */
+.venn-circle.merged {
+  top: 50% !important;
+  left: 50% !important;
+  right: auto !important;
+  bottom: auto !important;
+  transform: translate(-50%, -50%) !important;
+  transition: all 1s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* White explosion */
+.white-explosion {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 30px;
+  height: 30px;
+  background: radial-gradient(
+    circle,
+    #ffffff 0%,
+    #ffffff 60%,
+    rgba(255, 255, 255, 0.5) 80%,
+    transparent 100%
+  );
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  animation: whiteExplode 0.7s ease-out forwards;
+  z-index: 100;
+}
+
+@keyframes whiteExplode {
+  0% {
+    width: 30px;
+    height: 30px;
+    opacity: 1;
+  }
+  40% {
+    opacity: 1;
+  }
+  100% {
+    width: 300vmax;
+    height: 300vmax;
+    opacity: 0;
+  }
+}
+
+/* Colors icon reveal */
+.colors-icon-reveal {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  animation: iconReveal 0.8s ease-out forwards;
+}
+
+@keyframes iconReveal {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  60% {
+    transform: scale(1.05);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Static Colors icon */
+.colors-icon {
+  position: relative;
+  width: 150px;
+  height: 150px;
+  margin-bottom: 20px;
+  isolation: isolate;
+}
+
+.icon-circle {
+  position: absolute;
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  mix-blend-mode: screen;
+}
+
+.icon-circle.red {
+  background: #ff0000;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.icon-circle.green {
+  background: #00ff00;
+  bottom: 0;
+  left: 0;
+}
+
+.icon-circle.blue {
+  background: #0000ff;
+  bottom: 0;
+  right: 0;
+}
+
+.icon-center {
+  position: absolute;
+  top: 55%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 20px;
+  font-weight: bold;
+  color: #000000;
+  z-index: 10;
+}
+
+.colors-title {
+  font-size: 2.8rem;
+  font-weight: bold;
+  color: #ffffff;
+  margin: 0;
+}
+
+.colors-byline {
+  font-size: 1.1rem;
+  color: #666666;
+  margin-top: 10px;
+}
+
+.tap-skip {
+  position: absolute;
+  bottom: 50px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #444444;
+  font-size: 0.85rem;
+}

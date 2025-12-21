@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import ColorBoard from "./components/ColorBoard";
 import ColorPalette from "./components/ColorPalette";
+import AnimatedSplash from "./components/AnimatedSplash";
 import {
   generateSolution,
   createPuzzle,
@@ -43,6 +44,7 @@ import {
 } from "./utils/soundEffects";
 
 const App = () => {
+  const [showSplash, setShowSplash] = useState(true);
   const [board, setBoard] = useState(null);
   const [soundEnabled, setSoundEnabled] = useState(true);
 
@@ -984,6 +986,9 @@ const App = () => {
 
   return (
     <>
+      {/* Animated Splash Screen */}
+      {showSplash && <AnimatedSplash onComplete={() => setShowSplash(false)} />}
+
       <style>
         {`:root {
         --cell-size: ${48 - config.GRID_SIZE}px;
