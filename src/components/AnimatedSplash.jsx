@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { playSuccessSound, initAudioContext } from "../utils/soundEffects";
 
 const AnimatedSplash = ({ onComplete }) => {
   const [phase, setPhase] = useState(0);
@@ -7,18 +6,16 @@ const AnimatedSplash = ({ onComplete }) => {
   // Phase 1: Circles moving inward, starting to overlap (Venn forming)
   // Phase 2: Full Venn visible (Y, M, C showing)
   // Phase 3: Circles continue merging into one white orb
-  // Phase 4: White explosion + sound
+  // Phase 4: White explosion
   // Phase 5: Logo reveal (Colors icon only)
   // Phase 6: Fade out
 
   useEffect(() => {
-    initAudioContext();
-
     const timeline = [
       { delay: 400, nextPhase: 1 }, // Start circles moving toward Venn
       { delay: 1600, nextPhase: 2 }, // Full Venn formed
       { delay: 800, nextPhase: 3 }, // Continue merging into white orb
-      { delay: 1200, nextPhase: 4 }, // White explosion + sound
+      { delay: 1200, nextPhase: 4 }, // White explosion
       { delay: 700, nextPhase: 5 }, // Logo reveal
       { delay: 2000, nextPhase: 6 }, // Start fade out
       { delay: 500, nextPhase: 7 }, // Complete
@@ -31,9 +28,6 @@ const AnimatedSplash = ({ onComplete }) => {
       accumulatedDelay += step.delay;
       const timeout = setTimeout(() => {
         setPhase(step.nextPhase);
-        if (step.nextPhase === 4) {
-          playSuccessSound();
-        }
         if (step.nextPhase === 7) {
           onComplete();
         }
