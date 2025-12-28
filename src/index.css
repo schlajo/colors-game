@@ -15,6 +15,16 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  
+  /* Respect system font size settings */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+html {
+  /* Allow font scaling based on system settings */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 a {
@@ -564,64 +574,65 @@ body,
   border-radius: 50%;
   mix-blend-mode: screen;
   transition: all 1.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  /* Position all circles from center for easier equilateral positioning */
+  top: 50%;
+  left: 50%;
 }
 
 .venn-circle.red {
   background: #ff0000;
-  top: -200px;
-  left: 50%;
-  transform: translateX(-50%);
+  /* Start off-screen: straight up (270°) */
+  transform: translate(-50%, -50%) translate(0px, -280px);
 }
 
 .venn-circle.green {
   background: #00ff00;
-  bottom: -200px;
-  left: -50px;
+  /* Start off-screen: 150° (bottom-left, equidistant) */
+  transform: translate(-50%, -50%) translate(-242px, 140px);
 }
 
 .venn-circle.blue {
   background: #0000ff;
-  bottom: -200px;
-  right: -50px;
+  /* Start off-screen: 30° (bottom-right, equidistant) */
+  transform: translate(-50%, -50%) translate(242px, 140px);
 }
 
-/* Phase 1: Moving toward Venn position */
+/* Phase 1: Moving toward Venn - deeper overlap before pulling apart */
 .venn-circle.red.move-in {
-  top: 20px;
+  /* Move to deeper overlap position (closer to center) */
+  transform: translate(-50%, -50%) translate(0px, -35px);
 }
 
 .venn-circle.green.move-in {
-  bottom: 20px;
-  left: 20px;
+  /* 150° at radius 40px from center for deep overlap */
+  transform: translate(-50%, -50%) translate(-30px, 17px);
 }
 
 .venn-circle.blue.move-in {
-  bottom: 20px;
-  right: 20px;
+  /* 30° at radius 40px from center for deep overlap */
+  transform: translate(-50%, -50%) translate(30px, 17px);
 }
 
-/* Phase 2: Full Venn position */
+/* Phase 2: Separated position - circles pulled apart until no longer overlapping */
 .venn-circle.red.venn-position {
-  top: 0;
+  /* Top position: radius ~85px - circles just barely not touching */
+  transform: translate(-50%, -50%) translate(0px, -85px);
 }
 
 .venn-circle.green.venn-position {
-  bottom: 0;
-  left: 0;
+  /* 150° at radius ~85px */
+  transform: translate(-50%, -50%) translate(-74px, 42px);
 }
 
 .venn-circle.blue.venn-position {
-  bottom: 0;
-  right: 0;
+  /* 30° at radius ~85px */
+  transform: translate(-50%, -50%) translate(74px, 42px);
 }
 
 /* Phase 3: Fully merged into one white orb */
 .venn-circle.merged {
-  top: 50% !important;
-  left: 50% !important;
-  right: auto !important;
-  bottom: auto !important;
-  transform: translate(-50%, -50%) !important;
+  /* All circles merge to center */
+  transform: translate(-50%, -50%) translate(0px, 0px) !important;
   transition: all 1s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
@@ -698,30 +709,32 @@ body,
   height: 90px;
   border-radius: 50%;
   mix-blend-mode: screen;
+  /* Position from center for equilateral arrangement */
+  top: 50%;
+  left: 50%;
 }
 
 .icon-circle.red {
   background: #ff0000;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
+  /* Top: straight up at radius 28px for significant overlap */
+  transform: translate(-50%, -50%) translate(0px, -28px);
 }
 
 .icon-circle.green {
   background: #00ff00;
-  bottom: 0;
-  left: 0;
+  /* 150° at radius 28px */
+  transform: translate(-50%, -50%) translate(-24px, 14px);
 }
 
 .icon-circle.blue {
   background: #0000ff;
-  bottom: 0;
-  right: 0;
+  /* 30° at radius 28px */
+  transform: translate(-50%, -50%) translate(24px, 14px);
 }
 
 .icon-center {
   position: absolute;
-  top: 55%;
+  top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
   font-size: 20px;
