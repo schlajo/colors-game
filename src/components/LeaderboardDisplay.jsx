@@ -24,8 +24,8 @@ const LeaderboardDisplay = ({ isOpen, onClose }) => {
     setError("");
 
     try {
-      const result = await getLeaderboard(difficulty, 20);
-      console.log('Leaderboard data returned:', result.data);
+      const result = await getLeaderboard(difficulty, 100);
+      console.log("Leaderboard data returned:", result.data);
       if (result.success) {
         setLeaderboardData(result.data);
       } else {
@@ -58,7 +58,7 @@ const LeaderboardDisplay = ({ isOpen, onClose }) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-  <div className="bg-white rounded-lg max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+      <div className="bg-white rounded-lg max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
         <div className="p-6">
           {/* Header */}
           <div className="flex justify-between items-center mb-6">

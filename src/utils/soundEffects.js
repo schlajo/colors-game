@@ -12,52 +12,41 @@ const initAudioContext = () => {
   return audioContext;
 };
 
-// Evacuation alarm sound for errors
+// Wrong answer sound - soft but alternating E-A pattern, ~0.8s duration
 const playErrorSound = () => {
   if (!soundEnabled) return;
 
   try {
     const ctx = initAudioContext();
 
-    // Create oscillators for alarm effect
-    const oscillator1 = ctx.createOscillator();
-    const oscillator2 = ctx.createOscillator();
+    const osc = ctx.createOscillator();
     const gainNode = ctx.createGain();
 
-    // Connect nodes
-    oscillator1.connect(gainNode);
-    oscillator2.connect(gainNode);
+    osc.connect(gainNode);
     gainNode.connect(ctx.destination);
 
-    // Set up the evacuation alarm sound - alternating high/low tones
-    oscillator1.type = "sawtooth";
-    oscillator2.type = "square";
+    // Triangle wave - warmer than sawtooth/square
+    osc.type = "triangle";
 
-    // Low-pitched nuclear facility alarm frequencies
-    oscillator1.frequency.setValueAtTime(200, ctx.currentTime);
-    oscillator1.frequency.setValueAtTime(150, ctx.currentTime + 0.2);
-    oscillator1.frequency.setValueAtTime(200, ctx.currentTime + 0.4);
-    oscillator1.frequency.setValueAtTime(150, ctx.currentTime + 0.6);
+    // Alternating E-A-E-A pattern (syncs with red box animation)
+    osc.frequency.setValueAtTime(165, ctx.currentTime); // E3
+    osc.frequency.setValueAtTime(110, ctx.currentTime + 0.2); // A2
+    osc.frequency.setValueAtTime(165, ctx.currentTime + 0.4); // E3
+    osc.frequency.setValueAtTime(110, ctx.currentTime + 0.6); // A2
 
-    oscillator2.frequency.setValueAtTime(180, ctx.currentTime);
-    oscillator2.frequency.setValueAtTime(130, ctx.currentTime + 0.2);
-    oscillator2.frequency.setValueAtTime(180, ctx.currentTime + 0.4);
-    oscillator2.frequency.setValueAtTime(130, ctx.currentTime + 0.6);
-
-    // Volume envelope - "errr, errr, errr" pattern
+    // Moderate volume with pulsing to match alternation
     gainNode.gain.setValueAtTime(0, ctx.currentTime);
-    gainNode.gain.linearRampToValueAtTime(0.5, ctx.currentTime + 0.05);
-    gainNode.gain.linearRampToValueAtTime(0.1, ctx.currentTime + 0.2);
-    gainNode.gain.linearRampToValueAtTime(0.5, ctx.currentTime + 0.25);
-    gainNode.gain.linearRampToValueAtTime(0.1, ctx.currentTime + 0.4);
-    gainNode.gain.linearRampToValueAtTime(0.5, ctx.currentTime + 0.45);
+    gainNode.gain.linearRampToValueAtTime(0.25, ctx.currentTime + 0.05);
+    gainNode.gain.linearRampToValueAtTime(0.15, ctx.currentTime + 0.2);
+    gainNode.gain.linearRampToValueAtTime(0.25, ctx.currentTime + 0.25);
+    gainNode.gain.linearRampToValueAtTime(0.15, ctx.currentTime + 0.4);
+    gainNode.gain.linearRampToValueAtTime(0.25, ctx.currentTime + 0.45);
+    gainNode.gain.linearRampToValueAtTime(0.15, ctx.currentTime + 0.6);
+    gainNode.gain.linearRampToValueAtTime(0.2, ctx.currentTime + 0.65);
     gainNode.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.8);
 
-    // Play the alarm
-    oscillator1.start(ctx.currentTime);
-    oscillator2.start(ctx.currentTime);
-    oscillator1.stop(ctx.currentTime + 0.8);
-    oscillator2.stop(ctx.currentTime + 0.8);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.8);
   } catch (error) {
     console.log("Audio not supported or failed:", error);
   }
@@ -85,11 +74,11 @@ const playSuccessSound = () => {
     swooshOsc.frequency.setValueAtTime(150, ctx.currentTime);
     swooshOsc.frequency.exponentialRampToValueAtTime(
       600,
-      ctx.currentTime + 0.4
+      ctx.currentTime + 0.4,
     );
     swooshOsc.frequency.exponentialRampToValueAtTime(
       100,
-      ctx.currentTime + 0.8
+      ctx.currentTime + 0.8,
     );
 
     // Filter for liquid effect
@@ -97,11 +86,11 @@ const playSuccessSound = () => {
     swooshFilter.frequency.setValueAtTime(800, ctx.currentTime);
     swooshFilter.frequency.exponentialRampToValueAtTime(
       1500,
-      ctx.currentTime + 0.3
+      ctx.currentTime + 0.3,
     );
     swooshFilter.frequency.exponentialRampToValueAtTime(
       300,
-      ctx.currentTime + 0.8
+      ctx.currentTime + 0.8,
     );
     swooshFilter.Q.setValueAtTime(2, ctx.currentTime);
 
@@ -197,7 +186,7 @@ const playCelebrationSound = () => {
       swooshOsc.frequency.setValueAtTime(100 + i * 50, ctx.currentTime + delay);
       swooshOsc.frequency.exponentialRampToValueAtTime(
         800 + i * 200,
-        ctx.currentTime + delay + 0.3
+        ctx.currentTime + delay + 0.3,
       );
 
       // Filter for futuristic effect
@@ -205,7 +194,7 @@ const playCelebrationSound = () => {
       swooshFilter.frequency.setValueAtTime(600, ctx.currentTime + delay);
       swooshFilter.frequency.exponentialRampToValueAtTime(
         2000,
-        ctx.currentTime + delay + 0.3
+        ctx.currentTime + delay + 0.3,
       );
       swooshFilter.Q.setValueAtTime(3, ctx.currentTime + delay);
 
@@ -213,11 +202,11 @@ const playCelebrationSound = () => {
       swooshGain.gain.setValueAtTime(0, ctx.currentTime + delay);
       swooshGain.gain.linearRampToValueAtTime(
         0.1,
-        ctx.currentTime + delay + 0.05
+        ctx.currentTime + delay + 0.05,
       );
       swooshGain.gain.linearRampToValueAtTime(
         0,
-        ctx.currentTime + delay + 0.35
+        ctx.currentTime + delay + 0.35,
       );
 
       // Play the swoosh

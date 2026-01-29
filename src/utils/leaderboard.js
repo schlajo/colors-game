@@ -44,7 +44,7 @@ export const testConnection = async () => {
 export const addLeaderboardEntry = async (
   playerName,
   difficulty,
-  timeTaken
+  timeTaken,
 ) => {
   try {
     const { data, error } = await supabase
@@ -79,7 +79,7 @@ export const addLeaderboardEntry = async (
 };
 
 // Get leaderboard entries for a specific difficulty
-export const getLeaderboard = async (difficulty, limit = 20) => {
+export const getLeaderboard = async (difficulty, limit = 100) => {
   try {
     const { data, error } = await supabase
       .from("leaderboard")
